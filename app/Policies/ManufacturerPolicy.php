@@ -13,7 +13,7 @@ class ManufacturerPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -21,7 +21,7 @@ class ManufacturerPolicy
      */
     public function view(User $user, Manufacturer $manufacturer): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -29,7 +29,7 @@ class ManufacturerPolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -37,7 +37,7 @@ class ManufacturerPolicy
      */
     public function update(User $user, Manufacturer $manufacturer): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -45,7 +45,7 @@ class ManufacturerPolicy
      */
     public function delete(User $user, Manufacturer $manufacturer): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -53,7 +53,7 @@ class ManufacturerPolicy
      */
     public function restore(User $user, Manufacturer $manufacturer): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -61,6 +61,6 @@ class ManufacturerPolicy
      */
     public function forceDelete(User $user, Manufacturer $manufacturer): bool
     {
-        return false;
+        return true;
     }
 }

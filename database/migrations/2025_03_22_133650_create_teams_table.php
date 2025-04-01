@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('address');
             $table->string('email')->unique();
             $table->string('phonenumber');
+            $table->json('data')->nullable();
             $table->timestamps();
         });
     }

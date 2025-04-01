@@ -17,7 +17,11 @@ class ManufacturerFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'name'           => $this->faker->company,
+            'identification' => $this->faker->uuid,
+            'address'        => $this->faker->address,
+            'email'          => $this->faker->companyEmail,
+            'phonenumber'    => $this->faker->phoneNumber,
         ];
     }
 }

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Collection;
 use Illuminate\Notifications\Notifiable;
@@ -28,6 +29,7 @@ class User extends Authenticatable implements FilamentUser, HasTenants, HasAvata
         'name',
         'email',
         'password',
+        'data',
     ];
 
     /**
@@ -50,6 +52,7 @@ class User extends Authenticatable implements FilamentUser, HasTenants, HasAvata
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'data' => 'array',
         ];
     }
 
@@ -65,21 +68,6 @@ class User extends Authenticatable implements FilamentUser, HasTenants, HasAvata
         return true;
     }
 
-    /**
-     * Relación: Un usuario pertenece a un equipo.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function teams(): BelongsToMany
-    {
-        return $this->belongsToMany(Team::class);
-    }
-
-    public function getTenants(Panel $panel): Collection
-    {
-        return $this->teams;
-    }
-
     public function canAccessTenant(Model $tenant): bool
     {
         return $this->teams()->whereKey($tenant)->exists();
@@ -88,5 +76,31 @@ class User extends Authenticatable implements FilamentUser, HasTenants, HasAvata
     public function getFilamentAvatarUrl(): ?string
     {
         return $this->avatar_url;
+    }
+
+    public function getTenants(Panel $panel): Collection
+    {
+        return $this->teams;
+    }
+
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class);
+    }
+
+    /**
+     * Relación: Un usuario pertenece a un equipo.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+
+    public function teams(): BelongsToMany
+    {
+        return $this->belongsToMany(Team::class);
+    }
+
+    public function user_answers(): HasMany
+    {
+        return $this->hasMany(UserAnswer::class);
     }
 }
