@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -14,6 +15,7 @@ class Batch extends Model
     protected $fillable = [
         'team_id',
         'code',
+        'manufacturer_id',
         'sanitary_registry_id',
         'manufacturing_date',
         'expiration_date',
@@ -26,22 +28,28 @@ class Batch extends Model
         'data' => 'array',
     ];
 
-    public function sanitaryRegistry()
+    public function manufacturer(): BelongsTo
     {
-        return $this->belongsTo(SanitaryRegistry::class);
+        return $this->belongsTo(Manufacturer::class);
     }
 
-    public function saleItems(): HasMany
+    public function product_recepcion_items(): HasMany
+    {
+        return $this->hasMany(ProductReceptionItem::class);
+    }
+
+    public function sale_items(): HasMany
     {
         return $this->hasMany(SaleItem::class);
     }
 
-    public function productRecepcionItems(): HasMany
+    public function sanitary_registry(): BelongsTo
     {
-        return $this->hasMany(ProductReceptionItem::class);
+        return $this->belongsTo(SanitaryRegistry::class);
     }
-    public function teams(): BelongsToMany
+
+    public function team(): BelongsTo
     {
-        return $this->belongsToMany(Team::class);
+        return $this->belongsTo(Team::class);
     }
 }

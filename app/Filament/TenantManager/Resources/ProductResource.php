@@ -7,6 +7,7 @@ use App\Filament\TenantManager\Resources\ProductResource\RelationManagers;
 use App\Models\Product;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -17,41 +18,66 @@ class ProductResource extends Resource
 {
     protected static ?string $model = Product::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationGroup = 'Productos';
+    protected static ?string $navigationIcon = 'phosphor-cube';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('product_category_id')
-                    ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('pharmaceutical_form_id')
-                    ->numeric()
+                Forms\Components\Select::make('product_category_id')
+                    ->relationship(name: 'category', titleAttribute: 'name')
+                    ->searchable()
+                    ->preload()
+                    ->createOptionForm([
+                        Forms\Components\TextInput::make('name')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('description')
+                            ->required()
+                            ->maxLength(255),
+                    ])
+                    ->required(),
+                Forms\Components\Select::make('pharmaceutical_form_id')
+                    ->relationship(name: 'form', titleAttribute: 'name')
+                    ->searchable()
+                    ->preload()
+                    ->createOptionForm([
+                        Forms\Components\TextInput::make('name')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('description')
+                            ->required()
+                            ->maxLength(255),
+                    ])
                     ->default(null),
                 Forms\Components\TextInput::make('code')
+                    ->placeholder('Código de barras')
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('name')
+                    ->placeholder('Nombre comercial')
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('drug')
+                    ->placeholder('Principio activo')
                     ->maxLength(255)
                     ->default(null),
                 Forms\Components\TextInput::make('description')
                     ->required()
+                    ->placeholder('Presentación comercial - concentración')
                     ->maxLength(255),
                 Forms\Components\Toggle::make('fractionable')
+                    ->live()
+                    ->inline(false)
                     ->required(),
                 Forms\Components\TextInput::make('conversion_factor')
+                    ->hidden(fn(Get $get): bool => ! $get('fractionable'))
                     ->numeric()
                     ->default(null),
                 Forms\Components\FileUpload::make('image')
                     ->image()
                     ->required(),
-                Forms\Components\TextInput::make('min')
-                    ->required()
-                    ->numeric(),
                 Forms\Components\TextInput::make('tax')
                     ->required()
                     ->numeric(),
@@ -64,32 +90,33 @@ class ProductResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('product_category_id')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('pharmaceutical_form_id')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('code')
+                Tables\Columns\TextColumn::make('category.name')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('form.name')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('code')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('drug')
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('description')
                     ->searchable(),
                 Tables\Columns\IconColumn::make('fractionable')
-                    ->boolean(),
+                    ->boolean()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('conversion_factor')
                     ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\ImageColumn::make('image'),
-                Tables\Columns\TextColumn::make('min')
-                    ->numeric()
-                    ->sortable(),
                 Tables\Columns\TextColumn::make('tax')
+                    ->placeholder('IVA')
                     ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\IconColumn::make('status')
                     ->boolean(),
                 Tables\Columns\TextColumn::make('deleted_at')

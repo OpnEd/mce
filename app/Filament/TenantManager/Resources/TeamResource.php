@@ -17,7 +17,7 @@ class TeamResource extends Resource
 {
     protected static ?string $model = Team::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'phosphor-users-three';
 
     public static function form(Form $form): Form
     {
@@ -45,6 +45,10 @@ class TeamResource extends Resource
                     ->tel()
                     ->required()
                     ->maxLength(255),
+                Forms\Components\KeyValue::make('data')
+                    ->addActionLabel('Adicionar propiedad')
+                    ->reorderable()
+                    ->columnSpanFull(),
             ]);
     }
 

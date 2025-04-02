@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Manufacturer;
 use App\Models\SanitaryRegistry;
 use App\Models\Team;
 use Illuminate\Database\Migrations\Migration;
@@ -17,6 +18,7 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(Team::class)->constrained();
             $table->foreignIdFor(SanitaryRegistry::class)->constrained();
+            $table->foreignIdFor(Manufacturer::class);
             $table->string('code')->unique();
             $table->date('manufacturing_date');
             $table->date('expiration_date');

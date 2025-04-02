@@ -17,7 +17,8 @@ class SanitaryRegistryResource extends Resource
 {
     protected static ?string $model = SanitaryRegistry::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationGroup = 'Productos';
+    protected static ?string $navigationIcon = 'phosphor-buildings';
 
     public static function form(Form $form): Form
     {

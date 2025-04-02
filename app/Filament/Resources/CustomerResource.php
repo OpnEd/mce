@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Filament\TenantManager\Resources;
+namespace App\Filament\Resources;
 
-use App\Filament\TenantManager\Resources\PharmaceuticalFormResource\Pages;
-use App\Filament\TenantManager\Resources\PharmaceuticalFormResource\RelationManagers;
-use App\Models\PharmaceuticalForm;
+use App\Filament\Resources\CustomerResource\Pages;
+use App\Filament\Resources\CustomerResource\RelationManagers;
+use App\Models\Customer;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -13,12 +13,11 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class PharmaceuticalFormResource extends Resource
+class CustomerResource extends Resource
 {
-    protected static ?string $model = PharmaceuticalForm::class;
+    protected static ?string $model = Customer::class;
 
-    protected static ?string $navigationGroup = 'Productos';
-    protected static ?string $navigationIcon = 'phosphor-pill';
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
     {
@@ -27,9 +26,22 @@ class PharmaceuticalFormResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
-                Forms\Components\TextInput::make('description')
-                    ->maxLength(255)
-                    ->default(null),
+                Forms\Components\TextInput::make('identification')
+                    ->required()
+                    ->maxLength(255),
+                Forms\Components\TextInput::make('address')
+                    ->required()
+                    ->maxLength(255),
+                Forms\Components\TextInput::make('email')
+                    ->email()
+                    ->required()
+                    ->maxLength(255),
+                Forms\Components\TextInput::make('phonenumber')
+                    ->tel()
+                    ->required()
+                    ->maxLength(255),
+                Forms\Components\Textarea::make('data')
+                    ->columnSpanFull(),
             ]);
     }
 
@@ -39,8 +51,18 @@ class PharmaceuticalFormResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('description')
+                Tables\Columns\TextColumn::make('identification')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('address')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('email')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('phonenumber')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('deleted_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -54,7 +76,6 @@ class PharmaceuticalFormResource extends Resource
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
@@ -76,10 +97,9 @@ class PharmaceuticalFormResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListPharmaceuticalForms::route('/'),
-            'create' => Pages\CreatePharmaceuticalForm::route('/create'),
-            'view' => Pages\ViewPharmaceuticalForm::route('/{record}'),
-            'edit' => Pages\EditPharmaceuticalForm::route('/{record}/edit'),
+            'index' => Pages\ListCustomers::route('/'),
+            'create' => Pages\CreateCustomer::route('/create'),
+            'edit' => Pages\EditCustomer::route('/{record}/edit'),
         ];
     }
 

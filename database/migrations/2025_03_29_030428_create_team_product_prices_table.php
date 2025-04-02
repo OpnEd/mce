@@ -18,6 +18,7 @@ return new class extends Migration
             $table->foreignIdFor(Team::class)->constrained()->onDelete('cascade');
             $table->foreignIdFor(Product::class)->constrained()->onDelete('cascade');
             $table->decimal('price', 8, 2); // Precio del producto para el equipo
+            $table->integer('min')->nullable();
             $table->timestamps();
         });
     }

@@ -23,12 +23,16 @@ class BatchResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('team_id')
-                    ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('sanitary_registry_id')
-                    ->required()
-                    ->numeric(),
+                Forms\Components\Select::make('manufacturer_id')
+                    ->relationship(name: 'manufacturer', titleAttribute: 'name')
+                    ->searchable()
+                    ->preload()
+                    ->required(),
+                Forms\Components\Select::make('sanitary_registry_id')
+                    ->relationship(name: 'sanitary_registry', titleAttribute: 'code')
+                    ->searchable()
+                    ->preload()
+                    ->required(),
                 Forms\Components\TextInput::make('code')
                     ->required()
                     ->maxLength(255),
@@ -36,7 +40,7 @@ class BatchResource extends Resource
                     ->required(),
                 Forms\Components\DatePicker::make('expiration_date')
                     ->required(),
-                Forms\Components\Textarea::make('data')
+                Forms\Components\KeyValue::make('data')
                     ->columnSpanFull(),
             ]);
     }

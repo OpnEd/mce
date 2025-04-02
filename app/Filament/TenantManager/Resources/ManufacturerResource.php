@@ -17,7 +17,7 @@ class ManufacturerResource extends Resource
 {
     protected static ?string $model = Manufacturer::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'phosphor-factory';
 
     public static function form(Form $form): Form
     {
@@ -40,7 +40,9 @@ class ManufacturerResource extends Resource
                     ->tel()
                     ->required()
                     ->maxLength(255),
-                Forms\Components\Textarea::make('data')
+                Forms\Components\KeyValue::make('data')
+                    ->addActionLabel('Adicionar propiedad')
+                    ->reorderable()
                     ->columnSpanFull(),
             ]);
     }

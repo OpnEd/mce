@@ -31,9 +31,9 @@ class Team extends Model
         'data' => 'array'
     ];
 
-    public function batches(): BelongsToMany
+    public function batches(): HasMany
     {
-        return $this->belongsToMany(Batch::class);
+        return $this->hasMany(Batch::class);
     }
 
     public function checklists(): HasMany
@@ -51,9 +51,9 @@ class Team extends Model
         return $this->hasMany(ChecklistItemAnswer::class);
     }
 
-    public function customers(): BelongsToMany
+    public function customers(): HasMany
     {
-        return $this->belongsToMany(Customer::class);
+        return $this->hasMany(Customer::class);
     }
 
     public function documents(): HasMany

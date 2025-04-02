@@ -9,7 +9,12 @@ class TeamProductPrice extends Model
     protected $fillable = [
         'team_id',
         'product_id',
+        'min', //stock mínimo
         'price',
+    ];
+
+    protected $casts = [
+        'price' => 'decimal:2'
     ];
 
     // Relación inversa: cada precio pertenece a un producto

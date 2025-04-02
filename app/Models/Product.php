@@ -24,7 +24,6 @@ class Product extends Model
         'fractionable', //fraccionable
         'conversion_factor', //factor de conversión
         'image', // imagen
-        'min', //stock mínimo
         'tax', //impuesto
         'status' //estado:activo o inactivo
     ];
@@ -40,7 +39,6 @@ class Product extends Model
             'conversion_factor' => 'decimal:2',
             'tax' => 'decimal:2',
             'image' => 'string',
-            'min' => 'integer',
             'status' => 'boolean'
         ];
     }
