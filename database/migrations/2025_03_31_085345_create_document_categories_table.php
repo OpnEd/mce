@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignIdFor(Team::class)->nullable()->constrained()->nullOnDelete();
             $table->string('name');
             $table->string('code')->unique();
-            $table->string('description')->nullable();
+            $table->text('description')->nullable();
             $table->json('data')->nullable();
             $table->softDeletes();
             $table->timestamps();

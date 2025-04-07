@@ -14,11 +14,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Collection;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements FilamentUser, HasTenants, HasAvatar
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -71,6 +72,11 @@ class User extends Authenticatable implements FilamentUser, HasTenants, HasAvata
     public function canAccessTenant(Model $tenant): bool
     {
         return $this->teams()->whereKey($tenant)->exists();
+    }
+
+    public function currentTeam()
+    {
+        return $this->belongsTo(Team::class);
     }
 
     public function getFilamentAvatarUrl(): ?string

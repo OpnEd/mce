@@ -23,6 +23,7 @@ class BatchSeeder extends Seeder
         $batches = [
             [
                 'team_id' => 1,
+                'manufacturer_id' => 1,
                 'code' => 'BATCH-2023-001',
                 'sanitary_registry_id' => 1,
                 'manufacturing_date' => '2023-10-01',
@@ -30,6 +31,7 @@ class BatchSeeder extends Seeder
             ],
             [
                 'team_id' => 1,
+                'manufacturer_id' => 1,
                 'code' => 'BATCH-2023-002',
                 'sanitary_registry_id' => 1,
                 'manufacturing_date' => '2023-10-05',
@@ -37,6 +39,7 @@ class BatchSeeder extends Seeder
             ],
             [
                 'team_id' => 1,
+                'manufacturer_id' => 1,
                 'code' => 'BATCH-2023-003',
                 'sanitary_registry_id' => 1,
                 'manufacturing_date' => '2023-10-10',
@@ -44,6 +47,7 @@ class BatchSeeder extends Seeder
             ],
             [
                 'team_id' => 1,
+                'manufacturer_id' => 1,
                 'code' => 'BATCH-2023-004',
                 'sanitary_registry_id' => 1,
                 'manufacturing_date' => '2023-11-01',

@@ -17,6 +17,7 @@ class CustomerFactory extends Factory
     public function definition(): array
     {
         return [
+            'team_id'        => rand(1,9),
             'name'           => $this->faker->company,
             'identification' => $this->faker->uuid,
             'address'        => $this->faker->address,

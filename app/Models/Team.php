@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class Team extends Model
 {
@@ -90,6 +92,11 @@ class Team extends Model
         return $this->belongsToMany(Patient::class);
     }
 
+    public function permissions(): HasMany
+    {
+        return $this->hasMany(Permission::class);
+    }
+
     public function processes(): HasMany
     {
         return $this->hasMany(Process::class);
@@ -118,6 +125,11 @@ class Team extends Model
     public function recipebooks(): HasMany
     {
         return $this->hasMany(Recipebook::class);
+    }
+
+    public function roles(): HasMany
+    {
+        return $this->hasMany(Role::class);
     }
 
     public function sales(): HasMany

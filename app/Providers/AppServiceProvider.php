@@ -11,14 +11,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        /* $this->app->bind(
-            \App\Repositories\TeamRepositoryInterface::class,
-            \App\Repositories\TeamRepository::class
-        ); */
-        /* $this->app->bind(
-            \App\Repositories\ManufacturerRepositoryInterface::class,
-            \App\Repositories\ManufacturerRepository::class
-        ); */
+        $this->app->singleton(\App\Repositories\RoleRepository::class, function ($app) {
+            return new \App\Repositories\RoleRepository();
+        });
+
+        $this->app->singleton(\App\Services\RoleService::class, function ($app) {
+            return new \App\Services\RoleService($app->make(\App\Repositories\RoleRepository::class));
+        });
     }
 
     /**

@@ -11,16 +11,16 @@ trait FilterByTeam
     {
         parent::boot();
 
-        $currentTenantID = auth()->user()->teams()->first()->id;
+        $currentTeamID = auth()->user()->teams()->first()->id;
         $currentUserID = auth()->id();
 
-        self::creating(function($model) use($currentTenantID, $currentUserID) {
-            $model->tenant_id = $currentTenantID;
+        self::creating(function($model) use($currentTeamID, $currentUserID) {
+            $model->team_id = $currentTeamID;
             $model->user_id = $currentUserID;
         });
 
-        self::addGlobalScope(function(Builder $builder) use($currentTenantID) {
-            $builder->where('tenant_id', $currentTenantID);
+        self::addGlobalScope(function(Builder $builder) use($currentTeamID) {
+            $builder->where('team_id', $currentTeamID);
         });
     }
 }
