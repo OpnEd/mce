@@ -2,7 +2,9 @@
 
 namespace App\Enums;
 
-enum RoleType: string
+use Filament\Support\Contracts\HasLabel;
+
+enum RoleType: string implements HasLabel
 {
     case SUPERADMIN     = 'super-admin';
     case ADMIN          = 'admin';
@@ -12,6 +14,20 @@ enum RoleType: string
     case COMERCIAL      = 'comercial';
     case AUXILIARVET    = 'auxiliar-vet';
     case AUXILIARBDG    = 'auxiliar-bodega';
+
+    public function getLabel(): ?string
+    {
+        return match ($this) {
+            self::SUPERADMIN     => 'Súper Administrador',
+            self::ADMIN          => 'Administrador',
+            self::DIRECTOR       => 'Director',
+            self::MEDICO         => 'Médico',
+            self::CLIENTE        => 'Cliente',
+            self::COMERCIAL      => 'Asersor Comercial',
+            self::AUXILIARVET    => 'Auxiliar Veterinario',
+            self::AUXILIARBDG    => 'Auxiliar de Bodega',
+        };
+    }
 
     // Opcional: método para obtener todos los valores
     public static function values(): array

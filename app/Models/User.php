@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Filament\Facades\Filament;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasAvatar;
 use Filament\Models\Contracts\HasTenants;
@@ -74,7 +75,7 @@ class User extends Authenticatable implements FilamentUser, HasTenants, HasAvata
         return $this->teams()->whereKey($tenant)->exists();
     }
 
-    public function currentTeam()
+    public function team()
     {
         return $this->belongsTo(Team::class);
     }

@@ -17,10 +17,10 @@ class Role extends SpatieRole
         'team_id'
     ];
 
-    protected static function booted()
+    /* protected static function booted()
     {
         static::addGlobalScope(new TeamScope);
-    }
+    } */
 
     public function team(): BelongsTo
     {

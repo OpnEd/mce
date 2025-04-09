@@ -16,7 +16,7 @@ trait FilterByTeam
 
         self::creating(function($model) use($currentTeamID, $currentUserID) {
             $model->team_id = $currentTeamID;
-            $model->user_id = $currentUserID;
+            //$model->user_id = $currentUserID;
         });
 
         self::addGlobalScope(function(Builder $builder) use($currentTeamID) {

@@ -67,4 +67,9 @@ class UsersRelationManager extends RelationManager
                 ]),
             ]);
     }
+
+    public function getContentTabIcon(): ?string
+    {
+        return 'phosphor-users';
+    }
 }
