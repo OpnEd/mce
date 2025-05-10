@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Supplier;
+use App\Models\Team;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -14,6 +15,7 @@ return new class extends Migration
     {
         Schema::create('purchases', function (Blueprint $table) {
             $table->id();
+            $table->foreignIdFor(Team::class)->constrained()->cascadeOnDelete();
             $table->foreignIdFor(Supplier::class)->constrained();
             $table->enum('status', ['pending', 'confirmed', 'in progress', 'ready', 'dispatched', 'delivered'])->default('pending');
             $table->bigInteger('total')->default(0);

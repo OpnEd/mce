@@ -165,6 +165,7 @@ enum PermissionType: string implements HasLabel
     case DELETE_PURCHASE       = 'delete-purchase';
     case RESTORE_PURCHASE      = 'restore-purchase';
     case FORCE_DELETE_PURCHASE = 'force-delete-purchase';
+    case CONFIRM_PURCHASE      = 'confirm-purchase';
 
         // PurchaseItem
     case VIEW_PURCHASE_ITEM         = 'view-purchase-item';
@@ -454,6 +455,7 @@ enum PermissionType: string implements HasLabel
             self::DELETE_PURCHASE       => 'Eliminar Compras',
             self::RESTORE_PURCHASE      => 'Restaurar Compras',
             self::FORCE_DELETE_PURCHASE => 'Forzar la eliminación de Compras',
+            self::CONFIRM_PURCHASE      => 'Confirmar Órdenes de Compra',
 
             // PurchaseItem
             self::VIEW_PURCHASE_ITEM         => 'Ver Ítems de Compra',

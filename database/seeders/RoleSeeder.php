@@ -21,7 +21,7 @@ class RoleSeeder extends Seeder
             Permission::firstOrCreate([
                 'name' => $permission->value,
                 'guard_name' => 'web',
-                'team_id' => 1, // Puedes asignar un team_id si es multitenant
+                'team_id' => 2, // Puedes asignar un team_id si es multitenant
                 // Puedes incluir otros campos o asignar un team_id si es multitenant
             ]);
         }
@@ -31,7 +31,7 @@ class RoleSeeder extends Seeder
             Role::firstOrCreate([
                 'name' => $role->value,
                 'guard_name' => 'web',
-                'team_id' => 1, // Puedes asignar un team_id si es multitenant
+                'team_id' => 2, // Puedes asignar un team_id si es multitenant
                 // Puedes incluir otros campos o asignar un team_id si es multitenant
             ]);
         }

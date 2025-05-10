@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Cache;
 
 class Purchase extends Model
 {
@@ -28,6 +29,15 @@ class Purchase extends Model
         'total' => 'integer',
     ];
 
+    protected static function booted()
+    {
+        static::updated(function ($purchase) {
+            if ($purchase->isDirty('total')) {
+                Cache::forget("purchase_{$purchase->id}_total");
+            }
+        });
+    }
+
     public function items(): HasMany
     {
         return $this->hasMany(PurchaseItem::class);
@@ -46,5 +56,29 @@ class Purchase extends Model
     public function team(): BelongsTo
     {
         return $this->belongsTo(Team::class);
+    }
+
+    /* public function updatePurchaseTotal(): void
+    {
+        $this->total = $this->items()->sum('total');
+        $this->save();
+    } */
+
+    public function updatePurchaseTotal(): void
+    {
+        // Actualizar usando sum() de Eloquent para mejor performance
+        /* $this->update([
+            'total' => $this->items()->sum('total')
+        ]);
+
+        // Opcional: Si necesitas recargar la instancia
+        $this->refresh(); */
+
+        $total = $this->items()->sum('total');
+
+        $this->total = $total;
+        $this->save();
+
+        Cache::put("purchase_{$this->id}_total", $total, 3600);
     }
 }

@@ -9,7 +9,7 @@ use Spatie\Permission\Models\Permission as SpatiePermission;
 
 class Permission extends SpatiePermission
 {
-    use FilterByTeam;
+    //use FilterByTeam;
 
     protected $fillable = [
         'name',

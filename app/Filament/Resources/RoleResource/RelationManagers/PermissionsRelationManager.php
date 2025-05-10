@@ -48,6 +48,7 @@ class PermissionsRelationManager extends RelationManager
                     ->form([
                         Select::make('name')
                             ->options(PermissionType::class)
+                            ->searchable()
                             ->required()
                     ]),
                 Tables\Actions\AttachAction::make()

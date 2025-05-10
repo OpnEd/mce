@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreManufacturerRequest;
 use App\Http\Requests\UpdateManufacturerRequest;
 use App\Models\Manufacturer;
+use App\Enums\RoleType;
+use App\Models\Role;
+use App\Models\User;
+use Filament\Facades\Filament;
 
 class ManufacturerController extends Controller
 {
@@ -37,7 +41,24 @@ class ManufacturerController extends Controller
      */
     public function show(Manufacturer $manufacturer)
     {
-        //
+        $team = Filament::getTenant();
+        $user = auth()->user();
+        $userRoles = $user->getRoleNames();
+        /* $userRoles = Role::where('id', $user->id)
+            ->with('permissions')
+            ->get()
+            ->map(function ($role) {
+                return [
+                    'name' => $role->name,
+                    'permissions' => $role->permissions->pluck('name'),
+                ];
+            }); */
+        return view('mi-vista', [
+            'roles' => RoleType::values(),
+            'userRoles' => $userRoles,
+            'user' => $user,
+            'team' => $team,
+        ]);
     }
 
     /**

@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\DocumentCategory;
 use App\Models\SanitaryRegistry;
+use App\Models\Stock;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -15,11 +16,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        User::factory(10)->create();
+
+        //Stock::factory(30)->create();
 
         $this->call([
             TeamSeeder::class,
-            //TeamUserSeeder::class,
+            TeamUserSeeder::class,
             ManufacturerSeeder::class,
             ProductCategorySeeder::class,
             PharmaceuticalFormSeeder::class,
@@ -32,6 +35,8 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             //PurchaseSeeder::class,
             //PurchaseItemSeeder::class,
+            StockSeeder::class,
+            CentralProductPriceSeeder::class,
         ]);
 
         $user = User::factory()->create([

@@ -22,6 +22,8 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use App\Filament\Pages\Settings;
+use App\Http\Middleware\SetTeamPermissions;
+use Filament\Forms\Set;
 use Filament\Navigation\MenuItem;
 
 class AdminPanelProvider extends PanelProvider
@@ -67,21 +69,24 @@ class AdminPanelProvider extends PanelProvider
             //->emailVerification()
             ->profile()
             ->tenant(Team::class)
-            ->tenantRegistration(RegisterTeam::class)
-            ->tenantProfile(EditTeamProfile::class)
             ->tenantMenuItems([
                 'profile' => MenuItem::make()->label('Edit team profile'),
                 'register' => MenuItem::make()->label('Register new team'),
                 MenuItem::make()
                     ->label('Settings')
-                    ->url(fn (): string => Settings::getUrl())
+                    ->url(fn(): string => Settings::getUrl())
                     ->icon('heroicon-m-cog-8-tooth'),
                 // ...
             ])
+            ->tenantMiddleware([
+                SetTeamPermissions::class,
+            ], isPersistent: true)
+            ->tenantProfile(EditTeamProfile::class)
+            ->tenantRegistration(RegisterTeam::class)
             ->navigationGroups([
                 NavigationGroup::make()
-                     ->label('Roles y Permisos')
-                     ->icon('phosphor-fingerprint'),
+                    ->label('Roles y Permisos')
+                    ->icon('phosphor-fingerprint'),
             ]);
     }
 }

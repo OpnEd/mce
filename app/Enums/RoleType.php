@@ -30,8 +30,13 @@ enum RoleType: string implements HasLabel
     }
 
     // Opcional: método para obtener todos los valores
-    public static function values(): array
+    /* public static function values(): array
     {
         return array_map(fn($role) => $role->value, self::cases());
+    } */
+    // dentro de App\Enums\RoleType
+    public static function values(): array
+    {
+        return array_map(fn($case) => $case->value, self::cases());
     }
 }

@@ -29,6 +29,7 @@ class PermissionResource extends Resource
             ->schema([
                 Select::make('name')
                     ->options(PermissionType::class)
+                    ->searchable()
                     ->required(),
             ]);
     }

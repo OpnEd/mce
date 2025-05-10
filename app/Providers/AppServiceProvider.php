@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Spatie\Permission\PermissionRegistrar;
+use App\Models\Team;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -25,6 +27,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Suponiendo que hay un team seleccionado (ej. en la sesión)
+        $teamId = session('team_id', 1); // Asegúrate de que existe
+
+        app(PermissionRegistrar::class)->setPermissionsTeamId($teamId);
     }
 }

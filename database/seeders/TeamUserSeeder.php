@@ -15,8 +15,8 @@ class TeamUserSeeder extends Seeder
     public function run(): void
     {
         // Obtenemos el equipo y el usuario con ID 1
-        $team = Team::find(1);
-        $user = User::find(1);
+        $team = Team::find(2);
+        $user = User::find(3);
 
         if ($team && $user) {
             // Con el método attach se inserta un registro en la tabla pivote

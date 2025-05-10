@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
-    protected static ?string $tenantOwnershipRelationshipName = 'team';
+    protected static ?string $tenantOwnershipRelationshipName = 'teams';
     protected static ?string $navigationIcon = 'phosphor-user';
 
     public static function form(Form $form): Form
