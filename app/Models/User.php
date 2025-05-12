@@ -71,7 +71,52 @@ class User extends Authenticatable implements FilamentUser, HasTenants, HasAvata
      */
     public function canAccessPanel(Panel $panel): bool
     {
-        /* $teamId = session('team_id'); // ⚠️ Este es el valor que se usa para filtrar roles
+        return true;
+    }
+
+    public function canAccessTenant(Model $tenant): bool
+    {
+        return $this->teams()->whereKey($tenant)->exists();
+    }
+
+    public function currentTeam()
+    {
+        return $this->belongsTo(Team::class, 'current_team_id');
+    }
+
+    public function getFilamentAvatarUrl(): ?string
+    {
+        return $this->avatar_url;
+    }
+
+    public function getTenants(Panel $panel): Collection
+    {
+        return $this->teams;
+    }
+
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class);
+    }
+
+    /**
+     * Relación: Un usuario pertenece a un equipo.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+
+    public function teams(): BelongsToMany
+    {
+        return $this->belongsToMany(Team::class, 'team_user', 'user_id', 'team_id');
+    }
+
+    public function user_answers(): HasMany
+    {
+        return $this->hasMany(UserAnswer::class);
+    }
+}
+
+/* $teamId = session('team_id'); // ⚠️ Este es el valor que se usa para filtrar roles
 
         if (!$teamId) {
             return false; // Si no hay team en sesión, denegamos acceso
@@ -129,7 +174,7 @@ class User extends Authenticatable implements FilamentUser, HasTenants, HasAvata
             'tenantManager' => $this->hasRole('super-admin', $team),
             default => false,
         };*/
-        return true;
+
         /* $team = Filament::getTenant(); // Obtener tenant actual desde tu lógica (ej: session, subdominio, etc.)
 
         return match ($panel->getId()) {
@@ -149,46 +194,3 @@ class User extends Authenticatable implements FilamentUser, HasTenants, HasAvata
             'tenantManager' => $this->hasRole('super-admin', $team), // ← Team como segundo parámetro
             default => false
         }; */
-    }
-
-    public function canAccessTenant(Model $tenant): bool
-    {
-        return $this->teams()->whereKey($tenant)->exists();
-    }
-
-    public function currentTeam()
-    {
-        return $this->belongsTo(Team::class, 'current_team_id');
-    }
-
-    public function getFilamentAvatarUrl(): ?string
-    {
-        return $this->avatar_url;
-    }
-
-    public function getTenants(Panel $panel): Collection
-    {
-        return $this->teams;
-    }
-
-    public function tasks(): HasMany
-    {
-        return $this->hasMany(Task::class);
-    }
-
-    /**
-     * Relación: Un usuario pertenece a un equipo.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-
-    public function teams(): BelongsToMany
-    {
-        return $this->belongsToMany(Team::class, 'team_user', 'user_id', 'team_id');
-    }
-
-    public function user_answers(): HasMany
-    {
-        return $this->hasMany(UserAnswer::class);
-    }
-}

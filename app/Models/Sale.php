@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\FilterByUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,7 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Sale extends Model
 {
     /** @use HasFactory<\Database\Factories\SaleFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, FilterByUser;
 
     protected $fillable = [
         'team_id',
