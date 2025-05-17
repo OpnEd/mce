@@ -47,6 +47,7 @@ class RolesRelationManager extends RelationManager
                     ->form([
                         Select::make('name')
                             ->options(RoleType::class)
+                            ->searchable()
                             ->required()
                     ]),
                 Tables\Actions\AttachAction::make()

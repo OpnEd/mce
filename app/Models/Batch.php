@@ -9,6 +9,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Batch extends Model
+/**
+ * El lote de los productos. Cada team tiene sus propios lotes de productos.
+ *
+ *
+ */
 {
     use SoftDeletes;
 

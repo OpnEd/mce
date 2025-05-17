@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\Permission;
+use App\Models\Role;
 use Filament\Facades\Filament;
 use Filament\Pages\Page;
 
@@ -14,6 +15,8 @@ class Settings extends Page
     public $user;
     public $hasPermission;
     public $roles;
+    public $role;
+    public $permission;
 
     public function mount()
     {
@@ -33,6 +36,10 @@ class Settings extends Page
                     ->where('team_id', $teamId);
             })
             ->exists(); */
+        $this->role = $this->user->roles->first();
+        $this->permission =  Permission::where('name','view-purchase')
+                        ->where('team_id', $teamId)
+                        ->first();
     }
 
     protected static string $view = 'filament.pages.settings';

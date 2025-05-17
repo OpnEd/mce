@@ -43,7 +43,7 @@ class ManufacturerController extends Controller
     {
         $team = Filament::getTenant();
         $user = auth()->user();
-        $userRoles = $user->getRoleNames();
+        //$userRoles = $user->getRoleNames();
         /* $userRoles = Role::where('id', $user->id)
             ->with('permissions')
             ->get()
@@ -55,7 +55,7 @@ class ManufacturerController extends Controller
             }); */
         return view('mi-vista', [
             'roles' => RoleType::values(),
-            'userRoles' => $userRoles,
+            //'userRoles' => $userRoles,
             'user' => $user,
             'team' => $team,
         ]);

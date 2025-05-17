@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\DocumentCategory;
+use App\Models\Role;
 use App\Models\SanitaryRegistry;
 use App\Models\Stock;
 use App\Models\User;
@@ -16,11 +17,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::factory(10)->create();
+//        User::factory(10)->create();
 
         //Stock::factory(30)->create();
 
-        $this->call([
+        /* $this->call([
             TeamSeeder::class,
             TeamUserSeeder::class,
             ManufacturerSeeder::class,
@@ -37,11 +38,16 @@ class DatabaseSeeder extends Seeder
             //PurchaseItemSeeder::class,
             StockSeeder::class,
             CentralProductPriceSeeder::class,
-        ]);
+        ]); */
 
-        $user = User::factory()->create([
+        /* $user = User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
-        ]);
+        ]); */
+
+        $user = User::find(2);
+        $role = Role::find(11);
+
+        $user->assignRole($role);
     }
 }

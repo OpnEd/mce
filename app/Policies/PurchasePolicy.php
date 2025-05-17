@@ -14,10 +14,11 @@ class PurchasePolicy
      */
     public function viewAny(User $user): bool
     {
-        $team = Filament::getTenant();
+        $team   = Filament::getTenant();
         $teamId = $team->id;
+        $role   = $user->roles->first();
 
-        return $user->hasPermissionTo('view-purchase')
+        return $role->permissions->contains('name', 'view-purchase')
             && ($team && $user->teams()->where('teams.id', $teamId)->exists());
     }
 
@@ -26,10 +27,11 @@ class PurchasePolicy
      */
     public function view(User $user, Purchase $purchase): bool
     {
-        $team = Filament::getTenant();
+        $team   = Filament::getTenant();
         $teamId = $team->id;
+        $role   = $user->roles->first();
 
-        return $user->hasPermissionTo('view-purchase')
+        return $role->permissions->contains('name', 'view-purchase')
             && ($team && $user->teams()->where('teams.id', $teamId)->exists())
             && $purchase->team_id === $teamId;
     }
@@ -41,8 +43,9 @@ class PurchasePolicy
     {
         $team = Filament::getTenant();
         $teamId = $team->id;
+        $role   = $user->roles->first();
 
-        return $user->hasPermissionTo('create-purchase')
+        return $role->permissions->contains('name', 'create-purchase')
             && ($team && $user->teams()->where('teams.id', $teamId)->exists());
     }
 
@@ -53,8 +56,9 @@ class PurchasePolicy
     {
         $team = Filament::getTenant();
         $teamId = $team->id;
+        $role   = $user->roles->first();
 
-        return $user->hasPermissionTo('edit-purchase')
+        return $role->permissions->contains('name', 'edit-purchase')
             && $purchase->status === 'pending'
             && $purchase->team_id === $teamId
             && ($team && $user->teams()->where('teams.id', $teamId)->exists());
@@ -67,8 +71,9 @@ class PurchasePolicy
     {
         $team = Filament::getTenant();
         $teamId = $team->id;
+        $role   = $user->roles->first();
 
-        return $user->hasPermissionTo('delete-purchase')
+        return $role->permissions->contains('name', 'delete-purchase')
             && $purchase->status === 'pending'
             && $purchase->team_id === $teamId
             && ($team && $user->teams()->where('teams.id', $teamId)->exists());
@@ -81,8 +86,9 @@ class PurchasePolicy
     {
         $team = Filament::getTenant();
         $teamId = $team->id;
+        $role   = $user->roles->first();
 
-        return $user->hasPermissionTo('restore-purchase')
+        return $role->permissions->contains('name', 'restore-purchase')
             && $purchase->status === 'pending'
             && $purchase->team_id === $teamId
             && ($team && $user->teams()->where('teams.id', $teamId)->exists());
@@ -95,8 +101,9 @@ class PurchasePolicy
     {
         $team = Filament::getTenant();
         $teamId = $team->id;
+        $role   = $user->roles->first();
 
-        return $user->hasPermissionTo('force-delete-purchase')
+        return $role->permissions->contains('name', 'force-delete-purchase')
             && $purchase->status === 'pending'
             && $purchase->team_id === $teamId
             && ($team && $user->teams()->where('teams.id', $teamId)->exists());
@@ -106,8 +113,9 @@ class PurchasePolicy
     {
         $team = Filament::getTenant();
         $teamId = $team->id;
+        $role   = $user->roles->first();
 
-        return $user->hasPermissionTo('confirm-purchase')
+        return $role->permissions->contains('name', 'confirm-purchase')
             && $purchase->status === 'pending'
             && $purchase->team_id === $teamId
             && ($team && $user->teams()->where('teams.id', $teamId)->exists());
