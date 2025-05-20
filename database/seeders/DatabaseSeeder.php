@@ -21,33 +21,33 @@ class DatabaseSeeder extends Seeder
 
         //Stock::factory(30)->create();
 
-        /* $this->call([
-            TeamSeeder::class,
-            TeamUserSeeder::class,
-            ManufacturerSeeder::class,
-            ProductCategorySeeder::class,
-            PharmaceuticalFormSeeder::class,
+         $this->call([
+            //TeamSeeder::class,
+            //TeamUserSeeder::class,
+            //ManufacturerSeeder::class,
+            //ProductCategorySeeder::class,
+            //PharmaceuticalFormSeeder::class,
             //ProductSeeder::class,
-            SanitaryRegistrySeeder::class,
-            BatchSeeder::class,
-            SupplierSeeder::class,
-            CustomerSeeder::class,
-            DocumentCategorySeeder::class,
+            //SanitaryRegistrySeeder::class,
+            //BatchSeeder::class,
+            //SupplierSeeder::class,
+            //CustomerSeeder::class,
+            //DocumentCategorySeeder::class,
             RoleSeeder::class,
             //PurchaseSeeder::class,
             //PurchaseItemSeeder::class,
-            StockSeeder::class,
-            CentralProductPriceSeeder::class,
-        ]); */
+            //StockSeeder::class,
+            //CentralProductPriceSeeder::class,
+        ]);
 
         /* $user = User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]); */
 
-        $user = User::find(2);
+        /* $user = User::find(2);
         $role = Role::find(11);
 
-        $user->assignRole($role);
+        $user->assignRole($role); */
     }
 }

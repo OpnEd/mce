@@ -8,6 +8,7 @@ use App\Models\Role;
 use App\Models\Permission;
 use App\Enums\RoleType;
 use App\Enums\PermissionType;
+use App\Models\User;
 
 class RoleSeeder extends Seeder
 {
@@ -17,7 +18,7 @@ class RoleSeeder extends Seeder
     public function run(): void
     {
         // Creación de permisos a partir de los casos del Enum PermissionType
-        foreach (PermissionType::cases() as $permission) {
+        /* foreach (PermissionType::cases() as $permission) {
             Permission::firstOrCreate([
                 'name' => $permission->value,
                 'guard_name' => 'web',
@@ -34,6 +35,14 @@ class RoleSeeder extends Seeder
                 'team_id' => 2, // Puedes asignar un team_id si es multitenant
                 // Puedes incluir otros campos o asignar un team_id si es multitenant
             ]);
-        }
+        } */
+
+        $user = User::find(1);
+        $role = Role::firstOrCreate([
+            'name' => 'Super-Admin',
+            'guard_name' => 'web',
+            'team_id' => 1
+        ]);
+        $user->assignRole($role);
     }
 }

@@ -18,13 +18,16 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Collection;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
+use App\Traits\HasTeamRoles;
+use Illuminate\Support\Facades\Log;
 
 class User extends Authenticatable implements FilamentUser, HasTenants, HasAvatar
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory,
         Notifiable,
-        HasRoles;
+        HasRoles,
+        HasTeamRoles;
     //MultiTenantHasRoles;
 
     /**
@@ -71,7 +74,32 @@ class User extends Authenticatable implements FilamentUser, HasTenants, HasAvata
      */
     public function canAccessPanel(Panel $panel): bool
     {
-        return true;
+        /* $team = Filament::getTenant();
+
+        if (! $team) {
+            Log::warning("No tenant resolved for team-scoped role access.");
+            return false;
+        } */
+
+        if ($panel->getId() === 'tenantManager') {
+            return str_ends_with($this->email, '@drogueriadigital.net.co');
+        }
+
+        if ($panel->getId() === 'admin') {
+            // Obtiene todos los dominios de email registrados en la tabla users
+            $domains = self::query()
+                ->selectRaw("DISTINCT SUBSTRING_INDEX(email, '@', -1) as domain")
+                ->pluck('domain')
+                ->toArray();
+
+            foreach ($domains as $domain) {
+                if (str_ends_with($this->email, '@' . $domain)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     public function canAccessTenant(Model $tenant): bool

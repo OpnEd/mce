@@ -43,6 +43,9 @@ class ManufacturerController extends Controller
     {
         $team = Filament::getTenant();
         $user = auth()->user();
+        //$role   = $user->roles->first();
+        $role   = $user->getRoleNames();
+        //$role = $user->email;
         //$userRoles = $user->getRoleNames();
         /* $userRoles = Role::where('id', $user->id)
             ->with('permissions')
@@ -58,6 +61,7 @@ class ManufacturerController extends Controller
             //'userRoles' => $userRoles,
             'user' => $user,
             'team' => $team,
+            'role' => $role,
         ]);
     }
 

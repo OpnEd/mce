@@ -6,7 +6,7 @@ use Filament\Support\Contracts\HasLabel;
 
 enum RoleType: string implements HasLabel
 {
-    case SUPERADMIN     = 'super-admin';
+    //case SUPERADMIN     = 'super-admin';
     case ADMIN          = 'admin';
     case DIRECTOR       = 'director';
     case MEDICO         = 'medico';
@@ -18,7 +18,7 @@ enum RoleType: string implements HasLabel
     public function getLabel(): ?string
     {
         return match ($this) {
-            self::SUPERADMIN     => 'Súper Administrador',
+            //self::SUPERADMIN     => 'Súper Administrador',
             self::ADMIN          => 'Administrador',
             self::DIRECTOR       => 'Director',
             self::MEDICO         => 'Médico',

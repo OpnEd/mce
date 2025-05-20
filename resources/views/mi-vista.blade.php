@@ -7,7 +7,7 @@
 @endif
 
 {{$user->team_id}}
-@if ($user->can('view-batch'))
+@if ($user->can('view-purchase'))
     <p>Puede ver batches</p>
 @endif
 
@@ -26,9 +26,8 @@
     <p>Puede crear ventas</p>
 @endif
 
-{{ $userRoles }}
-
 <h1>{{ $user->name }}</h1>
+<p>{{$role}}</p>
 
 @if ($user->can('create-batch'))
     <p>Puede crear batches</p>

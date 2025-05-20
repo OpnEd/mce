@@ -22,6 +22,21 @@ class PurchaseResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::where('status', 'confirmed')->count();
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return static::getModel()::where('status', 'confirmed')->count() > 10 ? 'warning' : 'primary';
+    }
+
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return 'Número de órdenes de compra confirmadas';
+    }
+
     public static function form(Form $form): Form
     {
         return $form

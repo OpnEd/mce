@@ -2,12 +2,11 @@
 
 namespace App\Policies;
 
-use App\Models\Purchase;
-use App\Models\Team;
+use App\Models\PurchaseItem;
 use App\Models\User;
 use Filament\Facades\Filament;
 
-class PurchasePolicy
+class PurchaseItemPolicy
 {
     /**
      * Determine whether the user can view any models.
@@ -17,14 +16,14 @@ class PurchasePolicy
         $team   = Filament::getTenant();
 
         return $team
-            && $user->hasTeamPermission('view-purchase')
+            && $user->hasTeamPermission('view-purchase-item')
             && $user->teams()->where('teams.id', $team->id)->exists();
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Purchase $purchase): bool
+    public function view(User $user, PurchaseItem $item): bool
     {
         $team   = Filament::getTenant();
 
@@ -47,9 +46,9 @@ class PurchasePolicy
             return false; // Usuario no tiene roles en este equipo
         }
 
-        return $role->permissions->contains('name', 'view-purchase')
+        return $role->permissions->contains('name', 'view-purchase-item')
             && $user->teams()->where('teams.id', $teamId)->exists()
-            && $purchase->team_id === $teamId;
+            && $item->purchase->team_id === $teamId;
     }
 
     /**
@@ -60,21 +59,21 @@ class PurchasePolicy
         $team = Filament::getTenant();
 
         return $team
-            && $user->hasTeamPermission('create-purchase')
+            && $user->hasTeamPermission('create-purchase-item')
             && $user->teams()->where('teams.id', $team->id)->exists();
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Purchase $purchase): bool
+    public function update(User $user, PurchaseItem $item): bool
     {
         $team = Filament::getTenant();
 
         if (!$team) {
             return false;
         }
-        
+
         $teamId = $team->id;
 
         // Obtiene el primer rol del equipo actual (usando team_id explícito)
@@ -90,23 +89,22 @@ class PurchasePolicy
             return false; // Usuario no tiene roles en este equipo
         }
 
-        return $role->permissions->contains('name', 'edit-purchase')
-            && $purchase->status === 'pending'
-            && $purchase->team_id === $teamId
-            && $user->teams()->where('teams.id', $teamId)->exists();
+        return $role->permissions->contains('name', 'edit-purchase-item')
+            && $user->teams()->where('teams.id', $teamId)->exists()
+            && $item->purchase->team_id === $teamId;
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Purchase $purchase): bool
+    public function delete(User $user, PurchaseItem $item): bool
     {
         $team = Filament::getTenant();
 
         if (!$team) {
             return false;
         }
-        
+
         $teamId = $team->id;
 
         // Obtiene el primer rol del equipo actual (usando team_id explícito)
@@ -123,22 +121,22 @@ class PurchasePolicy
         }
 
         return $role->permissions->contains('name', 'delete-purchase')
-            && $purchase->status === 'pending'
-            && $purchase->team_id === $teamId
-            && $user->teams()->where('teams.id', $teamId)->exists();
+            && $user->teams()->where('teams.id', $teamId)->exists()
+            && $item->purchase->status === 'pending'
+            && $item->purchase->team_id === $teamId;
     }
 
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, Purchase $purchase): bool
+    public function restore(User $user, PurchaseItem $item): bool
     {
         $team = Filament::getTenant();
 
         if (!$team) {
             return false;
         }
-        
+
         $teamId = $team->id;
 
         // Obtiene el primer rol del equipo actual (usando team_id explícito)
@@ -155,22 +153,22 @@ class PurchasePolicy
         }
 
         return $role->permissions->contains('name', 'restore-purchase')
-            && $purchase->status === 'pending'
-            && $purchase->team_id === $teamId
-            && $user->teams()->where('teams.id', $teamId)->exists();
+            && $user->teams()->where('teams.id', $teamId)->exists()
+            && $item->purchase->status === 'pending'
+            && $item->purchase->team_id === $teamId;
     }
 
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, Purchase $purchase): bool
+    public function forceDelete(User $user, PurchaseItem $item): bool
     {
         $team = Filament::getTenant();
 
         if (!$team) {
             return false;
         }
-        
+
         $teamId = $team->id;
 
         // Obtiene el primer rol del equipo actual (usando team_id explícito)
@@ -187,37 +185,8 @@ class PurchasePolicy
         }
 
         return $role->permissions->contains('name', 'force-delete-purchase')
-            && $purchase->status === 'pending'
-            && $purchase->team_id === $teamId
-            && $user->teams()->where('teams.id', $teamId)->exists();
-    }
-
-    public function confirm(User $user, Purchase $purchase): bool
-    {
-        $team = Filament::getTenant();
-
-        if (!$team) {
-            return false;
-        }
-        
-        $teamId = $team->id;
-
-        // Obtiene el primer rol del equipo actual (usando team_id explícito)
-        $role = $user->roles()
-            ->where('model_has_roles.team_id', $teamId)
-            ->where(function ($query) use ($teamId) {
-                $query->whereNull('roles.team_id')
-                    ->orWhere('roles.team_id', $teamId);
-            })
-            ->first();
-
-        if (!$role) {
-            return false; // Usuario no tiene roles en este equipo
-        }
-
-        return $role->permissions->contains('name', 'confirm-purchase')
-            && $purchase->status === 'pending'
-            && $purchase->team_id === $teamId
-            && $user->teams()->where('teams.id', $teamId)->exists();
+            && $user->teams()->where('teams.id', $teamId)->exists()
+            && $item->purchase->status === 'pending'
+            && $item->purchase->team_id === $teamId;
     }
 }
