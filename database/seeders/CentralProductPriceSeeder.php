@@ -19,9 +19,17 @@ class CentralProductPriceSeeder extends Seeder
             return;
         }
 
-        // Crear precios para todos los productos existentes
-        CentralProductPrice::factory(60)->create();
+        // Crear un precio central para cada producto existente
+        $products = \App\Models\Product::all();
 
-        $this->command->info('Precios centrales creados para 60 productos existentes!');
+        foreach ($products as $product) {
+            CentralProductPrice::create([
+            'product_id' => $product->id,
+            'min' => rand(1, 20), // Existencias mínimas aleatorias
+            'price' => rand(100, 1000) / 10, // Precio aleatorio entre 10.0 y 100.0
+            ]);
+        }
+
+        $this->command->info('Precios centrales creados para todos los productos existentes!');
     }
 }
