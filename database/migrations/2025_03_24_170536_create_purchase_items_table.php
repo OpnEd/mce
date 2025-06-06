@@ -20,6 +20,7 @@ return new class extends Migration
             $table->integer('quantity')->default(1);
             $table->bigInteger('price')->default(0);
             $table->bigInteger('total')->default(0);
+            $table->boolean('enlisted')->default(false);
             $table->timestamps();
         });
     }

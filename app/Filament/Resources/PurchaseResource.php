@@ -15,6 +15,9 @@ use Filament\Tables\Actions\ActionGroup as ActionsActionGroup;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Forms\Components\Section;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class PurchaseResource extends Resource
 {
@@ -41,28 +44,35 @@ class PurchaseResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('status')
-                    ->options([
-                        'pending' => 'Pending',
-                        'confirmed' => 'Confirmed',
-                        'in progress' => 'In Progress',
-                        'ready' => 'Ready',
-                        'dispatched' => 'Dispatched',
-                        'delivered' => 'Delivered',
+                Section::make('Order details')
+                    ->schema([
+                        Forms\Components\Select::make('status')
+                            ->options([
+                                'pending' => 'Pending',
+                                'confirmed' => 'Confirmed',
+                                'in progress' => 'In Progress',
+                                'ready' => 'Ready',
+                                'dispatched' => 'Dispatched',
+                                'delivered' => 'Delivered',
+                            ])
+                            ->default('pending')
+                            ->required(),
+                        Forms\Components\TextInput::make('total')
+                            ->prefix('$')
+                            ->readOnly()
+                            ->disabled()
+                            ->dehydrated(false) // para que no se guarde de nuevo en update
+                            ->formatStateUsing(fn($state) => number_format($state, 0, ',', '.')),
                     ])
-                    ->default('pending')
-                    ->required(),
-                Forms\Components\TextInput::make('total')
-                    ->required()
-                    ->numeric()
-                    ->prefix('$')
-                    ->minValue(0)
-                    ->default(0)
-                    ->readOnly(),
-                Forms\Components\Textarea::make('observations')
-                    ->columnSpanFull(),
-                Forms\Components\KeyValue::make('data')
-                    ->columnSpanFull(),
+                    ->columns(2)
+                    ->collapsed(),
+                Section::make('Order meta-data')
+                    ->schema([
+                        Forms\Components\Textarea::make('observations'),
+                        Forms\Components\KeyValue::make('data')
+                    ])
+                    ->columns(2)
+                    ->collapsed(),
             ]);
     }
 
@@ -70,11 +80,15 @@ class PurchaseResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('id')
+                    ->label('# Purchase')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('status')
                     ->color(fn(string $state): string => match ($state) {
                         'pending' => 'danger',
                         'confirmed' => 'primary',
-                        'in progress' => 'info',
+                        'in progress' => 'warning',
                         'ready' => 'amber',
                         'dispatched' => 'gray',
                         'delivered' => 'success',
@@ -88,10 +102,12 @@ class PurchaseResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime('d/m/Y H:i')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime('d/m/Y H:i')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
@@ -99,11 +115,29 @@ class PurchaseResource extends Resource
             ->actions([
                 ActionsActionGroup::make([
                     Tables\Actions\ViewAction::make()
-                        ->visible(fn(Purchase $record): bool => $record->status === 'pending'),
+                        ->visible(fn(Purchase $record): bool => $record->status === 'pending')
+                        ->color('primary'),
                     Tables\Actions\EditAction::make()
-                        ->visible(fn(Purchase $record): bool => $record->status === 'pending'),
+                        ->visible(fn(Purchase $record): bool => $record->status === 'pending')
+                        ->color('warning'),
                     Tables\Actions\DeleteAction::make()
                         ->visible(fn(Purchase $record): bool => $record->status === 'pending'),
+                    Tables\Actions\Action::make('confirm')
+                        ->label('Confirm')
+                        ->icon('heroicon-o-check-circle')
+                        ->color('success')
+                        ->visible(fn (Purchase $record): bool =>
+                            Gate::allows('confirm', $record)
+                            && $record->status === 'pending'
+                            && $record->items()->count() > 0
+                        )
+                        ->requiresConfirmation()
+                        ->modalHeading('Confirm Purchase')
+                        ->modalDescription('Are you sure you want to confirm this purchase?')
+                        ->action(function (Purchase $record) {
+                            $record->status = 'confirmed';
+                            $record->save();
+                        }),
                 ])
             ])
             ->bulkActions([

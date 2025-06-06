@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\DocumentCategory;
+use App\Models\ProductCategory;
 use App\Models\Role;
 use App\Models\SanitaryRegistry;
 use App\Models\Stock;
@@ -33,11 +34,11 @@ class DatabaseSeeder extends Seeder
             //SupplierSeeder::class,
             //CustomerSeeder::class,
             //DocumentCategorySeeder::class,
-            RoleSeeder::class,
+            //RoleSeeder::class,
             //PurchaseSeeder::class,
             //PurchaseItemSeeder::class,
             //StockSeeder::class,
-            //CentralProductPriceSeeder::class,
+            CentralProductPriceSeeder::class,
         ]);
 
         /* $user = User::factory()->create([
@@ -45,8 +46,8 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]); */
 
-        /* $user = User::find(2);
-        $role = Role::find(11);
+        /* $user = User::find(1);
+        $role = Role::find(20);
 
         $user->assignRole($role); */
     }

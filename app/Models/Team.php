@@ -58,6 +58,11 @@ class Team extends Model
         return $this->hasMany(Customer::class);
     }
 
+    public function dispatches(): HasMany
+    {
+        return $this->hasMany(Dispatch::class);
+    }
+
     public function documents(): HasMany
     {
         return $this->hasMany(Document::class);

@@ -16,7 +16,7 @@ return new class extends Migration
     {
         Schema::create('batches', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(Team::class)->constrained();
+            $table->foreignIdFor(Team::class)->nullable();
             $table->foreignIdFor(SanitaryRegistry::class)->constrained();
             $table->foreignIdFor(Manufacturer::class);
             $table->string('code')->unique();

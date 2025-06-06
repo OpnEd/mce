@@ -25,6 +25,9 @@ use App\Filament\Pages\Settings;
 use App\Http\Middleware\SetTeamPermissions;
 use Filament\Forms\Set;
 use Filament\Navigation\MenuItem;
+use Filament\View\PanelsRenderHook;
+use Filament\Support\Facades\FilamentView;
+use Illuminate\Support\Facades\Blade;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -87,6 +90,10 @@ class AdminPanelProvider extends PanelProvider
                 NavigationGroup::make()
                     ->label('Roles y Permisos')
                     ->icon('phosphor-fingerprint'),
-            ]);
+            ])
+            ->renderHook(
+                PanelsRenderHook::FOOTER,
+                fn (): string => Blade::render('@livewire(\'footer-text-component\')'),
+            );
     }
 }

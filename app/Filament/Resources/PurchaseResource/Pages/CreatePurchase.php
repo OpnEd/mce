@@ -18,6 +18,10 @@ class CreatePurchase extends CreateRecord
         return $data;
     }
 
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('edit');
+    }
 
     protected function getCreatedNotification(): ?Notification
     {

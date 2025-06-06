@@ -18,7 +18,7 @@ class ProductResource extends Resource
 {
     protected static ?string $model = Product::class;
 
-    protected static ?string $navigationGroup = 'Productos';
+    protected static ?string $navigationGroup = 'Products';
     protected static ?string $navigationIcon = 'phosphor-cube';
 
     public static function form(Form $form): Form
@@ -26,7 +26,7 @@ class ProductResource extends Resource
         return $form
             ->schema([
                 Forms\Components\Select::make('product_category_id')
-                    ->relationship(name: 'category', titleAttribute: 'name')
+                    ->relationship(name: 'product_category', titleAttribute: 'name')
                     ->searchable()
                     ->preload()
                     ->createOptionForm([
@@ -39,7 +39,7 @@ class ProductResource extends Resource
                     ])
                     ->required(),
                 Forms\Components\Select::make('pharmaceutical_form_id')
-                    ->relationship(name: 'form', titleAttribute: 'name')
+                    ->relationship(name: 'pharmaceutical_form', titleAttribute: 'name')
                     ->searchable()
                     ->preload()
                     ->createOptionForm([
@@ -53,6 +53,7 @@ class ProductResource extends Resource
                     ->default(null),
                 Forms\Components\TextInput::make('code')
                     ->placeholder('Código de barras')
+                    ->unique(ignoreRecord: true)
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('name')
@@ -76,8 +77,7 @@ class ProductResource extends Resource
                     ->numeric()
                     ->default(null),
                 Forms\Components\FileUpload::make('image')
-                    ->image()
-                    ->required(),
+                    ->image(),
                 Forms\Components\TextInput::make('tax')
                     ->required()
                     ->numeric(),
@@ -90,9 +90,9 @@ class ProductResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('category.name')
+                Tables\Columns\TextColumn::make('product_category.name')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('form.name')
+                Tables\Columns\TextColumn::make('pharmaceutical_form.name')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('code')
                     ->searchable()

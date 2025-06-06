@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 class Product extends Model
 {
@@ -15,7 +17,7 @@ class Product extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'product_category_id', //categoría del producto
+        'category_id', //categoría del producto
         'pharmaceutical_form_id', //forma farmacéutica, si aplica
         'code', //código
         'name', //nombre comercial
@@ -43,12 +45,12 @@ class Product extends Model
         ];
     }
 
-    public function category(): BelongsTo
+    public function product_category(): BelongsTo
     {
         return $this->belongsTo(ProductCategory::class);
     }
 
-    public function form(): BelongsTo
+    public function pharmaceutical_form(): BelongsTo
     {
         return $this->belongsTo(PharmaceuticalForm::class);
     }
@@ -58,4 +60,32 @@ class Product extends Model
         return $this->hasMany(TeamProductPrice::class);
     }
 
+    public function stocks(): HasMany
+    {
+        return $this->hasMany(Stock::class);
+    }
+
+    /**
+     * Scope: productos con stock total > 0
+     * Lo que hace este scope es agregar un 
+     * WHERE EXISTS (SELECT 1 FROM stocks … HAVING SUM(quantity)>0) 
+     * al query de productos.
+     */
+    public function scopeInStock(Builder $query): Builder
+    {
+        return $query->whereExists(function ($subquery) {
+            $subquery->from('stocks')
+                ->select(DB::raw('1')) // importante: NO SELECT *
+                ->whereColumn('stocks.product_id', 'products.id')
+                ->groupBy('product_id')
+                ->havingRaw('SUM(quantity) > 0');
+        });
+        // O también se puede hacer así:
+        /* return $query->whereIn('id', function ($subquery) {
+            $subquery->from('stocks')
+                ->select('product_id')
+                ->groupBy('product_id')
+                ->havingRaw('SUM(quantity) > 0');
+        }); */
+    }
 }

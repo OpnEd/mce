@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class PurchaseItem extends Model
 {
@@ -16,8 +18,21 @@ class PurchaseItem extends Model
         'product_id',
         'quantity',
         'price',
-        'total'
+        'total',
+        'enlisted',
     ];
+
+    protected $casts = [
+        'enlisted' => 'boolean',
+        'total' => 'decimal:2',
+        'price' => 'decimal:2',
+        'quantity' => 'integer',
+    ];
+
+    public function dispatchItem(): HasMany
+    {
+        return $this->hasMany(DispatchItems::class);
+    }
 
     public function product(): BelongsTo
     {
@@ -28,4 +43,14 @@ class PurchaseItem extends Model
     {
         return $this->belongsTo(Purchase::class);
     }
+
+    // Para calcular el total antes de guardar el PurhcaseItem
+    /* public static function boot()
+    {
+        parent::boot();
+
+        static::saving(function ($item) {
+            $item->total = $item->quantity * $item->price;
+        });
+    } */
 }

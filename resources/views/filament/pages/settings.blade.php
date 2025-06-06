@@ -3,7 +3,7 @@
 <hr>
 2. {{$this->team->id}}
 <hr>
-3. {{$this->role->permissions->contains('name', 'view-purchase')}}
+3. {{$this->role->permissions->contains('name', 'confirm-purchase')}}
 <hr>
 4. {{($this->role->name)}} <br>
 {{($this->user->roles->first()->name)}}
@@ -11,8 +11,9 @@
 5. <pre>{{json_encode($this->role->permissions, JSON_PRETTY_PRINT)}}</pre>
 <hr>
 6. {{($this->permission->name)}}
+{{$this->user->roles->first()->permissions->contains('name', 'confirm-purchase') ? 'Yes' : 'No'}}
 <hr>
-@if ($this->user->can('view-purchase', $this->team))
+@can('confirm', $this->team)
     <div class="text-2xl font-bold text-center">
         {{ __('You have permission to view purchase') }}
     </div>
@@ -20,5 +21,5 @@
     <div class="text-2xl font-bold text-center">
         {{ __('You do not have permission to view purchase') }}
     </div>  
-@endif
+@endcan
 </x-filament-panels::page>

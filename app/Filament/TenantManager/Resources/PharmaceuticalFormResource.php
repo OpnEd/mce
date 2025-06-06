@@ -17,7 +17,7 @@ class PharmaceuticalFormResource extends Resource
 {
     protected static ?string $model = PharmaceuticalForm::class;
 
-    protected static ?string $navigationGroup = 'Productos';
+    protected static ?string $navigationGroup = 'Products';
     protected static ?string $navigationIcon = 'phosphor-pill';
 
     public static function form(Form $form): Form

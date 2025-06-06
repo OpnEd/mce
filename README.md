@@ -22,3 +22,7 @@ Verifica si el rol del usuario para el equipo actual tiene un permiso específic
 ¿Cómo lo hace?
 Llama a getCurrentTeamRole() para obtener el rol del usuario en el equipo actual.
 Si hay rol, revisa si ese rol tiene el permiso con el nombre dado ($permissionName).
+
+# Migraciones
+
+El campo 'team_id' de la tabla 'model_has_roles' debe ser transformado para que acepte NULL para poder que funcion el 'Super-Admin'.

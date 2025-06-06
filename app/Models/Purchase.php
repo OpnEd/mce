@@ -38,6 +38,11 @@ class Purchase extends Model
         });
     }
 
+    public function dispatch(): HasOne
+    {
+        return $this->hasOne(Dispatch::class);
+    }
+
     public function items(): HasMany
     {
         return $this->hasMany(PurchaseItem::class);

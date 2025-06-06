@@ -33,6 +33,11 @@ class Batch extends Model
         'data' => 'array',
     ];
 
+    public function dispatchItems(): HasMany
+    {
+        return $this->hasMany(DispatchItems::class);
+    }
+
     public function manufacturer(): BelongsTo
     {
         return $this->belongsTo(Manufacturer::class);

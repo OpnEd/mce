@@ -2,6 +2,10 @@
 
 namespace App\Policies;
 
+use App\Helpers\CanCreateHelper;
+use App\Helpers\CanUpdateHelper;
+use App\Helpers\CanViewAnyHelper;
+use App\Helpers\CanViewHelper;
 use App\Models\PurchaseItem;
 use App\Models\User;
 use Filament\Facades\Filament;
@@ -13,42 +17,15 @@ class PurchaseItemPolicy
      */
     public function viewAny(User $user): bool
     {
-        $team   = Filament::getTenant();
-
-        return $team
-            && $user->hasTeamPermission('view-purchase-item')
-            && $user->teams()->where('teams.id', $team->id)->exists();
+        return CanViewAnyHelper::canViewAny($user, 'view-purchase-item');
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, PurchaseItem $item): bool
+    public function view(User $user, PurchaseItem $model): bool
     {
-        $team   = Filament::getTenant();
-
-        if (!$team) {
-            return false;
-        }
-
-        $teamId = $team->id;
-
-        // Obtiene el primer rol del equipo actual (usando team_id explícito)
-        $role = $user->roles()
-            ->where('model_has_roles.team_id', $teamId)
-            ->where(function ($query) use ($teamId) {
-                $query->whereNull('roles.team_id')
-                    ->orWhere('roles.team_id', $teamId);
-            })
-            ->first();
-
-        if (!$role) {
-            return false; // Usuario no tiene roles en este equipo
-        }
-
-        return $role->permissions->contains('name', 'view-purchase-item')
-            && $user->teams()->where('teams.id', $teamId)->exists()
-            && $item->purchase->team_id === $teamId;
+        return CanViewHelper::canView($user, $model, 'view-purchase-item');
     }
 
     /**
@@ -56,18 +33,15 @@ class PurchaseItemPolicy
      */
     public function create(User $user): bool
     {
-        $team = Filament::getTenant();
-
-        return $team
-            && $user->hasTeamPermission('create-purchase-item')
-            && $user->teams()->where('teams.id', $team->id)->exists();
+        return CanCreateHelper::canCreate($user, 'create-purchase-item');
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, PurchaseItem $item): bool
+    public function update(User $user, PurchaseItem $model): bool
     {
+        return CanUpdateHelper::canUpdate($user, $model, 'edit-purchase-item');
         $team = Filament::getTenant();
 
         if (!$team) {
@@ -91,13 +65,13 @@ class PurchaseItemPolicy
 
         return $role->permissions->contains('name', 'edit-purchase-item')
             && $user->teams()->where('teams.id', $teamId)->exists()
-            && $item->purchase->team_id === $teamId;
+            && $model->purchase->team_id === $teamId;
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, PurchaseItem $item): bool
+    public function delete(User $user, PurchaseItem $model): bool
     {
         $team = Filament::getTenant();
 
@@ -122,14 +96,14 @@ class PurchaseItemPolicy
 
         return $role->permissions->contains('name', 'delete-purchase')
             && $user->teams()->where('teams.id', $teamId)->exists()
-            && $item->purchase->status === 'pending'
-            && $item->purchase->team_id === $teamId;
+            && $model->purchase->status === 'pending'
+            && $model->purchase->team_id === $teamId;
     }
 
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, PurchaseItem $item): bool
+    public function restore(User $user, PurchaseItem $model): bool
     {
         $team = Filament::getTenant();
 
@@ -154,14 +128,14 @@ class PurchaseItemPolicy
 
         return $role->permissions->contains('name', 'restore-purchase')
             && $user->teams()->where('teams.id', $teamId)->exists()
-            && $item->purchase->status === 'pending'
-            && $item->purchase->team_id === $teamId;
+            && $model->purchase->status === 'pending'
+            && $model->purchase->team_id === $teamId;
     }
 
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, PurchaseItem $item): bool
+    public function forceDelete(User $user, PurchaseItem $model): bool
     {
         $team = Filament::getTenant();
 
@@ -186,7 +160,7 @@ class PurchaseItemPolicy
 
         return $role->permissions->contains('name', 'force-delete-purchase')
             && $user->teams()->where('teams.id', $teamId)->exists()
-            && $item->purchase->status === 'pending'
-            && $item->purchase->team_id === $teamId;
+            && $model->purchase->status === 'pending'
+            && $model->purchase->team_id === $teamId;
     }
 }

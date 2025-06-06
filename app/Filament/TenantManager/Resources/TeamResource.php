@@ -17,6 +17,7 @@ class TeamResource extends Resource
 {
     protected static ?string $model = Team::class;
 
+    protected static ?string $navigationGroup = 'Third Parties';
     protected static ?string $navigationIcon = 'phosphor-users-three';
 
     public static function form(Form $form): Form

@@ -30,6 +30,14 @@ enum PermissionType: string implements HasLabel
     case RESTORE_CHECKLIST_ITEM      = 'restore-checklist-item';
     case FORCE_DELETE_CHECKLIST_ITEM = 'force-delete-checklist-item';
 
+        // Dispatch
+    case VIEW_DISPATCH         = 'view-dispatch';
+    case CREATE_DISPATCH       = 'create-dispatch';
+    case EDIT_DISPATCH         = 'edit-dispatch';
+    case DELETE_DISPATCH       = 'delete-dispatch';
+    case RESTORE_DISPATCH      = 'restore-dispatch';
+    case FORCE_DELETE_DISPATCH = 'force-delete-dispatch';
+
         // Document
     case VIEW_DOCUMENT         = 'view-document';
     case CREATE_DOCUMENT       = 'create-document';
@@ -319,6 +327,14 @@ enum PermissionType: string implements HasLabel
             self::DELETE_CHECKLIST_ITEM       => 'Eliminar Checklist Items',
             self::RESTORE_CHECKLIST_ITEM      => 'Restaurar Checklist Items',
             self::FORCE_DELETE_CHECKLIST_ITEM => 'Forzar la eliminación de Checklist Items',
+
+            // Dispatch
+            self::VIEW_DISPATCH         => 'Ver Despachos',
+            self::CREATE_DISPATCH       => 'Crear Despachos',
+            self::EDIT_DISPATCH         => 'Editar Despachos',
+            self::DELETE_DISPATCH       => 'Eliminar Despachos',
+            self::RESTORE_DISPATCH      => 'Restaurar Despachos',
+            self::FORCE_DELETE_DISPATCH => 'Forzar la eliminación de Despachos',
 
             // Document
             self::VIEW_DOCUMENT         => 'Ver Documentos',

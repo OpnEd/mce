@@ -17,14 +17,13 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(ProductCategory::class)->constrained()->onDelete('cascade');
             $table->foreignIdFor(PharmaceuticalForm::class)->nullable()->constrained()->onDelete('set null');
-            $table->string('code');
+            $table->string('code')->unique();
             $table->string('name');
             $table->string('drug')->nullable(); // Nombre del principio activo
             $table->string('description'); // Presentación comercial
             $table->boolean('fractionable')->default(false);
             $table->decimal('conversion_factor', 8, 2)->nullable(); // Por ejemplo: un vial de 50 ml puede equivaler a 500 unidades
-            $table->string('image');
-            $table->integer('min');
+            $table->string('image')->nullable();
             $table->decimal('tax', 8, 2);
             $table->boolean('status');
             $table->softDeletes();

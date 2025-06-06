@@ -2,6 +2,13 @@
 
 namespace App\Policies;
 
+use App\Helpers\CanCreateHelper;
+use App\Helpers\CanDeleteHelper;
+use App\Helpers\CanForceDeleteHelper;
+use App\Helpers\CanRestoreHelper;
+use App\Helpers\CanUpdateHelper;
+use App\Helpers\CanViewAnyHelper;
+use App\Helpers\CanViewHelper;
 use App\Models\Purchase;
 use App\Models\Team;
 use App\Models\User;
@@ -14,42 +21,15 @@ class PurchasePolicy
      */
     public function viewAny(User $user): bool
     {
-        $team   = Filament::getTenant();
-
-        return $team
-            && $user->hasTeamPermission('view-purchase')
-            && $user->teams()->where('teams.id', $team->id)->exists();
+        return CanViewAnyHelper::canViewAny($user, 'view-purchase');
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Purchase $purchase): bool
+    public function view(User $user, Purchase $model): bool
     {
-        $team   = Filament::getTenant();
-
-        if (!$team) {
-            return false;
-        }
-
-        $teamId = $team->id;
-
-        // Obtiene el primer rol del equipo actual (usando team_id explícito)
-        $role = $user->roles()
-            ->where('model_has_roles.team_id', $teamId)
-            ->where(function ($query) use ($teamId) {
-                $query->whereNull('roles.team_id')
-                    ->orWhere('roles.team_id', $teamId);
-            })
-            ->first();
-
-        if (!$role) {
-            return false; // Usuario no tiene roles en este equipo
-        }
-
-        return $role->permissions->contains('name', 'view-purchase')
-            && $user->teams()->where('teams.id', $teamId)->exists()
-            && $purchase->team_id === $teamId;
+        return CanViewHelper::canView($user, $model, 'view-purchase');
     }
 
     /**
@@ -57,142 +37,43 @@ class PurchasePolicy
      */
     public function create(User $user): bool
     {
-        $team = Filament::getTenant();
-
-        return $team
-            && $user->hasTeamPermission('create-purchase')
-            && $user->teams()->where('teams.id', $team->id)->exists();
+        return CanCreateHelper::canCreate($user, 'create-purchase');
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Purchase $purchase): bool
+    public function update(User $user, Purchase $model): bool
     {
-        $team = Filament::getTenant();
-
-        if (!$team) {
-            return false;
-        }
-        
-        $teamId = $team->id;
-
-        // Obtiene el primer rol del equipo actual (usando team_id explícito)
-        $role = $user->roles()
-            ->where('model_has_roles.team_id', $teamId)
-            ->where(function ($query) use ($teamId) {
-                $query->whereNull('roles.team_id')
-                    ->orWhere('roles.team_id', $teamId);
-            })
-            ->first();
-
-        if (!$role) {
-            return false; // Usuario no tiene roles en este equipo
-        }
-
-        return $role->permissions->contains('name', 'edit-purchase')
-            && $purchase->status === 'pending'
-            && $purchase->team_id === $teamId
-            && $user->teams()->where('teams.id', $teamId)->exists();
+        return CanUpdateHelper::canUpdate($user, $model, 'edit-purchase')
+            && $model->status === 'pending';
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Purchase $purchase): bool
+    public function delete(User $user, Purchase $model): bool
     {
-        $team = Filament::getTenant();
-
-        if (!$team) {
-            return false;
-        }
-        
-        $teamId = $team->id;
-
-        // Obtiene el primer rol del equipo actual (usando team_id explícito)
-        $role = $user->roles()
-            ->where('model_has_roles.team_id', $teamId)
-            ->where(function ($query) use ($teamId) {
-                $query->whereNull('roles.team_id')
-                    ->orWhere('roles.team_id', $teamId);
-            })
-            ->first();
-
-        if (!$role) {
-            return false; // Usuario no tiene roles en este equipo
-        }
-
-        return $role->permissions->contains('name', 'delete-purchase')
-            && $purchase->status === 'pending'
-            && $purchase->team_id === $teamId
-            && $user->teams()->where('teams.id', $teamId)->exists();
+        return CanDeleteHelper::canDelete($user, $model, 'delete-purchase');
     }
 
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, Purchase $purchase): bool
+    public function restore(User $user, Purchase $model): bool
     {
-        $team = Filament::getTenant();
-
-        if (!$team) {
-            return false;
-        }
-        
-        $teamId = $team->id;
-
-        // Obtiene el primer rol del equipo actual (usando team_id explícito)
-        $role = $user->roles()
-            ->where('model_has_roles.team_id', $teamId)
-            ->where(function ($query) use ($teamId) {
-                $query->whereNull('roles.team_id')
-                    ->orWhere('roles.team_id', $teamId);
-            })
-            ->first();
-
-        if (!$role) {
-            return false; // Usuario no tiene roles en este equipo
-        }
-
-        return $role->permissions->contains('name', 'restore-purchase')
-            && $purchase->status === 'pending'
-            && $purchase->team_id === $teamId
-            && $user->teams()->where('teams.id', $teamId)->exists();
+        return CanRestoreHelper::canRestore($user, $model, 'restore-purchase');
     }
 
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, Purchase $purchase): bool
+    public function forceDelete(User $user, Purchase $model): bool
     {
-        $team = Filament::getTenant();
-
-        if (!$team) {
-            return false;
-        }
-        
-        $teamId = $team->id;
-
-        // Obtiene el primer rol del equipo actual (usando team_id explícito)
-        $role = $user->roles()
-            ->where('model_has_roles.team_id', $teamId)
-            ->where(function ($query) use ($teamId) {
-                $query->whereNull('roles.team_id')
-                    ->orWhere('roles.team_id', $teamId);
-            })
-            ->first();
-
-        if (!$role) {
-            return false; // Usuario no tiene roles en este equipo
-        }
-
-        return $role->permissions->contains('name', 'force-delete-purchase')
-            && $purchase->status === 'pending'
-            && $purchase->team_id === $teamId
-            && $user->teams()->where('teams.id', $teamId)->exists();
+        return CanForceDeleteHelper::canForceDelete($user, $model, 'force-delete-purchase');
     }
 
-    public function confirm(User $user, Purchase $purchase): bool
+    public function confirm(User $user, Purchase $model): bool
     {
         $team = Filament::getTenant();
 
@@ -216,8 +97,8 @@ class PurchasePolicy
         }
 
         return $role->permissions->contains('name', 'confirm-purchase')
-            && $purchase->status === 'pending'
-            && $purchase->team_id === $teamId
+            && $model->status === 'pending'
+            && $model->team_id === $teamId
             && $user->teams()->where('teams.id', $teamId)->exists();
     }
 }

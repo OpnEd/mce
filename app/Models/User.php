@@ -112,6 +112,11 @@ class User extends Authenticatable implements FilamentUser, HasTenants, HasAvata
         return $this->belongsTo(Team::class, 'current_team_id');
     }
 
+    public function dispatches(): HasMany
+    {
+        return $this->hasMany(Dispatch::class);
+    }
+
     public function getFilamentAvatarUrl(): ?string
     {
         return $this->avatar_url;

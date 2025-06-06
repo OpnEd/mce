@@ -22,7 +22,7 @@ class EditPurchase extends EditRecord
                 ->icon('phosphor-trash'),
             Actions\ForceDeleteAction::make(),
             Actions\RestoreAction::make(),
-            Action::make('confirmPurchase')
+            /* Action::make('confirmPurchase')
                 ->label('Confirm')
                 ->color('success')
                 ->icon('phosphor-check-square')
@@ -30,7 +30,7 @@ class EditPurchase extends EditRecord
                 ->hidden(fn(Purchase $record): bool => $record->status !== 'pending')
                 ->authorize(
                     fn(Purchase $record) => Gate::allows('confirm', $record)
-                )
+                ),
                 ->action(function (Purchase $record) {
                     try {
                         DB::transaction(function () use ($record) {
@@ -53,7 +53,12 @@ class EditPurchase extends EditRecord
 
                         throw $e;
                     }
-                }),
+                }) */
         ];
+    }
+
+    public function getContentTabIcon(): ?string
+    {
+        return 'heroicon-m-cog';
     }
 }
