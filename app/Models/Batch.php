@@ -48,11 +48,6 @@ class Batch extends Model
         return $this->hasMany(ProductReceptionItem::class);
     }
 
-    public function sale_items(): HasMany
-    {
-        return $this->hasMany(SaleItem::class);
-    }
-
     public function sanitary_registry(): BelongsTo
     {
         return $this->belongsTo(SanitaryRegistry::class);

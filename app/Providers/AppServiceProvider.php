@@ -3,10 +3,12 @@
 namespace App\Providers;
 
 use App\Models\DispatchItems;
+use App\Models\Sale;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Permission\PermissionRegistrar;
 use App\Models\Team;
 use App\Observers\DispatchItemsObserver;
+use App\Observers\SaleObserver;
 use Illuminate\Support\Facades\Gate;
 use Filament\Support\Facades\FilamentView;
 use Filament\View\PanelsRenderHook;
@@ -50,5 +52,6 @@ class AppServiceProvider extends ServiceProvider
         );
         // Observers
         DispatchItems::observe(DispatchItemsObserver::class);
+        Sale::observe(SaleObserver::class);
     }
 }

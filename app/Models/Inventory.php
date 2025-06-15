@@ -9,16 +9,19 @@ class Inventory extends Model
     protected $fillable = [
         'team_id',
         'product_id',
+        'bar_code',
+        'product_name',
         'batch_id',
+        'batch_code',
         'quantity',
         'purchase_price',
-        'sale_price',
+        //'sale_price',
     ];
 
     protected $casts = [
         'quantity' => 'integer',
         'purchase_price' => 'decimal:2',
-        'sale_price' => 'decimal:2',
+        //'sale_price' => 'decimal:2',
     ];
 
     public function sale_items()

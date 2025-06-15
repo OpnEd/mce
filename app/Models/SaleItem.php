@@ -15,7 +15,6 @@ class SaleItem extends Model
     protected $fillable = [
         'sale_id',
         'inventory_id',
-        'batch_id',
         'quantity',
         'sale_price',
         'total'
@@ -30,11 +29,6 @@ class SaleItem extends Model
     public function inventory(): BelongsTo
     {
         return $this->belongsTo(Inventory::class);
-    }
-
-    public function batchs(): BelongsTo
-    {
-        return $this->belongsTo(Batch::class);
     }
 
     public function sale(): BelongsTo

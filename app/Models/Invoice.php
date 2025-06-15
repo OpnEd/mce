@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -15,11 +16,11 @@ class Invoice extends Model
 
     protected $fillable = [
         'team_id',
-        'sale_id',
-        'supplier_id',
+        'sale_id', // Relación con Venta que incluye la relación con el cliente
         'code',
         'amount',
         'is_our', // el modelo Invoice almacena todas las facturas, incluidas las que vienen de terceros
+        'supplier_id',
         'issued_date',
         'data',
     ];
@@ -31,9 +32,20 @@ class Invoice extends Model
         'data' => 'array',
     ];
 
-    public function invoice(): HasOne
+    public function reception(): HasOne
     {
         return $this->hasOne(ProductReception::class);
+    }
+
+    public function generateCode(): string
+    {
+        // Genera un código único para la factura, por ejemplo, usando un prefijo y un timestamp
+        return 'INV-' . now()->format('Ymd-His') . '-' . uniqid();
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(InvoiceItem::class);
     }
     // Relación inversa con Venta
     public function sale(): BelongsTo

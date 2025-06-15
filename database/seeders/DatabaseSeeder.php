@@ -38,7 +38,9 @@ class DatabaseSeeder extends Seeder
             //PurchaseSeeder::class,
             //PurchaseItemSeeder::class,
             //StockSeeder::class,
-            CentralProductPriceSeeder::class,
+            //CentralProductPriceSeeder::class,
+            //InventorySeeder::class,
+            PeripheralProductPriceSeeder::class,
         ]);
 
         /* $user = User::factory()->create([

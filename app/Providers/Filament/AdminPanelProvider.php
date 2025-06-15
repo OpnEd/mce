@@ -22,6 +22,8 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use App\Filament\Pages\Settings;
+use App\Http\Middleware\ApplyTenantScopes;
+use App\Http\Middleware\CustomerMiddleware;
 use App\Http\Middleware\SetTeamPermissions;
 use Filament\Forms\Set;
 use Filament\Navigation\MenuItem;
@@ -83,6 +85,8 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->tenantMiddleware([
                 SetTeamPermissions::class,
+                ApplyTenantScopes::class,
+                CustomerMiddleware::class,
             ], isPersistent: true)
             ->tenantProfile(EditTeamProfile::class)
             ->tenantRegistration(RegisterTeam::class)
@@ -93,7 +97,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->renderHook(
                 PanelsRenderHook::FOOTER,
-                fn (): string => Blade::render('@livewire(\'footer-text-component\')'),
+                fn(): string => Blade::render('@livewire(\'footer-text-component\')'),
             );
     }
 }

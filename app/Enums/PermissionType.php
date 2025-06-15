@@ -230,6 +230,8 @@ enum PermissionType: string implements HasLabel
     case DELETE_SALE       = 'delete-sale';
     case RESTORE_SALE      = 'restore-sale';
     case FORCE_DELETE_SALE = 'force-delete-sale';
+    case CONFIRM_SALE      = 'confirm-sale';
+    case CANCEL_SALE       = 'cancel-sale';
 
         // SaleItem
     case VIEW_SALE_ITEM         = 'view-sale-item';
@@ -528,6 +530,8 @@ enum PermissionType: string implements HasLabel
             self::DELETE_SALE       => 'Eliminar Ventas',
             self::RESTORE_SALE      => 'Restaurar Ventas',
             self::FORCE_DELETE_SALE => 'Forzar la eliminación de Ventas',
+            self::CONFIRM_SALE      => 'Confirmar Ventas y facturar',
+            self::CANCEL_SALE       => 'Cancelar Ventas',
 
             // SaleItem
             self::VIEW_SALE_ITEM         => 'Ver Ítems de Venta',

@@ -19,9 +19,11 @@ return new class extends Migration
             $table->foreignIdFor(Team::class)->constrained();
             $table->foreignIdFor(Product::class)->constrained();
             $table->foreignIdFor(Batch::class)->constrained();
+            $table->string('bar_code');
+            $table->string('product_name');
+            $table->string('batch_code');
             $table->integer('quantity');
             $table->decimal('purchase_price', 10, 2);
-            $table->decimal('sale_price', 10, 2);
             $table->timestamps();
         });
     }

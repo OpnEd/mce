@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -29,6 +30,17 @@ class Customer extends Model
         return [
             'data' => 'array',
         ];
+    }
+    
+    protected static function booted()
+    {
+        static::creating(function (Customer $customer) {
+            // Si no está explícito en $customer->team_id
+            if (empty($customer->team_id)) {
+                $tenant = Filament::getTenant();
+                $customer->team_id = $tenant ? $tenant->id : null;
+            }
+        });
     }
 
     // Relación uno a muchos con Factura

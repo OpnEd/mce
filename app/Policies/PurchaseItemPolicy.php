@@ -3,12 +3,16 @@
 namespace App\Policies;
 
 use App\Helpers\CanCreateHelper;
+use App\Helpers\CanDeleteHelper;
+use App\Helpers\CanForceDeleteHelper;
+use App\Helpers\CanRestoreHelper;
 use App\Helpers\CanUpdateHelper;
 use App\Helpers\CanViewAnyHelper;
 use App\Helpers\CanViewHelper;
 use App\Models\PurchaseItem;
 use App\Models\User;
 use Filament\Facades\Filament;
+use Illuminate\Validation\Rules\Can;
 
 class PurchaseItemPolicy
 {
@@ -42,30 +46,6 @@ class PurchaseItemPolicy
     public function update(User $user, PurchaseItem $model): bool
     {
         return CanUpdateHelper::canUpdate($user, $model, 'edit-purchase-item');
-        $team = Filament::getTenant();
-
-        if (!$team) {
-            return false;
-        }
-
-        $teamId = $team->id;
-
-        // Obtiene el primer rol del equipo actual (usando team_id explícito)
-        $role = $user->roles()
-            ->where('model_has_roles.team_id', $teamId)
-            ->where(function ($query) use ($teamId) {
-                $query->whereNull('roles.team_id')
-                    ->orWhere('roles.team_id', $teamId);
-            })
-            ->first();
-
-        if (!$role) {
-            return false; // Usuario no tiene roles en este equipo
-        }
-
-        return $role->permissions->contains('name', 'edit-purchase-item')
-            && $user->teams()->where('teams.id', $teamId)->exists()
-            && $model->purchase->team_id === $teamId;
     }
 
     /**
@@ -73,31 +53,7 @@ class PurchaseItemPolicy
      */
     public function delete(User $user, PurchaseItem $model): bool
     {
-        $team = Filament::getTenant();
-
-        if (!$team) {
-            return false;
-        }
-
-        $teamId = $team->id;
-
-        // Obtiene el primer rol del equipo actual (usando team_id explícito)
-        $role = $user->roles()
-            ->where('model_has_roles.team_id', $teamId)
-            ->where(function ($query) use ($teamId) {
-                $query->whereNull('roles.team_id')
-                    ->orWhere('roles.team_id', $teamId);
-            })
-            ->first();
-
-        if (!$role) {
-            return false; // Usuario no tiene roles en este equipo
-        }
-
-        return $role->permissions->contains('name', 'delete-purchase')
-            && $user->teams()->where('teams.id', $teamId)->exists()
-            && $model->purchase->status === 'pending'
-            && $model->purchase->team_id === $teamId;
+        return CanDeleteHelper::canDelete($user, $model, 'delete-purchase-item');
     }
 
     /**
@@ -105,31 +61,7 @@ class PurchaseItemPolicy
      */
     public function restore(User $user, PurchaseItem $model): bool
     {
-        $team = Filament::getTenant();
-
-        if (!$team) {
-            return false;
-        }
-
-        $teamId = $team->id;
-
-        // Obtiene el primer rol del equipo actual (usando team_id explícito)
-        $role = $user->roles()
-            ->where('model_has_roles.team_id', $teamId)
-            ->where(function ($query) use ($teamId) {
-                $query->whereNull('roles.team_id')
-                    ->orWhere('roles.team_id', $teamId);
-            })
-            ->first();
-
-        if (!$role) {
-            return false; // Usuario no tiene roles en este equipo
-        }
-
-        return $role->permissions->contains('name', 'restore-purchase')
-            && $user->teams()->where('teams.id', $teamId)->exists()
-            && $model->purchase->status === 'pending'
-            && $model->purchase->team_id === $teamId;
+        return CanRestoreHelper::canRestore($user, $model, 'restore-purchase-item');
     }
 
     /**
@@ -137,30 +69,6 @@ class PurchaseItemPolicy
      */
     public function forceDelete(User $user, PurchaseItem $model): bool
     {
-        $team = Filament::getTenant();
-
-        if (!$team) {
-            return false;
-        }
-
-        $teamId = $team->id;
-
-        // Obtiene el primer rol del equipo actual (usando team_id explícito)
-        $role = $user->roles()
-            ->where('model_has_roles.team_id', $teamId)
-            ->where(function ($query) use ($teamId) {
-                $query->whereNull('roles.team_id')
-                    ->orWhere('roles.team_id', $teamId);
-            })
-            ->first();
-
-        if (!$role) {
-            return false; // Usuario no tiene roles en este equipo
-        }
-
-        return $role->permissions->contains('name', 'force-delete-purchase')
-            && $user->teams()->where('teams.id', $teamId)->exists()
-            && $model->purchase->status === 'pending'
-            && $model->purchase->team_id === $teamId;
+        return CanForceDeleteHelper::canForceDelete($user, $model, 'force-delete-purchase-item');
     }
 }

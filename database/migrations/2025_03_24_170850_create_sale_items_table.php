@@ -18,7 +18,6 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(Sale::class)->constrained()->cascadeOnDelete();
             $table->foreignIdFor(Inventory::class)->constrained()->cascadeOnDelete();
-            $table->foreignIdFor(Batch::class)->constrained()->cascadeOnDelete();
             $table->integer('quantity')->default(1);
             $table->decimal('sale_price', 10, 2)->default(0);
             $table->decimal('total', 10, 2)->default(0);
