@@ -17,6 +17,7 @@ use Filament\Facades\Filament;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Redirect;
 
 class InventoryCartComponent extends Component implements HasForms, HasTable
 {
@@ -60,11 +61,12 @@ class InventoryCartComponent extends Component implements HasForms, HasTable
     public $cart = [];
     public $quantities = [];
     // Propiedades para los modales y cliente
-    public $showFacturacionModal = false;
-    public $showClienteModal = false;
+    public $newCustomerAddress = '';
+    public $newCustomerEmail = '';
     public $selectedClienteId = null;
     public $newCustomerName = '';
     public $newCustomerDocument = '';
+    public $newCustomerPhone = '';
     public $emitirFactura = false;
     public $customers;
     public $inventories;
@@ -137,7 +139,6 @@ class InventoryCartComponent extends Component implements HasForms, HasTable
             /* if (! isset($cart[$inventoryId]['sell_quantity_override'])) {
                 $cart[$inventoryId]['sell_quantity'] = $cart[$inventoryId]['quantity'];
             } */
-
         } else {
             $cart[$inventoryId] = [
                 'inventory_id'  => $inventory->id,
@@ -151,7 +152,6 @@ class InventoryCartComponent extends Component implements HasForms, HasTable
         $this->cart = $cart;
         Session::put('cart', $this->cart);
         //$this->loadCart();
-        $this->dispatch('notify', ['type' => 'success', 'message' => 'Artículo agregado al carrito.']);
     }
 
     public function removeFromCart($inventoryId)
@@ -161,7 +161,6 @@ class InventoryCartComponent extends Component implements HasForms, HasTable
             unset($cart[$inventoryId]);
             Session::put('cart', $cart);
             $this->cart = $cart;
-            $this->dispatch('notify', ['type' => 'success', 'message' => 'Artículo removido del carrito.']);
         }
     }
 
@@ -189,7 +188,7 @@ class InventoryCartComponent extends Component implements HasForms, HasTable
     public function facturacionRespuesta($respuesta)
     {
         $this->emitirFactura = (bool) $respuesta;
-        $this->showFacturacionModal = false;
+        //$this->showFacturacionModal = false;
 
         // Si se requiere factura, mostrar modal de cliente
         if ($this->emitirFactura) {
@@ -201,7 +200,7 @@ class InventoryCartComponent extends Component implements HasForms, HasTable
         }
     }
 
-    public function guardarClienteYCheckout()
+    public function saveCustomerAndCheckout()
     {
         // Validar selección o creación de cliente
         if ($this->selectedClienteId) {
@@ -209,17 +208,17 @@ class InventoryCartComponent extends Component implements HasForms, HasTable
         } elseif ($this->newCustomerName && $this->newCustomerDocument) {
             // Crear cliente nuevo
             $cliente = \App\Models\Customer::create([
-                'nombre'    => $this->newCustomerName,
-                'documento' => $this->newCustomerDocument,
-                'team_id'   => Filament::getTenant()->id,
+                'name'              => $this->newCustomerName,
+                'identification'    => $this->newCustomerDocument,
+                'address'           => $this->newCustomerAddress,
+                'email'             => $this->newCustomerEmail,
+                'phonenumber'       => $this->newCustomerPhone,
             ]);
             $clienteId = $cliente->id;
         } else {
-            $this->dispatch('notify', ['type' => 'warning', 'message' => 'Debe seleccionar o crear un cliente.']);
+            $this->dispatch('open-modal', id: 'cliente-validacion-modal');
             return;
         }
-
-        $this->showClienteModal = false;
         $this->procesarVenta($clienteId);
     }
 
@@ -241,6 +240,8 @@ class InventoryCartComponent extends Component implements HasForms, HasTable
             'customer_id' => $clienteId,
             'user_id'     => Auth::id(),
             'total'       => $total,
+            'status'      => 'completed',
+            'code'        => (new \App\Models\Sale())->generateCode(),
             'data'        => null,
         ]);
 
@@ -256,8 +257,10 @@ class InventoryCartComponent extends Component implements HasForms, HasTable
 
         $this->clearCart();
 
-        // Redirigir a la edición de la venta
-        return redirect()->to(route('filament.resources.sales.edit', ['record' => $sale->id]));
+        // Redirigir al detalle de la venta
+        Redirect::to(
+            \App\Filament\Resources\SaleResource::getUrl('view', ['record' => $sale->id])
+        );
     }
 
 

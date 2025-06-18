@@ -46,7 +46,7 @@
                 Finalizar Compra
             </x-filament::button>
 
-            <!-- Modal para facturación electrónica -->
+    <!-- Modal para facturación electrónica -->
             <x-filament::modal id="facturacion-modal" wire:model="showFacturacionModal" alignment="center"
                 icon="phosphor-receipt">
                 <x-slot name="header">
@@ -112,6 +112,12 @@
                         Guardar y continuar
                     </x-filament::button>
                 </x-slot>
+            </x-filament::modal>
+
+            <x-filament::modal id="cliente-validacion-modal">
+            <x-slot name="header">
+                <p>Debes seleccionar o crear un cliente antes de continuar.</p>           
+            </x-slot>
             </x-filament::modal>
         @endif
     </x-filament::fieldset>
