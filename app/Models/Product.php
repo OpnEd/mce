@@ -116,7 +116,8 @@ class Product extends Model
     public function peripheralPrice(): HasOne
     {
         $teamId = Filament::getTenant()->id;
-        return $this->hasOne(PeripheralProductPrice::class)
+        return $this
+                ->hasOne(PeripheralProductPrice::class)
                 ->where('team_id', $teamId);
     }
 }
