@@ -119,6 +119,11 @@ class SaleResource extends Resource
                         })
                         ->requiresConfirmation()
                         ->successNotificationTitle('Sale canceled successfully'),
+                    Tables\Actions\Action::make('view_invoice')
+                        ->label(__("View Invoice"))
+                        ->url(function ($record) {
+                            return self::getUrl('invoice', ['record' => $record]);
+                        })
                 ])
             ])
             ->bulkActions([
@@ -145,6 +150,7 @@ class SaleResource extends Resource
             'view' => Pages\ViewSale::route('/{record}'),
             'edit' => Pages\EditSale::route('/{record}/edit'),
             'sales' => Pages\Sales::route('/ventas'),
+            'invoice' => Pages\Invoice::route('/{record}/factura')
         ];
     }
 

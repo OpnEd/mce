@@ -4,11 +4,16 @@ namespace App\Providers;
 
 use App\Models\DispatchItems;
 use App\Models\Sale;
+use App\Models\SaleItem;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Permission\PermissionRegistrar;
 use App\Models\Team;
 use App\Observers\DispatchItemsObserver;
+use App\Observers\SaleItemObserver;
 use App\Observers\SaleObserver;
+use App\Services\CartService;
+use App\Services\InvoiceService;
+use App\Services\SaleService;
 use Illuminate\Support\Facades\Gate;
 use Filament\Support\Facades\FilamentView;
 use Filament\View\PanelsRenderHook;
@@ -28,6 +33,22 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(\App\Services\RoleService::class, function ($app) {
             return new \App\Services\RoleService($app->make(\App\Repositories\RoleRepository::class));
         });
+        // Registramos CartService como singleton para
+        // que siempre se utilice la misma instancia durante la petición.
+        $this->app->singleton(CartService::class, function ($app) {
+            return new CartService();
+        });
+
+        // Registramos InvoiceService
+        $this->app->singleton(InvoiceService::class, function ($app) {
+            return new InvoiceService();
+        });
+
+        // Registramos SaleService y le inyectamos InvoiceService mediante $app->make()
+        $this->app->singleton(SaleService::class, function ($app) {
+            return new SaleService($app->make(InvoiceService::class));
+        });
+
     }
 
     /**
@@ -53,5 +74,6 @@ class AppServiceProvider extends ServiceProvider
         // Observers
         DispatchItems::observe(DispatchItemsObserver::class);
         Sale::observe(SaleObserver::class);
+        SaleItem::observe(SaleItemObserver::class);
     }
 }

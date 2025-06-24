@@ -142,6 +142,11 @@ class Team extends Model
         return $this->hasMany(Sale::class);
     }
 
+    public function settings()
+    {
+        return $this->hasMany(TenantSetting::class);
+    }
+
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class);

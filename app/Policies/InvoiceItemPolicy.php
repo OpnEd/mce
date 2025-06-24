@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Helpers\CanViewAnyHelper;
 use App\Models\InvoiceItem;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
@@ -13,7 +14,7 @@ class InvoiceItemPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return CanViewAnyHelper::canViewAny($user, 'view-invoice-items');
     }
 
     /**

@@ -94,6 +94,14 @@ enum PermissionType: string implements HasLabel
     case RESTORE_INVOICE      = 'restore-invoice';
     case FORCE_DELETE_INVOICE = 'force-delete-invoice';
 
+        // InvoiceItems
+    case VIEW_INVOICE_ITEMS         = 'view-invoice-items';
+    case CREATE_INVOICE_ITEMS       = 'create-invoice-items';
+    case EDIT_INVOICE_ITEMS         = 'edit-invoice-items';
+    case DELETE_INVOICE_ITEMS       = 'delete-invoice-items';
+    case RESTORE_INVOICE_ITEMS      = 'restore-invoice-items';
+    case FORCE_DELETE_INVOICE_ITEMS = 'force-delete-invoice-items';
+
         // Manufacturer
     case VIEW_MANUFACTURER         = 'view-manufacturer';
     case CREATE_MANUFACTURER       = 'create-manufacturer';
@@ -393,6 +401,14 @@ enum PermissionType: string implements HasLabel
             self::DELETE_INVOICE       => 'Eliminar Facturas',
             self::RESTORE_INVOICE      => 'Restaurar Facturas',
             self::FORCE_DELETE_INVOICE => 'Forzar la eliminación de Facturas',
+
+            // InvoiceItems
+            self::VIEW_INVOICE_ITEMS         => 'Ver ítems de Facturas',
+            self::CREATE_INVOICE_ITEMS       => 'Crear ítems de Facturas',
+            self::EDIT_INVOICE_ITEMS         => 'Editar ítems de Facturas',
+            self::DELETE_INVOICE_ITEMS       => 'Eliminar ítems de Facturas',
+            self::RESTORE_INVOICE_ITEMS      => 'Restaurar ítems de Facturas',
+            self::FORCE_DELETE_INVOICE_ITEMS => 'Forzar la eliminación de ítems de Facturas',
 
             // Manufacturer
             self::VIEW_MANUFACTURER         => 'Ver Fabricantes',

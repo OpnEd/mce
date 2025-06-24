@@ -43,6 +43,28 @@ class Customer extends Model
         });
     }
 
+    /**
+     * Crea y retorna un Customer genérico.
+     *
+     * @param array $attributes
+     * @return static
+     */
+    public static function createGeneric(array $attributes = []): self
+    {
+        $defaults = [
+            'name' => 'Cliente Genérico',
+            'identification' => '88888888',
+            'address' => 'Sin dirección',
+            'email' => 'generico@example.com',
+            'phonenumber' => '9999999999',
+            'data' => [],
+        ];
+
+        $data = array_merge($defaults, $attributes);
+
+        return self::create($data);
+    }
+
     // Relación uno a muchos con Factura
     public function invoices(): HasMany
     {

@@ -9,10 +9,10 @@ class Inventory extends Model
     protected $fillable = [
         'team_id',
         'product_id',
-        'bar_code',
-        'product_name',
+        //'bar_code',
+        //'product_name',
         'batch_id',
-        'batch_code',
+        //'batch_code',
         'quantity',
         'purchase_price',
         //'sale_price',

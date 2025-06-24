@@ -37,10 +37,10 @@ class Invoice extends Model
         return $this->hasOne(ProductReception::class);
     }
 
-    public function generateCode(): string
+    public function generateCode($sale): string
     {
         // Genera un código único para la factura, por ejemplo, usando un prefijo y un timestamp
-        return 'INV-' . now()->format('Ymd-His') . '-' . uniqid();
+        return 'INV-' . now()->format('Ymd-His') . '-' . $sale->id;
     }
 
     public function items(): HasMany

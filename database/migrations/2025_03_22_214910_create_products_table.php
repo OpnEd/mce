@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(ProductCategory::class)->constrained()->onDelete('cascade');
             $table->foreignIdFor(PharmaceuticalForm::class)->nullable()->constrained()->onDelete('set null');
-            $table->string('code')->unique();
+            $table->string('bar_code')->unique();
             $table->string('name');
             $table->string('drug')->nullable(); // Nombre del principio activo
             $table->string('description'); // Presentación comercial

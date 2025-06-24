@@ -21,7 +21,7 @@ class Product extends Model
     protected $fillable = [
         'category_id', //categoría del producto
         'pharmaceutical_form_id', //forma farmacéutica, si aplica
-        'code', //código
+        'bar_code', //código
         'name', //nombre comercial
         'drug', //principio activo
         'description', //presentación comercial

@@ -12,6 +12,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Forms\Components\Section;
 
 class InvoiceResource extends Resource
 {
@@ -23,25 +24,30 @@ class InvoiceResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('team_id')
-                    ->required()
-                    ->numeric(),
+                Section::make('Order details')
+                    ->schema([
                 Forms\Components\Select::make('sale_id')
                     ->relationship('sale', 'id'),
-                Forms\Components\Select::make('supplier_id')
-                    ->relationship('supplier', 'name'),
                 Forms\Components\TextInput::make('code')
+                    ->label(__('Invoice Code'))
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('amount')
+                    ->label(__('Total'))
                     ->required()
                     ->numeric(),
                 Forms\Components\Toggle::make('is_our')
+                    ->label(__('Is Our Invoice'))
+                    ->inline(false)
                     ->required(),
                 Forms\Components\DatePicker::make('issued_date')
+                    ->label(__('Issued Date'))
+                    ->default(now())
                     ->required(),
                 Forms\Components\TextInput::make('data'),
-            ]);
+                    ])
+                    ->columns(4),
+                ]);
     }
 
     public static function table(Table $table): Table
@@ -99,7 +105,8 @@ class InvoiceResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\ItemsRelationManager::class,
+            //RelationManagers\ReceptionRelationManager::class,
         ];
     }
 

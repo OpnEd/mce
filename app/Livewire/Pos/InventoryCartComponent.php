@@ -23,23 +23,25 @@ class InventoryCartComponent extends Component implements HasForms, HasTable
 {
     use InteractsWithTable;
     use InteractsWithForms;
-
+/**
+ * Tabla de inventario para el POS.
+ */
     public function table(Table $table): Table
     {
         return $table
             ->query(Inventory::query())
             ->heading('Productos en inventario')
             ->columns([
-                TextColumn::make('bar_code')
+                TextColumn::make('product.bar_code')
                     ->label('Código de barras')
                     ->searchable(),
-                TextColumn::make('product_name')
+                TextColumn::make('product.name')
                     ->label('Nombre del producto')
                     ->searchable(),
                 TextColumn::make('product.peripheralPrice.sale_price')
                     ->label('Precio de venta')
                     ->money(''),
-                TextColumn::make('batch_code')
+                TextColumn::make('batch.code')
                     ->label('Lote')
                     ->searchable(),
                 TextColumn::make('quantity')
@@ -142,8 +144,8 @@ class InventoryCartComponent extends Component implements HasForms, HasTable
         } else {
             $cart[$inventoryId] = [
                 'inventory_id'  => $inventory->id,
-                'batch_code'    => $inventory->batch_code,
-                'product_name'  => $inventory->product_name,
+                'batch_code'    => $inventory->batch->code,
+                'product_name'  => $inventory->product->name,
                 'sale_price'    => $inventory->product->peripheralPrice?->sale_price ?? 0,
                 'quantity'      => $inventory->quantity,
                 'sell_quantity' => 1,
@@ -181,14 +183,12 @@ class InventoryCartComponent extends Component implements HasForms, HasTable
         }
 
         // Mostrar modal de facturación electrónica
-        //$this->showFacturacionModal = true;
         $this->dispatch('open-modal', id: 'facturacion-modal');
     }
 
     public function facturacionRespuesta($respuesta)
     {
         $this->emitirFactura = (bool) $respuesta;
-        //$this->showFacturacionModal = false;
 
         // Si se requiere factura, mostrar modal de cliente
         if ($this->emitirFactura) {
@@ -196,7 +196,14 @@ class InventoryCartComponent extends Component implements HasForms, HasTable
             $this->dispatch('open-modal', id: 'cliente-modal');
         } else {
             // Cliente genérico
-            $this->procesarVenta(88888888);
+            // Buscar cliente genérico existente para el team actual, o crearlo si no existe
+            $clienteGenerico = \App\Models\Customer::where('identification', '88888888')
+                ->first();
+
+            if (! $clienteGenerico) {
+                $clienteGenerico = \App\Models\Customer::createGeneric();
+            }
+            $this->procesarVenta($clienteGenerico->id);
         }
     }
 
@@ -245,8 +252,9 @@ class InventoryCartComponent extends Component implements HasForms, HasTable
             'data'        => null,
         ]);
 
+        $saleItems = [];
         foreach ($items as $i) {
-            SaleItem::create([
+            $saleItems[] = SaleItem::create([
                 'sale_id'      => $sale->id,
                 'inventory_id' => $i['inventory_id'],
                 'quantity'     => $i['qty'],
@@ -255,12 +263,62 @@ class InventoryCartComponent extends Component implements HasForms, HasTable
             ]);
         }
 
+        // Generar Invoice e InvoiceItem automáticamente
+        $this->generarFactura($sale, $saleItems);
+
         $this->clearCart();
 
+        // Obtener la factura generada
+        $invoice = \App\Models\Invoice::where('sale_id', $sale->id)->latest('id')->first();
+
         // Redirigir al detalle de la venta
-        Redirect::to(
-            \App\Filament\Resources\SaleResource::getUrl('view', ['record' => $sale->id])
-        );
+        if ($invoice) {
+            Redirect::to(
+                \App\Filament\Resources\InvoiceResource::getUrl('view', ['record' => $invoice->id])
+            );
+        } else {
+            // Manejar el caso en que no se encuentra la factura
+            $this->dispatch('notify', ['type' => 'error', 'message' => 'No se pudo encontrar la factura generada.']);
+        }
+    }
+
+    /**
+     * Genera una factura (Invoice) y sus items (InvoiceItem) a partir de una venta.
+     *
+     * @param \App\Models\Sale $sale
+     * @param array $saleItems
+     * @return void
+     */
+    protected function generarFactura($sale, $saleItems)
+    {
+        // Generar un código único para la factura
+        $invoiceCode = 'INV-' . now()->format('YmdHis') . '-' . $sale->id;
+
+        $invoice = \App\Models\Invoice::create([
+            'team_id'     => $sale->team_id,
+            'sale_id'     => $sale->id,
+            'supplier_id' => null,
+            'code'        => $invoiceCode,
+            'amount'      => $sale->total,
+            'is_our'      => true,
+            'issued_date' => now()->toDateString(),
+            'data'        => null,
+        ]);
+
+        foreach ($saleItems as $saleItem) {
+            $inventory = $saleItem->inventory;
+            $batchId = $inventory?->batch_id ?? null;
+
+            \App\Models\InvoiceItem::create([
+                'invoice_id'  => $invoice->id,
+                'sale_item_id'=> $saleItem->id,
+                'batch_id'    => $batchId,
+                'due_date'    => null,
+                'quantity'    => $saleItem->quantity,
+                'price'       => $saleItem->sale_price,
+                'total'       => $saleItem->total,
+            ]);
+        }
     }
 
 

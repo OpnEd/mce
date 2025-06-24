@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Setting;
 use App\Filament\Pages\Tenancy\EditTeamProfile;
 use App\Filament\Pages\Tenancy\RegisterTeam;
 use App\Models\Team;
@@ -47,6 +48,7 @@ class AdminPanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
                 Pages\Dashboard::class,
+                Setting::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
@@ -77,10 +79,10 @@ class AdminPanelProvider extends PanelProvider
             ->tenantMenuItems([
                 'profile' => MenuItem::make()->label('Edit team profile'),
                 'register' => MenuItem::make()->label('Register new team'),
-                MenuItem::make()
+                /* MenuItem::make()
                     ->label('Settings')
                     ->url(fn(): string => Settings::getUrl())
-                    ->icon('heroicon-m-cog-8-tooth'),
+                    ->icon('heroicon-m-cog-8-tooth'), */
                 // ...
             ])
             ->tenantMiddleware([
