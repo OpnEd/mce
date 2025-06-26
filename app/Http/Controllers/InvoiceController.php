@@ -22,7 +22,7 @@ class InvoiceController extends Controller
         ], $team->id); */
         //dd($invoice);
         $pdf = Pdf::loadView('invoices.pdf', compact('invoice'));
-        return $pdf->download("invoice_{$id}.pdf");
+        return $pdf->stream("invoice_{$id}.pdf");
     }
 
     public function print($id)
