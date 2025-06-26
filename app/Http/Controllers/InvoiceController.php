@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Invoice;
+use App\Models\Team;
 use Illuminate\Support\Facades\Mail;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -12,6 +13,13 @@ class InvoiceController extends Controller
     public function generatePdf($id)
     {
         $invoice = Invoice::findOrFail($id);
+        /* $team = app(Team::class);
+        dd($team);
+        $settings = getSettings([
+            'Team Name',
+            'Address',
+            'E-mail',
+        ], $team->id); */
         //dd($invoice);
         $pdf = Pdf::loadView('invoices.pdf', compact('invoice'));
         return $pdf->download("invoice_{$id}.pdf");

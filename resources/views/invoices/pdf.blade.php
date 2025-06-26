@@ -28,9 +28,9 @@
             </td>
             <td style="text-align: right;">
                 <h2 style="font-weight: bold; color: #4a5568;">{{ __('Company') }}</h2>
-                <p style="color: #718096;">{{ $settings['Team Name'] }}</p>
-                <p style="color: #718096;">{{ $settings['Address'] }}</p>
-                <p style="color: #718096;">Email: {{ $settings['E-mail'] }}</p>
+                <p style="color: #718096;">{{ $invoice->sale?->team?->name }}</p>
+                <p style="color: #718096;">{{ $invoice->sale?->team?->address }}</p>
+                <p style="color: #718096;">Email: {{ $invoice->sale?->team?->email }}</p>
             </td>
         </tr>
     </table>

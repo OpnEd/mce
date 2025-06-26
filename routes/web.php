@@ -8,9 +8,13 @@ use Illuminate\Support\Facades\Route;
 /**
  * Descargar, imprimir y enviar por correo electrónico facturas
  */
-Route::get('/generate-invoice-pdf/{id}', [InvoiceController::class, 'generatePdf'])->name('invoice.download');
-Route::get('/invoice/{id}/print', [InvoiceController::class, 'print'])->name('invoice.print');
-Route::post('/invoice/{id}/email', [InvoiceController::class, 'sendByEmail'])->name('invoice.email');
+/* Route::middleware(['auth', 'team.context'])
+    ->prefix('admin/{team}')
+    ->group(function () { */
+        Route::get('/generate-invoice-pdf/{id}', [InvoiceController::class, 'generatePdf'])->name('invoice.download');
+        Route::get('/invoice/{id}/print', [InvoiceController::class, 'print'])->name('invoice.print');
+        Route::post('/invoice/{id}/email', [InvoiceController::class, 'sendByEmail'])->name('invoice.email');
+/*     }); */
 
 Route::get('/', [ManufacturerController::class, 'show'])->name('home');
 
