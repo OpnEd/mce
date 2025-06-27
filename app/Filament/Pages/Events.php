@@ -35,6 +35,7 @@ use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 
 class Events extends Page implements HasTable, HasActions, HasForms
 {
@@ -77,7 +78,21 @@ class Events extends Page implements HasTable, HasActions, HasForms
                             ->placeholder(__('Select Event Type')),
                         Select::make('role_id')
                             ->label(__('Role'))
-                            ->relationship('role', 'name')
+                            ->relationship(
+                                name: 'role',
+                                titleAttribute: 'name',
+                                modifyQueryUsing: function (Builder $query) {
+                                    $tenant = Filament::getTenant();
+
+                                    // Verificar existencia del tenant
+                                    if (!$tenant) {
+                                        throw new \Exception('Team no definido en este contexto');
+                                    }
+
+                                    $query->whereNotNull('team_id')
+                                        ->where('team_id', $tenant->id);
+                                }
+                            )
                             ->preload()
                             ->searchable()
                             ->required()
@@ -178,7 +193,21 @@ class Events extends Page implements HasTable, HasActions, HasForms
                             ->placeholder(__('Select Event Type')),
                         Select::make('role_id')
                             ->label(__('Role'))
-                            ->relationship('role', 'name')
+                            ->relationship(
+                                name: 'role',
+                                titleAttribute: 'name',
+                                modifyQueryUsing: function (Builder $query) {
+                                    $tenant = Filament::getTenant();
+
+                                    // Verificar existencia del tenant
+                                    if (!$tenant) {
+                                        throw new \Exception('Team no definido en este contexto');
+                                    }
+
+                                    $query->whereNotNull('team_id')
+                                        ->where('team_id', $tenant->id);
+                                }
+                            )
                             ->preload()
                             ->searchable()
                             ->required()
@@ -254,7 +283,7 @@ class Events extends Page implements HasTable, HasActions, HasForms
             ->record(function (array $arguments) {
                 return Event::query()->where('id', $arguments['id'])->first();
             })
-            ->after(function() {
+            ->after(function () {
                 $this->dispatch('refresh-calendar')->self();
             });
     }
@@ -278,6 +307,8 @@ class Events extends Page implements HasTable, HasActions, HasForms
                                     ->label(__('Event Type')),
                                 TextEntry::make('description')
                                     ->label(__('Description')),
+                                TextEntry::make('role.name')
+                                    ->label(__('Responsible')),
                                 TextEntry::make('start_date')
                                     ->label(__('Start Date'))
                                     ->date('d/m/Y'),
@@ -374,7 +405,6 @@ class Events extends Page implements HasTable, HasActions, HasForms
                 }
 
                 $this->dispatch('refresh-calendar')->self();
-                
             });
     }
 

@@ -21,7 +21,7 @@ return new class extends Migration
             $table->foreignIdFor(Setting::class)
                 ->constrained()
                 ->cascadeOnDelete();
-            $table->text("value")->nullable();
+            $table->text('value')->nullable();
             $table->json('data')->nullable();
             $table->timestamps();
         });

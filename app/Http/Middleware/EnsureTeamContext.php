@@ -17,8 +17,18 @@ class EnsureTeamContext
      */
     public function handle(Request $request, Closure $next): Response
     {
+        // Verificar si hay un tenant en la ruta
+        $tenant = Filament::getTenant();
+        
+        if (!$tenant && $request->route('tenant')) {
+            // Si no hay tenant pero existe en la ruta, establecerlo
+            $tenantModel = \App\Models\Team::find($request->route('tenant'));
+            if ($tenantModel) {
+                Filament::setTenant($tenantModel);
+            }
+        }
 
-        // 1) Obtener el tenant actual
+        /* // 1) Obtener el tenant actual
         $team = Filament::getTenant();
         abort_unless($team, 404);
 
@@ -30,7 +40,7 @@ class EnsureTeamContext
         app()->instance(Team::class, $team);
 
         // O si prefieres un singleton:
-        // app()->singleton(Team::class, fn() => $team);
+        // app()->singleton(Team::class, fn() => $team); */
         return $next($request);
     }
 }

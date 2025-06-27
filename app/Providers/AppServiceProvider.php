@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\Gate;
 use Filament\Support\Facades\FilamentView;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Notifications\DatabaseNotification;
+use App\Models\TeamNotification;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -48,6 +50,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(SaleService::class, function ($app) {
             return new SaleService($app->make(InvoiceService::class));
         });
+
+        $this->app->bind(DatabaseNotification::class, TeamNotification::class);
 
     }
 

@@ -14,7 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         //$middleware->append(EnsureTeamContext::class);
-        $middleware->prepend(RoleMiddleware::class);
+        //$middleware->prepend(RoleMiddleware::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

@@ -19,7 +19,9 @@ use Illuminate\Support\Collection;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use App\Traits\HasTeamRoles;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Notifications\DatabaseNotification;
 
 class User extends Authenticatable implements FilamentUser, HasTenants, HasAvatar
 {
@@ -127,6 +129,37 @@ class User extends Authenticatable implements FilamentUser, HasTenants, HasAvata
         return $this->teams;
     }
 
+    public function notifications()
+    {
+        $team = Filament::getTenant();
+
+        $query = $this->morphMany(DatabaseNotification::class, 'notifiable');
+
+        if ($team) {
+            $query->where('team_id', $team->id);
+        }
+
+        return $query->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Sobrescribir el método readNotifications para filtrar por tenant
+     */
+    public function readNotifications(): MorphMany
+    {
+        $team = Filament::getTenant();
+        
+        $query = $this->morphMany(DatabaseNotification::class, 'notifiable')
+                     ->whereNotNull('read_at')
+                     ->orderBy('created_at', 'desc');
+        
+        if ($team) {
+            $query->where('team_id', $team->id);
+        }
+        
+        return $query;
+    }
+
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class);
@@ -141,6 +174,24 @@ class User extends Authenticatable implements FilamentUser, HasTenants, HasAvata
     public function teams(): BelongsToMany
     {
         return $this->belongsToMany(Team::class, 'team_user', 'user_id', 'team_id');
+    }
+
+    /**
+     * Sobrescribir el método unreadNotifications para filtrar por tenant
+     */
+    public function unreadNotifications(): MorphMany
+    {
+        $team = Filament::getTenant();
+        
+        $query = $this->morphMany(DatabaseNotification::class, 'notifiable')
+                     ->whereNull('read_at')
+                     ->orderBy('created_at', 'desc');
+        
+        if ($team) {
+            $query->where('team_id', $team->id);
+        }
+        
+        return $query;
     }
 
     public function user_answers(): HasMany

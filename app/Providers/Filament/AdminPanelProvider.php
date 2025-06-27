@@ -31,6 +31,7 @@ use Filament\Navigation\MenuItem;
 use Filament\View\PanelsRenderHook;
 use Filament\Support\Facades\FilamentView;
 use Illuminate\Support\Facades\Blade;
+use App\Http\Middleware\EnsureTeamContext;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -65,6 +66,7 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
+                EnsureTeamContext::class,
             ])
             ->authMiddleware([
                 Authenticate::class,
@@ -75,6 +77,7 @@ class AdminPanelProvider extends PanelProvider
             ->passwordReset()
             //->emailVerification()
             ->profile()
+            ->databaseNotifications()
             ->tenant(Team::class)
             ->tenantMenuItems([
                 'profile' => MenuItem::make()->label('Edit team profile'),

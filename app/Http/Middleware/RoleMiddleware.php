@@ -18,9 +18,20 @@ class RoleMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        Role::addGlobalScope(
+        $tenant = Filament::getTenant();
+
+        if ($tenant) {
+            Role::addGlobalScope('team_or_global', function (Builder $query) use ($tenant) {
+                // Solo incluye roles globales o del tenant actual
+                $query->where(function (Builder $q) use ($tenant) {
+                    $q->whereNull('team_id')
+                      ->orWhere('team_id', '=', $tenant->id);
+                });
+            });
+        }
+        /* Role::addGlobalScope(
             fn (Builder $query) => $query->whereBelongsTo(Filament::getTenant()),
-        );
+        ); */
         return $next($request);
     }
 }
