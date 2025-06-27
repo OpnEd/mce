@@ -8,6 +8,7 @@ use Filament\Actions\Exports\Exporter;
 use Filament\Actions\Exports\Models\Export;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Facades\Filament;
+use Illuminate\Support\Facades\Schema;
 
 class ProductExporter extends Exporter
 {
@@ -44,14 +45,22 @@ class ProductExporter extends Exporter
 
     public static function modifyQuery(Builder $query): Builder
     {
-        $team = Filament::getTenant();
-        
-        if (!$team) {
-            return $query->whereRaw('1 = 0');
+        // Verifica si la columna 'team_id' existe antes de aplicar el filtro
+        if (Schema::hasColumn((new Product)->getTable(), 'team_id')) {
+            $team = Filament::getTenant();
+
+            // Si hay un equipo, filtra por team_id; si no, exporta productos sin team asignado (team_id null)
+            if ($team) {
+                return $query->where('team_id', $team->id)
+                             ->with(['team']);
+            }
+
+            return $query->whereNull('team_id')
+                         ->with(['team']);
         }
 
-        return $query->where('team_id', $team->id)
-                    ->with(['team']);
+        // Si no existe la columna, solo retorna el query original
+        return $query;
     }
 
     public static function getCompletedNotificationBody(Export $export): string

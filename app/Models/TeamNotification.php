@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\DatabaseNotification as BaseNotification;
 use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\Scopes\TeamNotificationScope;
 
 class TeamNotification extends BaseNotification
 {
@@ -37,8 +36,6 @@ class TeamNotification extends BaseNotification
             // Asume que Filament::getTenant() devuelve el objeto tenant
             $notification->team_id = Filament::getTenant()?->id;
         }); */
-
-        static::addGlobalScope(new TeamNotificationScope);
 
         static::creating(function ($notification) {
 
