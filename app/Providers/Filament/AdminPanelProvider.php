@@ -32,6 +32,7 @@ use Filament\View\PanelsRenderHook;
 use Filament\Support\Facades\FilamentView;
 use Illuminate\Support\Facades\Blade;
 use App\Http\Middleware\EnsureTeamContext;
+use Leandrocfe\FilamentApexCharts\FilamentApexChartsPlugin;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -72,6 +73,8 @@ class AdminPanelProvider extends PanelProvider
                 Authenticate::class,
             ])
             ->sidebarCollapsibleOnDesktop()
+            ->plugins([
+                FilamentApexChartsPlugin::make()])
             ->login()
             ->registration()
             ->passwordReset()

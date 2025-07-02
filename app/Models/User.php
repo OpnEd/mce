@@ -41,7 +41,13 @@ class User extends Authenticatable implements FilamentUser, HasTenants, HasAvata
         'name',
         'email',
         'password',
+        'is_surgeon',
         'data',
+    ];
+
+    protected $casts = [
+        'is_surgeon' => 'boolean',
+        'data' => 'array',
     ];
 
     /**
@@ -52,6 +58,7 @@ class User extends Authenticatable implements FilamentUser, HasTenants, HasAvata
     protected $hidden = [
         'password',
         'remember_token',
+        
     ];
 
     /**

@@ -35,18 +35,12 @@ class InventorySeeder extends Seeder
             $productId = fake()->randomElement($productIds);
             $batchId = fake()->randomElement($batchIds);
             $teamId = fake()->randomElement($teamIds);
-
-            $barCode = fake()->ean13();
-            $productName = fake()->word();
             $batchCode = 'L' . fake()->bothify('##??');
 
             Inventory::create([
                 'team_id'       => $teamId,
                 'product_id'    => $productId,
                 'batch_id'      => $batchId,
-                'bar_code'      => $barCode,
-                'product_name'  => ucfirst($productName),
-                'batch_code'    => $batchCode,
                 'quantity'      => fake()->numberBetween(10, 500),
                 'purchase_price'=> fake()->randomFloat(2, 100, 5000),
                 'created_at'    => now()->subDays(rand(1, 30))->setHour(rand(8, 18))->setMinute(rand(0, 59)),

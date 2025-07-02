@@ -43,6 +43,8 @@ class RoleSeeder extends Seeder
             'guard_name' => 'web',
             'team_id' => 1
         ]);
+        // Establece el team_id antes de asignar el rol
+        app()->make(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId(1);
         $user->assignRole($role);
     }
 }

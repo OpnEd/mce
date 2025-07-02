@@ -18,30 +18,32 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-//        User::factory(10)->create();
-
-        //Stock::factory(30)->create();
+        User::factory(10)->create();
 
          $this->call([
-            //TeamSeeder::class,
-            //TeamUserSeeder::class,
-            //ManufacturerSeeder::class,
-            //ProductCategorySeeder::class,
-            //PharmaceuticalFormSeeder::class,
-            //ProductSeeder::class,
-            //SanitaryRegistrySeeder::class,
-            //BatchSeeder::class,
-            //SupplierSeeder::class,
-            //CustomerSeeder::class,
-            //DocumentCategorySeeder::class,
-            //RoleSeeder::class,
-            //PurchaseSeeder::class,
-            //PurchaseItemSeeder::class,
-            //StockSeeder::class,
-            //CentralProductPriceSeeder::class,
-            //InventorySeeder::class,
-            PeripheralProductPriceSeeder::class,
+            /* TeamSeeder::class,
+            TeamUserSeeder::class,
+            ManufacturerSeeder::class,
+            ProductCategorySeeder::class,
+            PharmaceuticalFormSeeder::class,
+            ProductSeeder::class,
+            SanitaryRegistrySeeder::class,
+            BatchSeeder::class,
+            SupplierSeeder::class,
+            CustomerSeeder::class,
+            DocumentCategorySeeder::class,
+            RoleSeeder::class,
+            PurchaseSeeder::class,
+            PurchaseItemSeeder::class,
+            StockSeeder::class,
+            CentralProductPriceSeeder::class,
+            InventorySeeder::class,
+            PeripheralProductPriceSeeder::class, */
+            EnvironmentalRecordSeeder::class,
+            PetSeeder::class,
         ]);
+
+        Stock::factory(30)->create();
 
         /* $user = User::factory()->create([
             'name' => 'Test User',
