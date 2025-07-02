@@ -11,13 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('sales', function (Blueprint $table) {
-            $table->enum('status', ['in-progress', 'completed', 'canceled'])
-                ->default('in-progress')
-                ->after('total');
-            $table->string('code', 50)
-                ->nullable()
-                ->after('status');
+        Schema::table('anesthesia_sheets', function (Blueprint $table) {
+            $table->foreignId('pet_id')->constrained('pets')->onDelete('cascade'); // Ensure the pet is a valid record
         });
     }
 
@@ -26,7 +21,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('sales', function (Blueprint $table) {
+        Schema::table('anesthesia_sheets', function (Blueprint $table) {
             //
         });
     }

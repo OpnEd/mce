@@ -38,6 +38,12 @@ class UserResource extends Resource
                     ->dehydrated(fn(?string $state): bool => filled($state))
                     ->required(fn(string $operation): bool => $operation === 'create')
                     ->maxLength(255),
+                Forms\Components\Checkbox::make('is_surgeon')
+                    ->label('Is Surgeon')
+                    ->default(false),
+                Forms\Components\KeyValue::make('data')
+                    ->label('Additional Data')
+                    ->keyPlaceholder('Address:')
             ]);
     }
 
@@ -52,6 +58,7 @@ class UserResource extends Resource
                 Tables\Columns\TextColumn::make('email_verified_at')
                     ->dateTime()
                     ->sortable(),
+                Tables\Columns\IconColumn::make('is_surgeon'),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

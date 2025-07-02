@@ -33,6 +33,11 @@ class Team extends Model
         'data' => 'array'
     ];
 
+    public function anesthesiaSheets(): HasMany
+    {
+        return $this->hasMany(AnesthesiaSheet::class);
+    }
+
     public function batches(): HasMany
     {
         return $this->hasMany(Batch::class);
@@ -72,7 +77,7 @@ class Team extends Model
         return $this->hasMany(DocumentCategory::class);
     }
 
-    public function environmental_records(): HasMany
+    public function environmentalRecords(): HasMany
     {
         return $this->hasMany(EnvironmentalRecord::class);
     }

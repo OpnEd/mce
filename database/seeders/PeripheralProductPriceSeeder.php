@@ -11,7 +11,7 @@ class PeripheralProductPriceSeeder extends Seeder
 {
     public function run(): void
     {
-        $teamId = 14;
+        $teamId = 1;
 
         // Obtener 10 productos aleatorios existentes
         $products = Product::inRandomOrder()->limit(10)->get();
