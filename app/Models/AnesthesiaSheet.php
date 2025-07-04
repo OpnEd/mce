@@ -15,6 +15,7 @@ class AnesthesiaSheet extends Model
     protected $fillable = [
         'team_id',
         'user_id',
+        'recipe_number',
         'customer_id',
         'pet_id',
         'surgeon_id',
@@ -22,6 +23,7 @@ class AnesthesiaSheet extends Model
         'anesthesia_notes',
         'anesthesia_start_time',
         'anesthesia_end_time',
+        'status', // opened, closed
     ];
 
     protected $casts = [

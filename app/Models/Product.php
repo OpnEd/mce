@@ -24,7 +24,10 @@ class Product extends Model
         'bar_code', //código
         'name', //nombre comercial
         'drug', //principio activo
+        'drug_concentration', //concentración del principio activo por unidad de medida del producto
         'description', //presentación comercial
+        'is_high_risk', //indica si es de alto riesgo
+        'is_mce', //indica si es un medicamento de control especial
         'fractionable', //fraccionable
         'conversion_factor', //factor de conversión
         'image', // imagen
@@ -39,6 +42,8 @@ class Product extends Model
             'name' => 'string',
             'drug' => 'string',
             'description' => 'string',
+            'is_high_risk' => 'boolean',
+            'is_mce' => 'boolean',
             'fractionable' => 'boolean',
             'conversion_factor' => 'decimal:2',
             'tax' => 'decimal:2',

@@ -134,7 +134,7 @@ class ItemsRelationManager extends RelationManager
                                 $invoice->fill([
                                     'team_id' => Filament::getTenant()->id,
                                     'sale_id' => $sale->id, // Relación con Venta que incluye la relación con el cliente
-                                    'code' => (new \App\Models\Invoice())->generateCode(),
+                                    'code' => (new \App\Models\Invoice())->generateCode($sale),
                                     'amount' => $sale->items->sum('total'),
                                     'is_our' => 1, // el modelo Invoice almacena todas las facturas, incluidas las que vienen de terceros
                                     'supplier_id' => null, // Asignar null si no es una factura de proveedor

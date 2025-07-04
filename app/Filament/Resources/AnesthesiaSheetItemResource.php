@@ -18,6 +18,13 @@ class AnesthesiaSheetItemResource extends Resource
     protected static ?string $model = AnesthesiaSheetItem::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $tenantOwnershipRelationshipName = 'anesthesiaSheet';
+    protected static ?string $slug = 'parangaricutirimicuarelamemte-anesthesia-sheet-items';
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
 
     public static function form(Form $form): Form
     {
