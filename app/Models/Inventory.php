@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Inventory extends Model
 {
@@ -10,7 +12,7 @@ class Inventory extends Model
         'team_id',
         'product_id',
         //'bar_code',
-        //'product_name',
+        'product_name',
         'batch_id',
         //'batch_code',
         'quantity',
@@ -23,23 +25,28 @@ class Inventory extends Model
         'purchase_price' => 'decimal:2',
         //'sale_price' => 'decimal:2',
     ];
+    
+    public function anesthesiaItems(): HasMany
+    {
+        return $this->hasMany(AnesthesiaSheetItem::class);
+    }
 
-    public function sale_items()
+    public function sale_items(): HasMany
     {
         return $this->hasMany(SaleItem::class);
     }
 
-    public function team()
+    public function team(): BelongsTo
     {
         return $this->belongsTo(Team::class);
     }
 
-    public function product()
+    public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }
 
-    public function batch()
+    public function batch(): BelongsTo
     {
         return $this->belongsTo(Batch::class);
     }

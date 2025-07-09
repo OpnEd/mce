@@ -26,3 +26,12 @@ Si hay rol, revisa si ese rol tiene el permiso con el nombre dado ($permissionNa
 # Migraciones
 
 El campo 'team_id' de la tabla 'model_has_roles' debe ser transformado para que acepte NULL para poder que funcion el 'Super-Admin'.
+
+# Export y data base notifications por team_id
+
+La exportación de datos envía trabajos a colas y genera database notifications. Se debió
+- adicionar 'team_id' a la tabla 'notifications'
+- Crear el modelo 'TeamNotification' que extiente a 'use Illuminate\Notifications\DatabaseNotification as BaseNotification'
+- Cear el 'EnsureTeamContext' middleware
+- modificar el exporter ProductExporter para filtrar datos por 'team_i'
+- se sobreescribieron los métodos de notificaciones en el modelo User

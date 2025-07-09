@@ -20,7 +20,7 @@ class ProductReception extends Model
         'invoice_id',
         'status',
         'reception_date',
-        'observaciones',
+        'observations',
         'data',
     ];
 

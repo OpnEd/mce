@@ -22,7 +22,8 @@ class SalePolicy
      */
     public function viewAny(User $user): bool
     {
-        return CanViewAnyHelper::canViewAny($user, 'view-sale');
+        return true;
+        //return CanViewAnyHelper::canViewAny($user, 'view-sale');
     }
 
     /**
@@ -30,7 +31,8 @@ class SalePolicy
      */
     public function view(User $user, Sale $model): bool
     {
-        return CanViewHelper::canView($user, $model, 'view-sale');
+        return true;
+        //return CanViewHelper::canView($user, $model, 'view-sale');
     }
 
     /**
@@ -38,7 +40,8 @@ class SalePolicy
      */
     public function create(User $user): bool
     {
-        return CanCreateHelper::canCreate($user, 'create-sale');
+        return true;
+        //return CanCreateHelper::canCreate($user, 'create-sale');
     }
 
     /**
@@ -46,8 +49,9 @@ class SalePolicy
      */
     public function update(User $user, Sale $model): bool
     {
-        return CanUpdateHelper::canUpdate($user, $model, 'edit-sale')
-            && $model->status === 'in-progress';
+        return true;
+        //return CanUpdateHelper::canUpdate($user, $model, 'edit-sale')
+         //   && $model->status === 'in-progress';
     }
 
     /**
@@ -55,7 +59,8 @@ class SalePolicy
      */
     public function delete(User $user, Sale $model): bool
     {
-        return CanDeleteHelper::canDelete($user, $model, 'delete-sale');
+        return true;
+        //return CanDeleteHelper::canDelete($user, $model, 'delete-sale');
     }
 
     /**

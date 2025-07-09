@@ -20,6 +20,11 @@ class AnesthesiaSheetItem extends Model
         'dose_measure_unit', // measurement unit of the dose: 'tab', 'mg', 'ml', 'units', etc.
         'administration_route', // oral, intravenous, intramuscular, subcutaneous, etc.
     ];
+
+    protected $casts = [
+        'dose_per_kg' => 'decimal:2',
+        'dose_measure' => 'decimal:2',
+    ];
     
     public function anesthesiaSheet(): BelongsTo
     {

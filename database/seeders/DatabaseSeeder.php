@@ -21,7 +21,7 @@ class DatabaseSeeder extends Seeder
         User::factory(10)->create();
 
          $this->call([
-            /* TeamSeeder::class,
+            TeamSeeder::class,
             TeamUserSeeder::class,
             ManufacturerSeeder::class,
             ProductCategorySeeder::class,
@@ -38,7 +38,7 @@ class DatabaseSeeder extends Seeder
             StockSeeder::class,
             CentralProductPriceSeeder::class,
             InventorySeeder::class,
-            PeripheralProductPriceSeeder::class, */
+            PeripheralProductPriceSeeder::class,
             EnvironmentalRecordSeeder::class,
             PetSeeder::class,
         ]);

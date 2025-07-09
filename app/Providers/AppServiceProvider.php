@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\AnesthesiaSheet;
 use App\Models\DispatchItems;
 use App\Models\Sale;
 use App\Models\SaleItem;
@@ -20,6 +21,7 @@ use Filament\View\PanelsRenderHook;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Notifications\DatabaseNotification;
 use App\Models\TeamNotification;
+use App\Observers\AnesthesiaSheetObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -79,5 +81,6 @@ class AppServiceProvider extends ServiceProvider
         DispatchItems::observe(DispatchItemsObserver::class);
         Sale::observe(SaleObserver::class);
         SaleItem::observe(SaleItemObserver::class);
+        AnesthesiaSheet::observe(AnesthesiaSheetObserver::class);
     }
 }

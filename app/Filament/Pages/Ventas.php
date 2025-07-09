@@ -6,7 +6,7 @@ use Filament\Pages\Page;
 
 class Ventas extends Page
 {
-    protected static ?string $navigationIcon = 'heroicon-o-document-text';
+    protected static ?string $navigationIcon = 'phosphor-cash-register';
 
     protected static string $view = 'filament.pages.ventas';
 }

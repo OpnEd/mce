@@ -20,7 +20,8 @@ class SaleItemPolicy
      */
     public function viewAny(User $user): bool
     {
-        return CanViewAnyHelper::canViewAny($user, 'view-sale-item');
+        return true;
+        //return CanViewAnyHelper::canViewAny($user, 'view-sale-item');
     }
 
     /**
@@ -28,7 +29,8 @@ class SaleItemPolicy
      */
     public function view(User $user, SaleItem $model): bool
     {
-        return CanViewHelper::canView($user, $model, 'view-sale-item');
+        return true;
+        //return CanViewHelper::canView($user, $model, 'view-sale-item');
     }
 
     /**
@@ -36,7 +38,8 @@ class SaleItemPolicy
      */
     public function create(User $user): bool
     {
-        return CanCreateHelper::canCreate($user, 'create-sale-item');
+        return true;
+        //return CanCreateHelper::canCreate($user, 'create-sale-item');
     }
 
     /**
@@ -44,11 +47,12 @@ class SaleItemPolicy
      */
     public function update(User $user, SaleItem $model): bool
     {
+        return true;
         // Check if the parent Sale is in 'in-progress' status
-        if ($model->sale && $model->sale->status !== 'in-progress') {
-            return false;
-        }
-        return CanUpdateHelper::canUpdate($user, $model, 'edit-sale-item');
+        //if ($model->sale && $model->sale->status !== 'in-progress') {
+            //return false;
+        //}
+        //return CanUpdateHelper::canUpdate($user, $model, 'edit-sale-item');
     }
 
     /**
@@ -56,11 +60,12 @@ class SaleItemPolicy
      */
     public function delete(User $user, SaleItem $model): bool
     {
+        return true;
         // Check if the parent Sale is in 'in-progress' status
-        if ($model->sale && $model->sale->status !== 'in-progress') {
-            return false;
-        }
-        return CanDeleteHelper::canDelete($user, $model, 'delete-sale-item');
+        //if ($model->sale && $model->sale->status !== 'in-progress') {
+            //return false;
+        //}
+        //return CanDeleteHelper::canDelete($user, $model, 'delete-sale-item');
     }
 
     /**

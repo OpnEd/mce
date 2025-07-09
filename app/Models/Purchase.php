@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Cache;
+use Filament\Facades\Filament;
 
 class Purchase extends Model
 {
@@ -18,6 +19,7 @@ class Purchase extends Model
     protected $fillable = [
         'team_id',
         'supplier_id',
+        'code',
         'status',
         'total', // se actualiza mediante observer luego de guardar cambios en la orden de compra
         'observations',
@@ -41,6 +43,18 @@ class Purchase extends Model
     public function dispatch(): HasOne
     {
         return $this->hasOne(Dispatch::class);
+    }
+    
+    public function generatePurchaseCode(): string
+    {
+        $teamId = Filament::getTenant()->id;
+        $lastSale = self::where('team_id', $teamId)
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        $lastCode = $lastSale ? (int) substr($lastSale->code, -4) : 0;
+
+        return 'OC' . str_pad($lastCode + 1, 4, '0', STR_PAD_LEFT);
     }
 
     public function items(): HasMany
@@ -83,6 +97,8 @@ class Purchase extends Model
 
         $this->total = $total;
         $this->save();
+
+        $this->refresh();
 
         Cache::put("purchase_{$this->id}_total", $total, 3600);
     }

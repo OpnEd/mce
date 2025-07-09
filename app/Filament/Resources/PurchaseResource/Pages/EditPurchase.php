@@ -10,6 +10,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Livewire\Attributes\On;
 
 class EditPurchase extends EditRecord
 {
@@ -61,4 +62,11 @@ class EditPurchase extends EditRecord
     {
         return 'heroicon-m-cog';
     }
+
+    /* #[On('purchaseTotalUpdated')]
+    public function refreshForm(): void
+    {
+        parent::refreshFormData(array_keys($this->record->toArray()));
+    } */
+
 }

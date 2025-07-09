@@ -24,7 +24,7 @@ class Setting extends Page implements HasForms
 
     public ?array $data = [];
 
-    protected static ?string $navigationIcon = 'heroicon-o-document-text';
+    protected static ?string $navigationIcon = 'phosphor-gear-six';
 
     protected static string $view = 'filament.pages.setting';
 

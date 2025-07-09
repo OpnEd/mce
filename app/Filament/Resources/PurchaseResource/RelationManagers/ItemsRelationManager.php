@@ -30,6 +30,7 @@ class ItemsRelationManager extends RelationManager
     protected static ?string $title = 'Products';
     protected static ?string $model = Purchase::class;
 
+
     public function form(Form $form): Form
     {
         return $form
@@ -40,11 +41,14 @@ class ItemsRelationManager extends RelationManager
                         $query->inStock();
                     })
                     ->searchable()
+                    ->preload()
                     ->afterStateUpdated(function (?string $state, Set $set, Get $get) {
-                        // Calcular y persistir price y total aunque no haya inputs
-                        $price = CentralProductPrice::find($get('product_id'))?->price ?? 0;
+                        // Obtener la cantidad actual o 1 si es nulo
+                        $quantity = $get('quantity') ?? 1;
+                        // Buscar el precio actualizado del producto seleccionado
+                        $price = CentralProductPrice::find($state)?->price ?? 0;
                         $set('price', $price);
-                        $set('total', $state * $price);
+                        $set('total', $quantity * $price);
                     })
                     ->live()
                     ->required(),
@@ -92,10 +96,24 @@ class ItemsRelationManager extends RelationManager
                     ->label('Add product')
                     ->icon('phosphor-plus')
                     ->visible(fn(): bool => Gate::allows('confirm', $this->ownerRecord))
+                    ->before(function (array $data, $action) {
+                        $purchase = $this->ownerRecord;
+                        $exists = $purchase->items()->where('product_id', $data['product_id'])->exists();
+                        // si ya existe el producto en la orden, no permitir agregarlo de nuevo
+                        if ($exists) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Este producto ya fue agregado')
+                                ->body('No puedes agregar el mismo producto dos veces a la orden, pero sí puedes cambiar la cantidad en el registro.')
+                                ->danger()
+                                ->send();
+
+                            // Cancelar la acción correctamente
+                            $action->cancel();
+                        }
+                    })
                     ->after(function ($record) {
-                        DB::transaction(function () use ($record) {
+                        DB::transaction(function ($livewire) use ($record) {
                             $record->purchase->updatePurchaseTotal();
-                            $this->dispatch('purchaseTotalUpdated');
                         });
                     }),
                 Tables\Actions\Action::make('confirmPurchase')
@@ -104,8 +122,8 @@ class ItemsRelationManager extends RelationManager
                     ->icon('heroicon-o-check')
                     ->visible(
                         fn(): bool =>
-                            Gate::allows('confirm', $this->ownerRecord)
-                        &&
+                        Gate::allows('confirm', $this->ownerRecord)
+                            &&
                             $this->ownerRecord->items()->count() > 0
                     )
                     ->requiresConfirmation()
@@ -148,16 +166,14 @@ class ItemsRelationManager extends RelationManager
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\EditAction::make()
                         ->after(function ($record) {
-                            DB::transaction(function () use ($record) {
+                            DB::transaction(function ($livewire) use ($record) {
                                 $record->purchase->updatePurchaseTotal();
-                                $this->dispatch('purchaseTotalUpdated');
                             });
                         }),
                     Tables\Actions\DeleteAction::make()
                         ->after(function ($record) {
-                            DB::transaction(function () use ($record) {
+                            DB::transaction(function ($livewire) use ($record) {
                                 $record->purchase->updatePurchaseTotal();
-                                $this->dispatch('purchaseTotalUpdated');
                             });
                         }),
                 ]),

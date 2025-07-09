@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -32,6 +33,17 @@ class Batch extends Model
         'expiration_date' => 'datetime',
         'data' => 'array',
     ];
+    
+    protected static function booted()
+    {
+        static::creating(function (Batch $batch) {
+            // Si no está explícito en $batch->team_id
+            if (empty($batch->team_id)) {
+                $tenant = Filament::getTenant();
+                $batch->team_id = $tenant ? $tenant->id : null;
+            }
+        });
+    }
 
     public function dispatchItems(): HasMany
     {
@@ -43,7 +55,7 @@ class Batch extends Model
         return $this->belongsTo(Manufacturer::class);
     }
 
-    public function product_recepcion_items(): HasMany
+    public function product_reception_items(): HasMany
     {
         return $this->hasMany(ProductReceptionItem::class);
     }
