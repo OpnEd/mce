@@ -21,7 +21,8 @@ class PurchasePolicy
      */
     public function viewAny(User $user): bool
     {
-        return CanViewAnyHelper::canViewAny($user, 'view-purchase');
+        return true;
+        //return CanViewAnyHelper::canViewAny($user, 'view-purchase');
     }
 
     /**
@@ -29,7 +30,8 @@ class PurchasePolicy
      */
     public function view(User $user, Purchase $model): bool
     {
-        return CanViewHelper::canView($user, $model, 'view-purchase');
+        return true;
+        //return CanViewHelper::canView($user, $model, 'view-purchase');
     }
 
     /**
@@ -37,7 +39,8 @@ class PurchasePolicy
      */
     public function create(User $user): bool
     {
-        return CanCreateHelper::canCreate($user, 'create-purchase');
+        return true;
+        //return CanCreateHelper::canCreate($user, 'create-purchase');
     }
 
     /**
@@ -45,8 +48,9 @@ class PurchasePolicy
      */
     public function update(User $user, Purchase $model): bool
     {
-        return CanUpdateHelper::canUpdate($user, $model, 'edit-purchase')
-            && $model->status === 'pending';
+        return true;
+        //return CanUpdateHelper::canUpdate($user, $model, 'edit-purchase')
+        //    && $model->status === 'pending';
     }
 
     /**
@@ -54,7 +58,8 @@ class PurchasePolicy
      */
     public function delete(User $user, Purchase $model): bool
     {
-        return CanDeleteHelper::canDelete($user, $model, 'delete-purchase');
+        return true;
+        //return CanDeleteHelper::canDelete($user, $model, 'delete-purchase');
     }
 
     /**
@@ -75,7 +80,8 @@ class PurchasePolicy
 
     public function confirm(User $user, Purchase $model): bool
     {
-        $team = Filament::getTenant();
+        return true;
+        /* $team = Filament::getTenant();
 
         if (!$team) {
             return false;
@@ -99,6 +105,6 @@ class PurchasePolicy
         return $role->permissions->contains('name', 'confirm-purchase')
             && $model->status === 'pending'
             && $model->team_id === $teamId
-            && $user->teams()->where('teams.id', $teamId)->exists();
+            && $user->teams()->where('teams.id', $teamId)->exists(); */
     }
 }

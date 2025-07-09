@@ -57,6 +57,11 @@ class Product extends Model
         return $this->belongsTo(ProductCategory::class);
     }
 
+    public function product_reception_items(): HasMany
+    {
+        return $this->hasMany(ProductReceptionItem::class);
+    }
+
     public function pharmaceutical_form(): BelongsTo
     {
         return $this->belongsTo(PharmaceuticalForm::class);
@@ -122,7 +127,7 @@ class Product extends Model
     {
         $teamId = Filament::getTenant()->id;
         return $this
-                ->hasOne(PeripheralProductPrice::class)
-                ->where('team_id', $teamId);
+            ->hasOne(PeripheralProductPrice::class)
+            ->where('team_id', $teamId);
     }
 }

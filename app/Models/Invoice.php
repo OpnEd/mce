@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -31,6 +32,17 @@ class Invoice extends Model
         'amount' => 'decimal:2',
         'data' => 'array',
     ];
+    
+    protected static function booted()
+    {
+        static::creating(function (Invoice $invoice) {
+            // Si no está explícito en $invoice->team_id
+            if (empty($invoice->team_id)) {
+                $tenant = Filament::getTenant();
+                $invoice->team_id = $tenant ? $tenant->id : null;
+            }
+        });
+    }
 
     public function reception(): HasOne
     {

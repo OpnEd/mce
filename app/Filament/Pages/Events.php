@@ -41,7 +41,7 @@ class Events extends Page implements HasTable, HasActions, HasForms
 {
     use InteractsWithTable, InteractsWithForms, InteractsWithForms;
 
-    protected static ?string $navigationIcon = 'heroicon-o-document-text';
+    protected static ?string $navigationIcon = 'phosphor-calendar-check';
 
     protected static string $view = 'filament.pages.events';
 

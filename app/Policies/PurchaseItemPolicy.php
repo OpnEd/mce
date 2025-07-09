@@ -21,7 +21,8 @@ class PurchaseItemPolicy
      */
     public function viewAny(User $user): bool
     {
-        return CanViewAnyHelper::canViewAny($user, 'view-purchase-item');
+        return true;
+        //return CanViewAnyHelper::canViewAny($user, 'view-purchase-item');
     }
 
     /**
@@ -29,7 +30,8 @@ class PurchaseItemPolicy
      */
     public function view(User $user, PurchaseItem $model): bool
     {
-        return CanViewHelper::canView($user, $model, 'view-purchase-item');
+        return true;
+        //return CanViewHelper::canView($user, $model, 'view-purchase-item');
     }
 
     /**
@@ -37,7 +39,8 @@ class PurchaseItemPolicy
      */
     public function create(User $user): bool
     {
-        return CanCreateHelper::canCreate($user, 'create-purchase-item');
+        return true;
+        //return CanCreateHelper::canCreate($user, 'create-purchase-item');
     }
 
     /**
@@ -45,7 +48,8 @@ class PurchaseItemPolicy
      */
     public function update(User $user, PurchaseItem $model): bool
     {
-        return CanUpdateHelper::canUpdate($user, $model, 'edit-purchase-item');
+        return true;
+        //return CanUpdateHelper::canUpdate($user, $model, 'edit-purchase-item');
     }
 
     /**
@@ -53,7 +57,8 @@ class PurchaseItemPolicy
      */
     public function delete(User $user, PurchaseItem $model): bool
     {
-        return CanDeleteHelper::canDelete($user, $model, 'delete-purchase-item');
+        return true;
+        //return CanDeleteHelper::canDelete($user, $model, 'delete-purchase-item');
     }
 
     /**

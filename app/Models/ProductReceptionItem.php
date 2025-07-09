@@ -21,7 +21,7 @@ class ProductReceptionItem extends Model
         'total'
     ];
 
-    public function batchs(): BelongsTo
+    public function batch(): BelongsTo
     {
         return $this->belongsTo(Batch::class);
     }
