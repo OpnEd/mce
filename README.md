@@ -35,3 +35,54 @@ La exportación de datos envía trabajos a colas y genera database notifications
 - Cear el 'EnsureTeamContext' middleware
 - modificar el exporter ProductExporter para filtrar datos por 'team_i'
 - se sobreescribieron los métodos de notificaciones en el modelo User
+
+# Tabla de contenido para mostrar en orden y de manera accesible las secciones del acta de IVC
+Propuesta de interfaz con “Tabla de Contenidos” ordenada
+1. Estructura de datos y modelos
+Para que la app presente cada sección en el orden exacto del acta, modela las “Secciones” como entidad:
+- Tabla sections
+- id
+- title (e.g. “Proceso de adquisición”)
+- order (entero: 1, 2, 3…)
+- Relaciones
+- Una Audit tiene muchas SectionEntry (evidencias por sección)
+- Cada SectionEntry pertenece a una Section
+Esto te permite:
+- Cambiar orden sin tocar código
+- Generar CRUD de secciones si en el futuro varía el acta
+3. Dashboard con Livewire + FilamentPHP
+3.1. Componente Livewire “TableOfContents”
+Crea un componente que:
+- Consulta las secciones ordenadas:
+public function mount()
+{
+    $this->sections = Section::orderBy('order')->get();
+}
+- Renderiza una lista de links ancla:
+<div class="space-y-2">
+  @foreach($sections as $section)
+    <a href="#section-{{ $section->id }}"
+       class="block px-2 py-1 hover:bg-gray-100 rounded">
+      {{ $section->order }}. {{ $section->title }}
+    </a>
+  @endforeach
+</div>
+3.2. En la página Dashboard de Filament
+- Registra tu componente en dashboard():
+protected function getWidgets(): array
+{
+    return [
+        \App\Filament\Widgets\TableOfContents::class,
+        // otros widgets…
+    ];
+}
+- En la vista principal (blade o Livewire), monta cada sección con un div id="section-{{ $id }}"
+@foreach($sections as $section)
+  <div id="section-{{ $section->id }}" class="mt-8">
+    <h2 class="text-xl font-bold">{{ $section->order }}. {{ $section->title }}</h2>
+    @livewire('audit.section-entry-form', ['section' => $section])
+  </div>
+@endforeach
+- El componente audit.section-entry-form gestiona el formulario/evidencia para cada sección.
+
+Se pone la tabla de contenido en el dashboard ActaDashboard

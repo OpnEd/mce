@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Notifications\DatabaseNotification;
 use App\Models\TeamNotification;
 use App\Observers\AnesthesiaSheetObserver;
+use App\Services\IndicatorService;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -51,6 +52,10 @@ class AppServiceProvider extends ServiceProvider
         // Registramos SaleService y le inyectamos InvoiceService mediante $app->make()
         $this->app->singleton(SaleService::class, function ($app) {
             return new SaleService($app->make(InvoiceService::class));
+        });
+
+        $this->app->singleton(IndicatorService::class, function ($app) {
+            return new IndicatorService();
         });
 
         $this->app->bind(DatabaseNotification::class, TeamNotification::class);

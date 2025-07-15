@@ -16,7 +16,9 @@ use Illuminate\Support\Facades\Route;
         Route::post('/invoice/{id}/email', [InvoiceController::class, 'sendByEmail'])->name('invoice.email');
 /*     }); */
 
-Route::get('/', [ManufacturerController::class, 'show'])->name('home');
+Route::get('/', function () {
+    return redirect()->route('filament.admin.auth.login');
+});
 
 Route::get('/debug-session', function () {
     echo '<pre>';
