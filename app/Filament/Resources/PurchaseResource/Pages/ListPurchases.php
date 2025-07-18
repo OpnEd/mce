@@ -11,12 +11,15 @@ use App\Models\CentralProductPrice;
 use App\Models\Inventory;
 use App\Models\Product;
 use App\Models\Sale;
+use App\Models\Supplier;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\Redirect;
 use Filament\Resources\Pages\ListRecords;
 use Illuminate\Support\Facades\Auth;
 use Filament\Forms;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
 use Filament\Notifications\Notification;
@@ -50,15 +53,53 @@ class ListPurchases extends ListRecords
                     );
                 })
                 ->color('primary'), */
+            Action::make('create_with_code')
+                ->label('Registrar nuevo pedido')
+                ->form([
+                    TextInput::make('code')
+                        ->label('Código de la compra')
+                        ->required()
+                        ->maxLength(255),
+                    Select::make('supplier_id')
+                        ->label(__('Supplier'))
+                        ->options(Supplier::all()->pluck('name', 'id'))
+                        ->searchable(),
+                    TextInput::make('total')
+                        ->default(0)
+                        ->numeric()
+
+                ])
+                ->action(function (array $data): void {
+                    Purchase::create([
+                        // ese único dato que viene del modal
+                        'code' => $data['code'],
+                        'supplier_id' => $data['supplier_id'],
+                        'total' => $data['total'],
+
+                        // el resto de campos con valores por defecto:
+                        'team_id'     => Filament::getTenant()->id,
+                        'status'      => 'confirmed',
+                        'observations' => null,
+                        'data'        => null,
+                    ]);
+
+                    Notification::make()
+                        ->title('Pedido registrado exitosamente')
+                        ->body('Recuerda realizar la Recepción técnica cuando llegue este pedido.')
+                        ->icon('phosphor-check')
+                        ->success()
+                        ->send();
+                }),
             Action::make('quickPurchase')
                 ->label('Iniciar Pedido!')
                 ->icon('phosphor-shopping-bag')
                 ->modalHeading(__('New Purchase'))
                 ->form([
                     Forms\Components\Select::make('product_id')
-                        ->options(Product::query()
-                            ->inStock()
-                            ->pluck('name', 'id')
+                        ->options(
+                            Product::query()
+                                ->inStock()
+                                ->pluck('name', 'id')
                         )
                         ->searchable()
                         ->afterStateUpdated(function (?string $state, Set $set, Get $get) {
@@ -66,7 +107,6 @@ class ListPurchases extends ListRecords
                             $price = CentralProductPrice::find($get('product_id'))?->price ?? 0;
                             $set('price', $price);
                             $set('total', $state * $price);
-                            
                         })
                         ->live()
                         ->required(),
@@ -107,7 +147,7 @@ class ListPurchases extends ListRecords
                         'team_id'       => Filament::getTenant()->id,
                         'supplier_id'   => 1,
                         'code'          => (new Purchase())->generatePurchaseCode(),
-                        'status'        => 'in progress',
+                        'status'        => 'in_progress',
                         'total'         => $data['total'] ?? 0,
                         'observations'  => null,
                         'data'          => [],
@@ -143,16 +183,8 @@ class ListPurchases extends ListRecords
     {
         return [
             'all' => Tab::make(),
-            'pending' => Tab::make()
-                ->modifyQueryUsing(fn(Builder $query) => $query->where('status', 'pending')),
             'confirmed' => Tab::make()
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('status', 'confirmed')),
-            'in progress' => Tab::make()
-                ->modifyQueryUsing(fn(Builder $query) => $query->where('status', 'in progress')),
-            'ready' => Tab::make()
-                ->modifyQueryUsing(fn(Builder $query) => $query->where('status', 'ready')),
-            'dispatched' => Tab::make()
-                ->modifyQueryUsing(fn(Builder $query) => $query->where('status', 'dispatched')),
             'delivered' => Tab::make()
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('status', 'delivered')),
         ];

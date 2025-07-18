@@ -23,7 +23,7 @@
             </x-slot>
 
             {{-- Modal content --}}
-            {{-- @livewire('ficha-tecnica-indicador', ['indicador' => 'Recepción técnica']) --}}
+            @livewire('ficha-tecnica-indicador', ['indicador' => 'Recepción técnica'])
 
         </x-filament::modal>
 
@@ -32,9 +32,9 @@
             <div>
                 @livewire(App\Filament\Resources\ProductReceptionResource\Widgets\ProductReceptionProgressChart::class)
             </div>
-            {{-- <div>
-                @livewire(App\Filament\Resources\RecepcionTecnicaResource\Widgets\RecepcionTProgress::class)
-            </div> --}}
+            <div>
+                @livewire(App\Filament\Resources\ProductReceptionResource\Widgets\ProductReceptionMonthlyChart::class)
+            </div>
         </div>
 
     </x-filament::section>

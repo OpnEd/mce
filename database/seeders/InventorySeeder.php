@@ -35,11 +35,14 @@ class InventorySeeder extends Seeder
             $productId = fake()->randomElement($productIds);
             $batchId = fake()->randomElement($batchIds);
             $teamId = fake()->randomElement($teamIds);
-            $batchCode = 'L' . fake()->bothify('##??');
+
+            // Obtén la instancia de Product para extraer el nombre
+            $product = Product::find($productId);
 
             Inventory::create([
                 'team_id'       => $teamId,
                 'product_id'    => $productId,
+                'product_name' => $product->name, 
                 'batch_id'      => $batchId,
                 'quantity'      => fake()->numberBetween(10, 500),
                 'purchase_price'=> fake()->randomFloat(2, 100, 5000),

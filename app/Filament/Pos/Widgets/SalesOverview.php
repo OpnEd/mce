@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Widgets;
+namespace App\Filament\Pos\Widgets;
 
 use App\Models\Customer;
 use App\Models\Inventory;

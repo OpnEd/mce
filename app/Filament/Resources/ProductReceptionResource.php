@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Clusters\POS;
 use App\Filament\Resources\ProductReceptionResource\Pages;
 use App\Filament\Resources\ProductReceptionResource\RelationManagers;
 use App\Models\ProductReception;
@@ -17,6 +18,8 @@ class ProductReceptionResource extends Resource
 {
     protected static ?string $model = ProductReception::class;
 
+    protected static ?string $navigationGroup = 'POS';
+
     protected static ?string $navigationIcon = 'phosphor-hand-arrow-down';
 
     public static function form(Form $form): Form
@@ -25,9 +28,6 @@ class ProductReceptionResource extends Resource
             ->schema([
                 Forms\Components\Section::make('Reception Details')
                     ->schema([
-                        Forms\Components\Select::make('purchase_id')
-                            ->relationship('purchase', 'code')
-                            ->required(),
                         Forms\Components\Select::make('invoice_id')
                             ->label('Invoice')
                             ->relationship('invoice', 'code')
@@ -63,13 +63,14 @@ class ProductReceptionResource extends Resource
                             ->required(),
                         Forms\Components\Select::make('status')
                             ->options([
-                                'in progress' => 'In Progress',
+                                'in_progress' => 'In Progress',
                                 'done' => 'Done',
                             ])
                             ->required(),
                         Forms\Components\DateTimePicker::make('reception_date'),
                         Forms\Components\Textarea::make('observations'),
-                        Forms\Components\KeyValue::make('data'),
+                        Forms\Components\KeyValue::make('data')
+                            ->columnSpanFull(),
                     ])
                     ->columns(2)
                     ->collapsible()

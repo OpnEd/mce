@@ -98,6 +98,18 @@ class Team extends Model
         return $this->hasMany(Invoice::class);
     }
 
+    public function managementIndicators(): BelongsToMany
+    {
+        return $this->belongsToMany(managementIndicator::class, 'management_indicator_team')
+            ->using(ManagementIndicatorTeam::class)
+            ->withPivot([
+                'role_id',
+                'periodicity',
+                'indicator_goal',
+            ])
+            ->withTimestamps();
+    }
+
     public function minutesIvcSection(): HasOne
     {
         return $this->hasOne(MinutesIvcSection::class);
@@ -123,7 +135,7 @@ class Team extends Model
         return $this->hasMany(TeamProductPrice::class);
     }
 
-    public function product_receptions(): HasMany
+    public function productReceptions(): HasMany
     {
         return $this->hasMany(ProductReception::class);
     }

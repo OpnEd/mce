@@ -11,7 +11,6 @@ class ManagementIndicator extends Model
 
     protected $fillable = [
         'quality_goal_id',
-        'role_id',
         'name',
         'objective',
         'type',
@@ -24,13 +23,24 @@ class ManagementIndicator extends Model
         'indicator_goal'
     ];
 
-    public function quality_goal(): BelongsTo
+    public function qualityGoal(): BelongsTo
     {
         return $this->belongsTo(QualityGoal::class);
     }
 
-    public function role(): BelongsTo
+    /**
+     * Equipos que tienen asignado este indicador, con datos extra.
+     */
+    public function teams(): BelongsToMany
     {
-        return $this->belongsTo(Role::class);
+        return $this
+            ->belongsToMany(Team::class, 'management_indicator_team')
+            ->using(ManagementIndicatorTeam::class)
+            ->withPivot([
+                'role_id',
+                'periodicity',
+                'indicator_goal',
+            ])
+            ->withTimestamps();
     }
 }

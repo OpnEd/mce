@@ -32,7 +32,7 @@ class MinutesIvcSectionEntrySeeder extends Seeder
         $entries = [
             // Entries for section 9 Sistema de gestión de calidad
             [
-                'minutes_ivc_section_id' => 29,
+                'minutes_ivc_section_id' => 5,
                 'apply' => true,
                 'entry_id' => '9.1',
                 'criticality' => 'major',
@@ -43,7 +43,7 @@ class MinutesIvcSectionEntrySeeder extends Seeder
                 'compliance' => true,
             ],
             [
-                'minutes_ivc_section_id' => 29,
+                'minutes_ivc_section_id' => 5,
                 'apply' => true,
                 'entry_id' => '9.2',
                 'criticality' => 'major',
@@ -54,7 +54,7 @@ class MinutesIvcSectionEntrySeeder extends Seeder
                 'compliance' => true,
             ],
             [
-                'minutes_ivc_section_id' => 29,
+                'minutes_ivc_section_id' => 5,
                 'apply' => true,
                 'entry_id' => '9.3',
                 'criticality' => 'major',
@@ -65,7 +65,7 @@ class MinutesIvcSectionEntrySeeder extends Seeder
                 'compliance' => true,
             ],
             [
-                'minutes_ivc_section_id' => 29,
+                'minutes_ivc_section_id' => 5,
                 'apply' => true,
                 'entry_id' => '9.4',
                 'criticality' => 'major',
@@ -81,7 +81,7 @@ class MinutesIvcSectionEntrySeeder extends Seeder
                 'compliance' => true,
             ],
             [
-                'minutes_ivc_section_id' => 29,
+                'minutes_ivc_section_id' => 5,
                 'apply' => true,
                 'entry_id' => '9.5',
                 'criticality' => 'major',
@@ -101,7 +101,7 @@ class MinutesIvcSectionEntrySeeder extends Seeder
                 'compliance' => true,
             ],
             [
-                'minutes_ivc_section_id' => 29,
+                'minutes_ivc_section_id' => 5,
                 'apply' => true,
                 'entry_id' => '9.6',
                 'criticality' => 'major',
@@ -121,7 +121,7 @@ class MinutesIvcSectionEntrySeeder extends Seeder
                 'compliance' => true,
             ],
             [
-                'minutes_ivc_section_id' => 29,
+                'minutes_ivc_section_id' => 5,
                 'apply' => true,
                 'entry_id' => '9.7',
                 'criticality' => 'major',
@@ -137,7 +137,7 @@ class MinutesIvcSectionEntrySeeder extends Seeder
                 'compliance' => true,
             ],
             [
-                'minutes_ivc_section_id' => 29,
+                'minutes_ivc_section_id' => 5,
                 'apply' => true,
                 'entry_id' => '9.8',
                 'criticality' => 'major',
@@ -157,7 +157,7 @@ class MinutesIvcSectionEntrySeeder extends Seeder
                 'compliance' => true,
             ],
             [
-                'minutes_ivc_section_id' => 29,
+                'minutes_ivc_section_id' => 5,
                 'apply' => true,
                 'entry_id' => '9.9',
                 'criticality' => 'major',
@@ -177,7 +177,7 @@ class MinutesIvcSectionEntrySeeder extends Seeder
                 'compliance' => true,
             ],
             [
-                'minutes_ivc_section_id' => 29,
+                'minutes_ivc_section_id' => 5,
                 'apply' => true,
                 'entry_id' => '9.10',
                 'criticality' => 'major',
@@ -213,7 +213,7 @@ class MinutesIvcSectionEntrySeeder extends Seeder
                 'compliance' => true,
             ],
             [
-                'minutes_ivc_section_id' => 29,
+                'minutes_ivc_section_id' => 5,
                 'apply' => true,
                 'entry_id' => '9.11',
                 'criticality' => 'major',
@@ -229,7 +229,7 @@ class MinutesIvcSectionEntrySeeder extends Seeder
                 'compliance' => true,
             ],
             [
-                'minutes_ivc_section_id' => 29,
+                'minutes_ivc_section_id' => 5,
                 'apply' => true,
                 'entry_id' => '9.12',
                 'criticality' => 'major',
@@ -253,7 +253,7 @@ class MinutesIvcSectionEntrySeeder extends Seeder
                 'compliance' => true,
             ],
             [
-                'minutes_ivc_section_id' => 29,
+                'minutes_ivc_section_id' => 5,
                 'apply' => true,
                 'entry_id' => '9.13',
                 'criticality' => 'major',
@@ -273,7 +273,7 @@ class MinutesIvcSectionEntrySeeder extends Seeder
                 'compliance' => true,
             ],
             [
-                'minutes_ivc_section_id' => 29,
+                'minutes_ivc_section_id' => 5,
                 'apply' => true,
                 'entry_id' => '9.14',
                 'criticality' => 'major',
@@ -293,7 +293,7 @@ class MinutesIvcSectionEntrySeeder extends Seeder
                 'compliance' => true,
             ],
             [
-                'minutes_ivc_section_id' => 29,
+                'minutes_ivc_section_id' => 5,
                 'apply' => true,
                 'entry_id' => '9.15',
                 'criticality' => 'major',
@@ -313,7 +313,7 @@ class MinutesIvcSectionEntrySeeder extends Seeder
                 'compliance' => true,
             ],
             [
-                'minutes_ivc_section_id' => 29,
+                'minutes_ivc_section_id' => 5,
                 'apply' => true,
                 'entry_id' => '9.16',
                 'criticality' => 'major',
@@ -323,13 +323,13 @@ class MinutesIvcSectionEntrySeeder extends Seeder
                 'links' => [
                     [
                         'key' => 'Tablero de indicadores de gestión',
-                        'value' => 'por.definir'
+                        'value' => 'filament.admin.pages.management-indicators'
                     ],
                 ],
                 'compliance' => true,
             ],
             [
-                'minutes_ivc_section_id' => 29,
+                'minutes_ivc_section_id' => 5,
                 'apply' => true,
                 'entry_id' => '9.17',
                 'criticality' => 'major',
@@ -349,7 +349,7 @@ class MinutesIvcSectionEntrySeeder extends Seeder
                 'compliance' => true,
             ],
             [
-                'minutes_ivc_section_id' => 29,
+                'minutes_ivc_section_id' => 5,
                 'apply' => true,
                 'entry_id' => '9.18',
                 'criticality' => 'major',
@@ -369,7 +369,7 @@ class MinutesIvcSectionEntrySeeder extends Seeder
                 'compliance' => true,
             ],
             [
-                'minutes_ivc_section_id' => 29,
+                'minutes_ivc_section_id' => 5,
                 'apply' => true,
                 'entry_id' => '9.19',
                 'criticality' => 'major',
@@ -389,7 +389,7 @@ class MinutesIvcSectionEntrySeeder extends Seeder
                 'compliance' => true,
             ],
             [
-                'minutes_ivc_section_id' => 29,
+                'minutes_ivc_section_id' => 5,
                 'apply' => true,
                 'entry_id' => '9.20',
                 'criticality' => 'major',

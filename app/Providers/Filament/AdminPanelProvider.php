@@ -23,6 +23,7 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use App\Filament\Pages\Settings;
+use App\Filament\Widgets\MinutesIvc;
 use App\Http\Middleware\ApplyTenantScopes;
 use App\Http\Middleware\CustomerMiddleware;
 use App\Http\Middleware\SetTeamPermissions;
@@ -48,6 +49,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
+            ->discoverClusters(in: app_path('Filament/Clusters'), for: 'App\\Filament\\Clusters')
             ->pages([
                 Pages\Dashboard::class,
                 Setting::class,
@@ -55,7 +57,7 @@ class AdminPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
                 Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
+                //MinutesIvc::class,
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -74,7 +76,8 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->sidebarCollapsibleOnDesktop()
             ->plugins([
-                FilamentApexChartsPlugin::make()])
+                FilamentApexChartsPlugin::make()
+            ])
             ->login()
             ->registration()
             ->passwordReset()
@@ -100,12 +103,25 @@ class AdminPanelProvider extends PanelProvider
             ->tenantRegistration(RegisterTeam::class)
             ->navigationGroups([
                 NavigationGroup::make()
+                    ->label('Registros Diarios')
+                    ->icon('phosphor-thermometer-hot'),
+                NavigationGroup::make()
+                    ->label('POS')
+                    ->icon('phosphor-barcode'),
+                NavigationGroup::make()
+                    ->label('9. Sistema de Gestión de la Calidad')
+                    ->icon('phosphor-presentation-chart'),
+                NavigationGroup::make()
                     ->label('Roles y Permisos')
                     ->icon('phosphor-fingerprint'),
+                NavigationGroup::make()
+                    ->label('Settings')
+                    ->icon('phosphor-gear-six'),
             ])
             ->renderHook(
-                PanelsRenderHook::FOOTER,
-                fn(): string => Blade::render('@livewire(\'footer-text-component\')'),
-            );
+                PanelsRenderHook::GLOBAL_SEARCH_BEFORE,
+                fn(): string => Blade::render('@livewire(\'iniciar-venta-button\')'),
+            )
+            ->spa();
     }
 }

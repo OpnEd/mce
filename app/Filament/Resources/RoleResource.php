@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Enums\RoleType;
+use App\Filament\Clusters\Settings;
 use App\Filament\Resources\RoleResource\Pages;
 use App\Filament\Resources\RoleResource\RelationManagers;
 use App\Models\Role;
@@ -18,8 +19,10 @@ class RoleResource extends Resource
 {
     protected static ?string $model = Role::class;
 
-    protected static ?string $navigationIcon = 'phosphor-fingerprint';
-    protected static ?string $navigationGroup = 'Roles y Permisos';
+    //protected static ?string $cluster = Settings::class;
+
+    //protected static ?string $navigationIcon = 'phosphor-fingerprint';
+    protected static ?string $navigationGroup = 'Settings';
 
     public static function form(Form $form): Form
     {

@@ -34,8 +34,9 @@ class ProductReceptionProgressChart extends ApexChartWidget
     {
         $recepcion = app(IndicatorService::class);
         $teamId = Filament::getTenant()->id;
-        $progressData = $recepcion->getMonthlyReceptionCompliance($teamId);
+        $progress = $recepcion->getMonthlyCompliance($teamId);
 
+        $progressData = $progress['progress'];
         return [
             'chart' => [
                 'type' => 'radialBar',

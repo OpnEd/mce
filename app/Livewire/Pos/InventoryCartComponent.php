@@ -72,6 +72,7 @@ class InventoryCartComponent extends Component implements HasForms, HasTable
     public $emitirFactura = false;
     public $customers;
     public $inventories;
+    public $teamId;
 
     protected $listeners = [
         'refreshCart' => 'loadCart',
@@ -80,8 +81,9 @@ class InventoryCartComponent extends Component implements HasForms, HasTable
     public function mount()
     {
         $this->loadCart();
+        $this->teamId = Filament::getTenant()->id;
         $this->customers = \App\Models\Customer::query()
-            ->where('team_id', Filament::getTenant()->id)
+            ->where('team_id', $this->teamId)
             ->orderBy('name')
             ->get();
     }

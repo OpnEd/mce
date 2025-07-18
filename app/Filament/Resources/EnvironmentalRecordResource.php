@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Clusters\SaludPublica;
 use App\Filament\Resources\EnvironmentalRecordResource\Pages;
 use App\Filament\Resources\EnvironmentalRecordResource\RelationManagers;
 use App\Models\EnvironmentalRecord;
@@ -18,10 +19,11 @@ use Filament\Resources\Resource;
 class EnvironmentalRecordResource extends Resource
 {
     protected static ?string $model = EnvironmentalRecord::class;
+
+    //protected static ?string $cluster = SaludPublica::class;
     
-    protected static ?string $navigationGroup = 'Condiciones Ambientales';
+    protected static ?string $navigationGroup = 'Registros Diarios';
     protected static ?string $navigationLabel = 'Temperatura y Humedad';
-    protected static ?string $navigationIcon = 'phosphor-thermometer-hot';
     protected static ?string $recordTitleAttribute = 'temp';
     protected static ?string $slug = 'variables-ambientales';
 

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Clusters\POS;
 use App\Filament\Resources\SaleItemResource\Pages;
 use App\Filament\Resources\SaleItemResource\RelationManagers;
 use App\Models\SaleItem;
@@ -16,6 +17,8 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class SaleItemResource extends Resource
 {
     protected static ?string $model = SaleItem::class;
+
+    protected static ?string $navigationGroup = 'POS';
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static ?string $tenantOwnershipRelationshipName = 'purchase';

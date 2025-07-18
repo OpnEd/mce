@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Clusters\POS;
 use App\Filament\Resources\BatchResource\Pages;
 use App\Filament\Resources\BatchResource\RelationManagers;
 use App\Models\Batch;
@@ -16,6 +17,8 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class BatchResource extends Resource
 {
     protected static ?string $model = Batch::class;
+
+    //protected static ?string $cluster = POS::class;
 
     protected static ?string $navigationIcon = 'phosphor-barcode';
 

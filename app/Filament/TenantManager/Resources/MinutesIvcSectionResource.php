@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Filament\Resources;
+namespace App\Filament\TenantManager\Resources;
 
-use App\Filament\Resources\MinutesIvcSectionResource\Pages;
-use App\Filament\Resources\MinutesIvcSectionResource\RelationManagers;
+use App\Filament\TenantManager\Resources\MinutesIvcSectionResource\Pages;
+use App\Filament\TenantManager\Resources\MinutesIvcSectionResource\RelationManagers;
 use App\Models\MinutesIvcSection;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -23,6 +23,9 @@ class MinutesIvcSectionResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\Select::make('team_id')
+                    ->relationship('team', 'name')
+                    ->required(),
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
@@ -45,7 +48,7 @@ class MinutesIvcSectionResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('team_id')
+                Tables\Columns\TextColumn::make('team.name')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('name')

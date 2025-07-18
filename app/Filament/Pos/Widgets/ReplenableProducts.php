@@ -1,17 +1,16 @@
 <?php
 
-namespace App\Filament\Widgets;
+namespace App\Filament\Pos\Widgets;
 
-use Illuminate\Support\Facades\DB;
-use App\Models\Inventory;
 use App\Models\PeripheralProductPrice;
+use Illuminate\Support\Facades\DB;
 use Filament\Tables;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
 
 class ReplenableProducts extends BaseWidget
 {
+    protected static ?int $sort = 4;
     public function table(Table $table): Table
     {
         return $table
@@ -47,15 +46,15 @@ class ReplenableProducts extends BaseWidget
                     ->havingRaw('SUM(i.quantity) < peripheral_product_price.min_stock')
                 )
                 ->columns([
-                    TextColumn::make('product_code')
+                    Tables\Columns\TextColumn::make('product_code')
                         ->label(__('Code'))
                         ->searchable(),
-                    TextColumn::make('product_name')
+                    Tables\Columns\TextColumn::make('product_name')
                         ->label(__('Product'))
                         ->searchable(),
-                    TextColumn::make('total_quantity')->label(__('Current Stock'))
+                    Tables\Columns\TextColumn::make('total_quantity')->label(__('Current Stock'))
                         ->numeric(),
-                    TextColumn::make('min_stock')->label(__('Minimum Stock'))
+                    Tables\Columns\TextColumn::make('min_stock')->label(__('Minimum Stock'))
                         ->numeric(),
                 ]);
     }

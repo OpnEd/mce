@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Clusters\POS;
+use App\Filament\Clusters\SaludPublica;
 use App\Filament\Resources\PurchaseItemResource\Pages;
 use App\Filament\Resources\PurchaseItemResource\RelationManagers;
 use App\Models\PurchaseItem;
@@ -16,6 +18,8 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class PurchaseItemResource extends Resource
 {
     protected static ?string $model = PurchaseItem::class;
+
+    protected static ?string $navigationGroup = 'POS';
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static ?string $tenantOwnershipRelationshipName = 'purchase';

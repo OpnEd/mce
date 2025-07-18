@@ -43,8 +43,12 @@ class DatabaseSeeder extends Seeder
             //PetSeeder::class,
             //MinutesIvcSectionSeeder::class,
             //MinutesIvcSectionEntrySeeder::class,
-            QualityGoalSeeder::class,
+            //QualityGoalSeeder::class,
             ManagementIndicatorSeeder::class,
+            //SupplierSeeder::class,
+            ManagementIndicatorTeamSeeder::class,
+            //PurchaseSeeder::class,
+            ProductReceptionSeeder::class,
         ]);
 
         Stock::factory(30)->create();

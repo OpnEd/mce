@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Scopes\TeamScope;
 use App\Traits\FilterByTeam;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Permission\Models\Role as SpatieRole;
 
 class Role extends SpatieRole
@@ -25,5 +26,10 @@ class Role extends SpatieRole
     public function team(): BelongsTo
     {
         return $this->belongsTo(Team::class);
+    }
+
+    public function managementIndicators(): HasMany
+    {
+        return $this->hasMany(ManagementIndicator::class);
     }
 }

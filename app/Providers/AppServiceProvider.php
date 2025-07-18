@@ -79,7 +79,7 @@ class AppServiceProvider extends ServiceProvider
         app(PermissionRegistrar::class)->setPermissionsTeamId($teamId); */
 
         FilamentView::registerRenderHook(
-            PanelsRenderHook::BODY_START,
+            PanelsRenderHook::FOOTER,
             fn(): string => Blade::render('@livewire(\'footer-text-component\')'),
         );
         // Observers

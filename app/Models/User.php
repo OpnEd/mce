@@ -94,7 +94,7 @@ class User extends Authenticatable implements FilamentUser, HasTenants, HasAvata
             return str_ends_with($this->email, '@drogueriadigital.net.co');
         }
 
-        if ($panel->getId() === 'admin') {
+        if ($panel->getId() === 'admin' || $panel->getId() === 'pos') {
             // Obtiene todos los dominios de email registrados en la tabla users
             $domains = self::query()
                 ->selectRaw("DISTINCT SUBSTRING_INDEX(email, '@', -1) as domain")

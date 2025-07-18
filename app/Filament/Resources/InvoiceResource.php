@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Clusters\POS;
 use App\Filament\Resources\InvoiceResource\Pages;
 use App\Filament\Resources\InvoiceResource\RelationManagers;
 use App\Models\Invoice;
@@ -17,6 +18,8 @@ use Filament\Forms\Components\Section;
 class InvoiceResource extends Resource
 {
     protected static ?string $model = Invoice::class;
+
+    protected static ?string $navigationGroup = 'POS';
 
     protected static ?string $navigationIcon = 'phosphor-invoice';
 

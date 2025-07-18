@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Enums\PermissionType;
+use App\Filament\Clusters\Settings;
 use App\Filament\Resources\PermissionResource\Pages;
 use App\Filament\Resources\PermissionResource\RelationManagers;
 use App\Models\Permission;
@@ -20,8 +21,10 @@ class PermissionResource extends Resource
 {
     protected static ?string $model = Permission::class;
 
-    protected static ?string $navigationIcon = 'phosphor-lock-open';
-    protected static ?string $navigationGroup = 'Roles y Permisos';
+    //protected static ?string $cluster = Settings::class;
+
+    //protected static ?string $navigationIcon = 'phosphor-lock-open';
+    protected static ?string $navigationGroup = 'Settings';
 
     public static function form(Form $form): Form
     {

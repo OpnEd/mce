@@ -20,7 +20,7 @@ class InvoicePolicy
      */
     public function viewAny(User $user): bool
     {
-        return CanViewAnyHelper::canViewAny($user, 'view-invoice');
+        return true;
     }
 
     /**
@@ -28,7 +28,7 @@ class InvoicePolicy
      */
     public function view(User $user, Invoice $model): bool
     {
-        return CanViewHelper::canView($user, $model, 'view-invoice');
+        return true;
     }
 
     /**
@@ -36,7 +36,7 @@ class InvoicePolicy
      */
     public function create(User $user): bool
     {
-        return CanCreateHelper::canCreate($user, 'create-invoice');
+        return true;
     }
 
     /**
@@ -44,8 +44,7 @@ class InvoicePolicy
      */
     public function update(User $user, Invoice $model): bool
     {
-        return CanUpdateHelper::canUpdate($user, $model, 'edit-invoice')
-            && $model->status === 'pending';
+        return true;
     }
 
     /**
@@ -53,7 +52,7 @@ class InvoicePolicy
      */
     public function delete(User $user, Invoice $model): bool
     {
-        return CanDeleteHelper::canDelete($user, $model, 'delete-invoice');
+        return true;
     }
 
     /**
@@ -61,7 +60,7 @@ class InvoicePolicy
      */
     public function restore(User $user, Invoice $model): bool
     {
-        return CanRestoreHelper::canRestore($user, $model, 'restore-invoice');
+        return true;
     }
 
     /**
@@ -69,6 +68,6 @@ class InvoicePolicy
      */
     public function forceDelete(User $user, Invoice $model): bool
     {
-        return CanForceDeleteHelper::canForceDelete($user, $model, 'force-delete-invoice');
+        return true;
     }
 }

@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Clusters\POS;
+use App\Filament\Clusters\SaludPublica;
 use App\Filament\Resources\ProductReceptionItemResource\Pages;
 use App\Filament\Resources\ProductReceptionItemResource\RelationManagers;
 use App\Models\ProductReceptionItem;
@@ -16,6 +18,8 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class ProductReceptionItemResource extends Resource
 {
     protected static ?string $model = ProductReceptionItem::class;
+
+    protected static ?string $navigationGroup = 'POS';
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static ?string $tenantOwnershipRelationshipName = 'productReception';

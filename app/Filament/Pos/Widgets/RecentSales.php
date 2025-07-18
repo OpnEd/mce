@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Filament\Widgets;
+namespace App\Filament\Pos\Widgets;
 
 use App\Models\Sale;
 use Filament\Tables;
-use Filament\Tables\Actions\Action;
 use Filament\Tables\Table;
+use Filament\Tables\Actions\Action;
 use Filament\Widgets\TableWidget as BaseWidget;
 
 class RecentSales extends BaseWidget
 {
+    protected static ?int $sort = 3;
     public function table(Table $table): Table
     {
         return $table

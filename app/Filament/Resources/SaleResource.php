@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Clusters\POS;
 use App\Filament\Resources\SaleResource\Pages;
 use App\Filament\Resources\SaleResource\RelationManagers;
 use App\Models\Sale;
@@ -22,6 +23,8 @@ use Filament\Forms\Components\TextInput;
 class SaleResource extends Resource
 {
     protected static ?string $model = Sale::class;
+
+    protected static ?string $navigationGroup = 'POS';
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 

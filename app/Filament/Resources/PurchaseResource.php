@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Clusters\POS;
 use App\Filament\Resources\PurchaseResource\Pages;
 use App\Filament\Resources\PurchaseResource\RelationManagers;
 use App\Models\Purchase;
@@ -26,6 +27,8 @@ class PurchaseResource extends Resource
 
     protected static ?string $navigationIcon = 'phosphor-shopping-bag-open';
 
+    protected static ?string $navigationGroup = 'POS';
+
     public static function getNavigationBadge(): ?string
     {
         return static::getModel()::where('status', 'confirmed')->count();
@@ -49,11 +52,7 @@ class PurchaseResource extends Resource
                     ->schema([
                         Forms\Components\Select::make('status')
                             ->options([
-                                'pending' => 'Pending',
                                 'confirmed' => 'Confirmed',
-                                'in progress' => 'In Progress',
-                                'ready' => 'Ready',
-                                'dispatched' => 'Dispatched',
                                 'delivered' => 'Delivered',
                             ])
                             ->default('pending')
@@ -85,15 +84,11 @@ class PurchaseResource extends Resource
                     ->label('# Purchase')
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('status')
-                    ->color(fn(string $state): string => match ($state) {
-                        'pending' => 'danger',
-                        'confirmed' => 'primary',
-                        'in progress' => 'warning',
-                        'ready' => 'amber',
-                        'dispatched' => 'gray',
-                        'delivered' => 'success',
-                    }),
+                Tables\Columns\SelectColumn::make('status')
+                    ->options([
+                        'confirmed' => 'Confirmed',
+                        'delivered' => 'Delivered',
+                    ]),
                 Tables\Columns\TextColumn::make('total')
                     ->numeric()
                     ->sortable(),
@@ -116,14 +111,10 @@ class PurchaseResource extends Resource
             ->actions([
                 ActionsActionGroup::make([
                     Tables\Actions\ViewAction::make()
-                        ->visible(fn(Purchase $record): bool => $record->status === 'pending')
                         ->color('primary'),
-                    Tables\Actions\EditAction::make()
-                        ->visible(fn(Purchase $record): bool => $record->status === 'pending')
-                        ->color('warning'),
                     Tables\Actions\DeleteAction::make()
-                        ->visible(fn(Purchase $record): bool => $record->status === 'pending'),
-                    Tables\Actions\Action::make('confirm')
+                        ->visible(fn(Purchase $record): bool => $record->status === 'confirmed'),
+                    /* Tables\Actions\Action::make('confirm')
                         ->label('Confirm')
                         ->icon('heroicon-o-check-circle')
                         ->color('success')
@@ -139,7 +130,7 @@ class PurchaseResource extends Resource
                         ->action(function (Purchase $record) {
                             $record->status = 'confirmed';
                             $record->save();
-                        }),
+                        }), */
                     Tables\Actions\Action::make('clone_to_reception')
                         ->label('Clonar a Recepción')
                         ->icon('phosphor-copy-simple')
@@ -155,22 +146,24 @@ class PurchaseResource extends Resource
                                 'user_id' => Auth::id(),
                                 'purchase_id' => $record->id,
                                 'invoice_id' => null,
-                                'status' => 'in progress',
+                                'status' => 'in_progress',
                                 'reception_date' => now(),
                                 'observations' => $record->observations,
                                 'data' => $record->data,
                             ]);
 
                             // Clonar los items
-                            foreach ($record->items as $item) {
-                                \App\Models\ProductReceptionItem::create([
-                                    'product_reception_id' => $reception->id,
-                                    'product_id' => $item->product_id,
-                                    'batch_id' => null,
-                                    'quantity' => $item->quantity,
-                                    'purchase_price' => $item->price,
-                                    'total' => $item->total,
-                                ]);
+                            if ($record->items) {
+                                foreach ($record->items as $item) {
+                                    \App\Models\ProductReceptionItem::create([
+                                        'product_reception_id' => $reception->id,
+                                        'product_id' => $item->product_id,
+                                        'batch_id' => null,
+                                        'quantity' => $item->quantity,
+                                        'purchase_price' => $item->price,
+                                        'total' => $item->total,
+                                    ]);
+                                }
                             }
                             // Redirigir a la página de recepción
                             Redirect::to(

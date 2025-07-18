@@ -100,6 +100,7 @@ class ItemsRelationManager extends RelationManager
                     ->icon('heroicon-o-check')             // o el ícono que prefieras
                     ->requiresConfirmation()                // pide “¿Estás seguro?”
                     ->color('success')
+                    ->visible(fn(): bool => $this->ownerRecord->items()->count() > 0)
                     ->action(function (
                          $action
                         //$livewire

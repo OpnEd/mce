@@ -62,9 +62,9 @@ class Purchase extends Model
         return $this->hasMany(PurchaseItem::class);
     }
 
-    public function reception(): HasOne
+    public function productReceptions(): HasMany
     {
-        return $this->hasOne(ProductReception::class);
+        return $this->hasMany(ProductReception::class);
     }
 
     public function supplier(): BelongsTo

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Resources\MinutesIvcSectionResource\Pages;
+namespace App\Filament\TenantManager\Resources\MinutesIvcSectionResource\Pages;
 
-use App\Filament\Resources\MinutesIvcSectionResource;
+use App\Filament\TenantManager\Resources\MinutesIvcSectionResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 

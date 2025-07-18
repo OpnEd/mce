@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Clusters\Settings;
 use App\Models\Setting as ModelsSetting;
 use App\Models\TenantSetting;
 use Filament\Facades\Filament;
@@ -22,11 +23,17 @@ class Setting extends Page implements HasForms
 {
     use InteractsWithForms;
 
+    protected static ?string $navigationGroup = 'Settings';
+    //protected static ?string $navigationIcon = 'phosphor-faders';
+    protected static ?string $navigationLabel = 'Team Settings';
+
     public ?array $data = [];
 
-    protected static ?string $navigationIcon = 'phosphor-gear-six';
-
     protected static string $view = 'filament.pages.setting';
+    public static function canAccess(): bool
+    {
+        return true;
+    }
 
     public function mount(): void
     {

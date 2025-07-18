@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Clusters\Settings;
 use App\Filament\Resources\UserResource\Pages;
 use App\Filament\Resources\UserResource\RelationManagers;
 use App\Models\User;
@@ -17,8 +18,12 @@ use Illuminate\Support\Facades\Hash;
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
+
+    //protected static ?string $cluster = Settings::class;
     protected static ?string $tenantOwnershipRelationshipName = 'teams';
-    protected static ?string $navigationIcon = 'phosphor-user';
+    //protected static ?string $navigationIcon = 'phosphor-user';
+
+    protected static ?string $navigationGroup = 'Settings';
 
     public static function form(Form $form): Form
     {
