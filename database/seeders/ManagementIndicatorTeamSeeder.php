@@ -4,8 +4,10 @@ namespace Database\Seeders;
 
 use App\Models\ManagementIndicator;
 use App\Models\Team;
+use Filament\Facades\Filament;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Auth;
 
 class ManagementIndicatorTeamSeeder extends Seeder
 {
@@ -14,12 +16,13 @@ class ManagementIndicatorTeamSeeder extends Seeder
      */
     public function run(): void
     {// Asegúrate de que el equipo 1 existe
-        $team = Team::find(1);
+        $team = Filament::getTenant();
         if (! $team) {
             $this->command->warn('No existe el Team con id = 1.');
             return;
         }
-        $role = 1;
+        $user = Auth::user();
+        $roleId = $user->role->id;
 
         // Definimos los nombres de los indicadores según tu array original
         $indicators = [
@@ -54,7 +57,7 @@ class ManagementIndicatorTeamSeeder extends Seeder
             $team->managementIndicators()
                  ->syncWithoutDetaching([
                      $indicator->id => [
-                        'role_id' => $role,
+                        'role_id' => $roleId,
                          // Periodicidad arbitraria; ajústala si necesitas distintos valores
                          'periodicity'    => 'Mensual',
                          // Usamos la meta global como meta personalizada

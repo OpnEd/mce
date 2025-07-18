@@ -22,6 +22,12 @@ class InvoiceItemResource extends Resource
     //protected static ?string $cluster = POS::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $tenantOwnershipRelationshipName = 'invoice';
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
 
     public static function form(Form $form): Form
     {

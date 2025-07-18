@@ -100,7 +100,7 @@ class Team extends Model
 
     public function managementIndicators(): BelongsToMany
     {
-        return $this->belongsToMany(managementIndicator::class, 'management_indicator_team')
+        return $this->belongsToMany(ManagementIndicator::class, 'management_indicator_team')
             ->using(ManagementIndicatorTeam::class)
             ->withPivot([
                 'role_id',

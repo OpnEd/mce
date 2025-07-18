@@ -17,6 +17,7 @@ class MinutesIvcSectionComponent extends Component
     public function mount(MinutesIvcService $service)
     {
         $tenant = Filament::getTenant();
+        
         $this->teamId = $tenant->id;
         
         // Llamada al servicio
