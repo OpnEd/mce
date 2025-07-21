@@ -8,6 +8,7 @@ use Filament\Resources\Components\Tab;
 use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\SaleResource;
 use App\Models\CentralProductPrice;
+use App\Models\Customer;
 use App\Models\Inventory;
 use App\Models\Product;
 use App\Models\Sale;
@@ -96,19 +97,29 @@ class ListPurchases extends ListRecords
                 ->modalHeading(__('New Purchase'))
                 ->form([
                     Forms\Components\Select::make('product_id')
-                        ->options(
-                            Product::query()
-                                ->inStock()
+                        ->label('Producto')
+                        ->searchable()                 // habilita la búsqueda
+                        ->preload(false)               // NO carga todas las opciones al inicio
+                        ->getSearchResultsUsing(       // callback personalizado
+                            fn(string $search) => Product::withoutGlobalScopes()
+                                ->where('name', 'like', "%{$search}%")
+                                ->limit(50)            // evita traer demasiados de una vez
                                 ->pluck('name', 'id')
+                                ->toArray()
                         )
-                        ->searchable()
                         ->afterStateUpdated(function (?string $state, Set $set, Get $get) {
                             // Calcular y persistir price y total aunque no haya inputs
                             $price = CentralProductPrice::find($get('product_id'))?->price ?? 0;
                             $set('price', $price);
                             $set('total', $state * $price);
                         })
-                        ->live()
+                        ->required(),
+                        
+                    Forms\Components\Select::make('supplier_id')
+                        ->options(
+                            Supplier::all()->pluck('name', 'id')
+                        )
+                        ->searchable()
                         ->required(),
 
                     Forms\Components\TextInput::make('quantity')
@@ -145,7 +156,7 @@ class ListPurchases extends ListRecords
                     // Crear la compra (Purchase) con los datos proporcionados
                     $purchase = Purchase::create([
                         'team_id'       => Filament::getTenant()->id,
-                        'supplier_id'   => 1,
+                        'supplier_id'   => $data['supplier_id'],
                         'code'          => (new Purchase())->generatePurchaseCode(),
                         'status'        => 'in_progress',
                         'total'         => $data['total'] ?? 0,

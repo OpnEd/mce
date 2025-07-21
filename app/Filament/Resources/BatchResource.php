@@ -6,6 +6,7 @@ use App\Filament\Clusters\POS;
 use App\Filament\Resources\BatchResource\Pages;
 use App\Filament\Resources\BatchResource\RelationManagers;
 use App\Models\Batch;
+use App\Models\Product;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -31,8 +32,8 @@ class BatchResource extends Resource
                     ->searchable()
                     ->preload()
                     ->required(),
-                Forms\Components\Select::make('sanitary_registry_id')
-                    ->relationship(name: 'sanitary_registry', titleAttribute: 'code')
+                Forms\Components\Select::make('sanitary_registry')
+                    ->options(Product::pluck('registro_sanitario', 'registro_sanitario'))
                     ->searchable()
                     ->preload()
                     ->required(),

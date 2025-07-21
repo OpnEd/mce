@@ -72,6 +72,11 @@ class Product extends Model
         return $this->hasMany(TeamProductPrice::class);
     }
 
+    public function purchaseItems(): HasMany
+    {
+        return $this->hasMany(PurchaseItem::class);
+    }
+
     public function stocks(): HasMany
     {
         return $this->hasMany(Stock::class);

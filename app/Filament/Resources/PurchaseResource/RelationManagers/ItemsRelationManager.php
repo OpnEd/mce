@@ -5,6 +5,7 @@ namespace App\Filament\Resources\PurchaseResource\RelationManagers;
 use App\Filament\Resources\PurchaseResource;
 use App\Helpers\PermissionVerificationHelper;
 use App\Models\CentralProductPrice;
+use App\Models\Product;
 use App\Models\Purchase;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -36,12 +37,14 @@ class ItemsRelationManager extends RelationManager
         return $form
             ->schema([
                 Forms\Components\Select::make('product_id')
-                    ->relationship('product', 'name', function ($query) {
-                        // Aquí aplicamos el scope inStock()
-                        $query->inStock();
-                    })
                     ->searchable()
-                    ->preload()
+                    ->relationship('product', 'name')
+                    ->getSearchResultsUsing(       // callback personalizado
+                        fn(string $search) => Product::withoutGlobalScopes()
+                            ->where('name', 'like', "%{$search}%")
+                            ->pluck('name', 'id')
+                            ->toArray()
+                    )
                     ->afterStateUpdated(function (?string $state, Set $set, Get $get) {
                         // Obtener la cantidad actual o 1 si es nulo
                         $quantity = $get('quantity') ?? 1;
@@ -76,17 +79,8 @@ class ItemsRelationManager extends RelationManager
             ->recordTitleAttribute('product_id')
             ->columns([
                 Tables\Columns\TextColumn::make('product.name'),
-                Tables\Columns\TextColumn::make('quantity')
-                    ->sortable()
-                    ->numeric(),
-                Tables\Columns\TextColumn::make('price')
-                    ->sortable()
-                    ->numeric()
-                    ->prefix('$'),
-                Tables\Columns\TextColumn::make('total')
-                    ->sortable()
-                    ->numeric()
-                    ->prefix('$'),
+                Tables\Columns\TextColumn::make('quantity'),
+                Tables\Columns\TextColumn::make('price'),
             ])
             ->filters([
                 //

@@ -14,6 +14,7 @@ use Filament\Tables\Actions\Action;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\DB;
 use App\Models\Inventory;
+use App\Models\Product;
 use Illuminate\Database\Eloquent\Model;
 
 class ItemsRelationManager extends RelationManager
@@ -35,9 +36,9 @@ class ItemsRelationManager extends RelationManager
                     ->preload()
                     ->createOptionForm([
                         // Relación con SanitaryRegistry
-                        Forms\Components\Select::make('sanitary_registry_id')
+                        Forms\Components\Select::make('sanitary_registry')
                             ->label('Registro Sanitario')
-                            ->relationship('sanitary_registry', 'code')
+                            ->options(Product::all()->pluck('registro_sanitario','registro_sanitario'))
                             ->searchable()
                             ->preload()
                             ->required(),

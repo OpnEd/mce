@@ -22,7 +22,8 @@ class Batch extends Model
         'team_id',
         'code',
         'manufacturer_id',
-        'sanitary_registry_id',
+        'sanitary_registry',
+        'product_description',
         'manufacturing_date',
         'expiration_date',
         'data',
@@ -58,11 +59,6 @@ class Batch extends Model
     public function product_reception_items(): HasMany
     {
         return $this->hasMany(ProductReceptionItem::class);
-    }
-
-    public function sanitary_registry(): BelongsTo
-    {
-        return $this->belongsTo(SanitaryRegistry::class);
     }
 
     public function team(): BelongsTo

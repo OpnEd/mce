@@ -7,6 +7,7 @@ use App\Filament\Resources\PurchaseResource\Pages;
 use App\Filament\Resources\PurchaseResource\RelationManagers;
 use App\Models\Purchase;
 use Filament\Actions\ActionGroup;
+use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -31,7 +32,8 @@ class PurchaseResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        return static::getModel()::where('status', 'confirmed')->count();
+        $teamId = Filament::getTenant()->id;
+        return static::getModel()::where('team_id', $teamId)->where('status', 'confirmed')->count();
     }
 
     public static function getNavigationBadgeColor(): ?string
@@ -52,10 +54,11 @@ class PurchaseResource extends Resource
                     ->schema([
                         Forms\Components\Select::make('status')
                             ->options([
+                                'in_progress' => 'In Progress',
                                 'confirmed' => 'Confirmed',
                                 'delivered' => 'Delivered',
                             ])
-                            ->default('pending')
+                            ->default('in_progress')
                             ->required(),
                         Forms\Components\TextInput::make('total')
                             ->prefix('$')
@@ -86,11 +89,12 @@ class PurchaseResource extends Resource
                     ->searchable(),
                 Tables\Columns\SelectColumn::make('status')
                     ->options([
+                        'in_progress' => 'In Progress',
                         'confirmed' => 'Confirmed',
                         'delivered' => 'Delivered',
                     ]),
                 Tables\Columns\TextColumn::make('total')
-                    ->numeric()
+                    ->prefix('$ ')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('deleted_at')
                     ->dateTime()
@@ -113,28 +117,11 @@ class PurchaseResource extends Resource
                     Tables\Actions\ViewAction::make()
                         ->color('primary'),
                     Tables\Actions\DeleteAction::make()
-                        ->visible(fn(Purchase $record): bool => $record->status === 'confirmed'),
-                    /* Tables\Actions\Action::make('confirm')
-                        ->label('Confirm')
-                        ->icon('heroicon-o-check-circle')
-                        ->color('success')
-                        ->visible(
-                            fn(Purchase $record): bool =>
-                            Gate::allows('confirm', $record)
-                                && $record->status === 'pending'
-                                && $record->items()->count() > 0
-                        )
-                        ->requiresConfirmation()
-                        ->modalHeading('Confirm Purchase')
-                        ->modalDescription('Are you sure you want to confirm this purchase?')
-                        ->action(function (Purchase $record) {
-                            $record->status = 'confirmed';
-                            $record->save();
-                        }), */
+                        ->visible(fn(Purchase $record): bool => $record->status === 'in_progress'),
                     Tables\Actions\Action::make('clone_to_reception')
                         ->label('Clonar a Recepción')
                         ->icon('phosphor-copy-simple')
-                        ->color('secondary')
+                        ->color('info')
                         ->visible(fn(Purchase $record): bool => $record->status === 'delivered')
                         ->requiresConfirmation()
                         ->modalHeading('Clonar a Recepción de Producto')

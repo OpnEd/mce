@@ -21,19 +21,19 @@ class PharmaceuticalFormSeeder extends Seeder
         // Definimos un arreglo con las formas farmacéuticas realistas.
         $forms = [
             [
-                'name'        => 'Tableta',
+                'name'        => 'TABLETA CUBIERTA',
                 'description' => 'Forma farmacéutica sólida destinada a la administración oral.'
             ],
             [
-                'name'        => 'Cápsula',
+                'name'        => 'CAPSULA DURA',
                 'description' => 'Presentación gelatinosa que contiene el medicamento en su interior.'
             ],
             [
-                'name'        => 'Suspensión Oral',
+                'name'        => 'SUSPENSION ORAL',
                 'description' => 'Preparación líquida en la que los fármacos se dispersan de manera homogénea, utilizada para administración oral.'
             ],
             [
-                'name'        => 'Jarabe',
+                'name'        => 'JARABE',
                 'description' => 'Preparado líquido, habitualmente aromatizado, para facilitar su administración oral, en especial en pediatría.'
             ],
             [
@@ -51,6 +51,87 @@ class PharmaceuticalFormSeeder extends Seeder
             [
                 'name'        => 'Ungüento',
                 'description' => 'Preparado semisólido similar a la pomada, que se utiliza para aplicación tópica, con una consistencia generalmente más pegajosa.'
+            ],
+            [
+                'name'        => 'POLVO PARA RECONSTITUIR A SUSPENSION ORAL',
+                'description' => 'Polvo seco que se mezcla con un líquido para formar una suspensión oral, facilitando la administración de medicamentos en forma líquida.'
+            ],
+            
+            [
+                'name'        => 'GEL TOPICO',
+                'description' => ''
+            ],
+            [
+                'name'        => '',
+                'description' => ''
+            ],
+            [
+                'name'        => '',
+                'description' => ''
+            ],
+            [
+                'name'        => '',
+                'description' => ''
+            ],
+            [
+                'name'        => '',
+                'description' => ''
+            ],
+            [
+                'name'        => '',
+                'description' => ''
+            ],
+            [
+                'name'        => '',
+                'description' => ''
+            ],
+            [
+                'name'        => '',
+                'description' => ''
+            ],
+            [
+                'name'        => '',
+                'description' => ''
+            ],
+            [
+                'name'        => '',
+                'description' => ''
+            ],
+            [
+                'name'        => '',
+                'description' => ''
+            ],
+            [
+                'name'        => '',
+                'description' => ''
+            ],
+            [
+                'name'        => '',
+                'description' => ''
+            ],
+            [
+                'name'        => '',
+                'description' => ''
+            ],
+            [
+                'name'        => '',
+                'description' => ''
+            ],
+            [
+                'name'        => '',
+                'description' => ''
+            ],
+            [
+                'name'        => '',
+                'description' => ''
+            ],
+            [
+                'name'        => '',
+                'description' => ''
+            ],
+            [
+                'name'        => '',
+                'description' => ''
             ],
         ];
 
