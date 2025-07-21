@@ -23,7 +23,6 @@ class Batch extends Model
         'code',
         'manufacturer_id',
         'sanitary_registry',
-        'product_description',
         'manufacturing_date',
         'expiration_date',
         'data',

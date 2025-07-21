@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::table('batches', function (Blueprint $table) {
             // 1) Quitar la llave foránea y la columna relacionada
-            //$table->dropForeign(['sanitary_registry_id']);
-            //$table->dropColumn('sanitary_registry_id');
+            $table->dropForeign(['sanitary_registry_id']);
+            $table->dropColumn('sanitary_registry_id');
 
             // 2) Agregar el nuevo campo string
-            //$table->string('sanitary_registry', 75);
+            $table->string('sanitary_registry', 75);
             // (Reemplaza 'some_existing_column' por la columna tras la cual quieras ubicarlo)
         });
     }

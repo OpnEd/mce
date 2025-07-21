@@ -70,14 +70,14 @@ class PosPanelProvider extends PanelProvider
             ->login()
             ->registration()
             ->resources([
-                \App\Filament\Resources\BatchResource::class,
                 \App\Filament\Resources\EnvironmentalRecordResource::class,
+            /*    \App\Filament\Resources\BatchResource::class,
                 \App\Filament\Resources\CustomerResource::class,
                 \App\Filament\Resources\PurchaseResource::class,
                 \App\Filament\Resources\PurchaseItemResource::class,
                 \App\Filament\Resources\ProductReceptionResource::class,
-                \App\Filament\Resources\ProductReceptionItemResource::class,
-            ])
+                \App\Filament\Resources\ProductReceptionItemResource::class,*/
+            ]) 
             ->passwordReset()
             //->emailVerification()
             ->profile()
