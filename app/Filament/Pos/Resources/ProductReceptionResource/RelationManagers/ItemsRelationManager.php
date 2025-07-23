@@ -36,19 +36,34 @@ class ItemsRelationManager extends RelationManager
                     ->preload()
                     ->createOptionForm([
                         // Relación con SanitaryRegistry
-                        Forms\Components\Select::make('sanitary_registry')
-                            ->label('Registro Sanitario')
-                            ->options(Product::all()->pluck('registro_sanitario','registro_sanitario'))
-                            ->searchable()
-                            ->preload()
-                            ->required(),
+                        Forms\Components\Hidden::make('sanitary_registry')
+                            ->default(null)
+                        /* ->searchable()                 // habilita la búsqueda
+                            ->preload(false)               // NO carga todas las opciones al inicio
+                            ->getSearchResultsUsing(       // callback personalizado
+                                fn(string $search) => Product::withoutGlobalScopes()
+                                    ->select('registro_sanitario')
+                                    ->where('registro_sanitario', 'like', "%{$search}%")
+                                    ->pluck('registro_sanitario', 'registro_sanitario')
+                                    ->toArray()
+                            )
+                            ->required() */,
 
                         // Relación con Manufacturer
-                        Forms\Components\Select::make('manufacturer_id')
-                            ->label('Fabricante')
-                            ->relationship('manufacturer', 'name')
-                            ->searchable()
-                            ->required(),
+                        Forms\Components\Hidden::make('manufacturer_id')
+                            ->default(null)
+                        /* ->label('Fabricante')
+                            ->searchable()                 // habilita la búsqueda
+                            ->preload()               // NO carga todas las opciones al inicio
+                            ->getSearchResultsUsing(       // callback personalizado
+                                fn(string $search) => Product::withoutGlobalScopes()
+                                    ->select('titular')
+                                    ->where('titular', 'like', "%{$search}%")
+                                    ->groupBy('titular')
+                                    ->pluck('titular', 'titular')
+                                    ->toArray()
+                            )
+                            ->required() */,
 
                         // Código único
                         Forms\Components\TextInput::make('code')
@@ -79,6 +94,8 @@ class ItemsRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            // 1) Interceptamos la query y le quitamos los Global Scopes
+            //->query(fn(Builder $query) => $query->withoutGlobalScopes())
             ->recordTitleAttribute('product_id')
             ->columns([
                 Tables\Columns\TextColumn::make('product.name')
@@ -103,7 +120,7 @@ class ItemsRelationManager extends RelationManager
                     ->color('success')
                     ->visible(fn(): bool => $this->ownerRecord->items()->count() > 0)
                     ->action(function (
-                         $action
+                        $action
                         //$livewire
                     ) {
                         $productReception = $this->ownerRecord;

@@ -25,10 +25,10 @@ class PurchaseItemResource extends Resource
     protected static ?string $tenantOwnershipRelationshipName = 'purchase';
     protected static ?string $slug = 'parangaricutirimicuarelamemte';
 
-    public static function shouldRegisterNavigation(): bool
+    /* public static function shouldRegisterNavigation(): bool
     {
         return false;
-    }
+    } */
 
     public static function form(Form $form): Form
     {

@@ -5,6 +5,7 @@ namespace App\Filament\Pos\Resources;
 use App\Filament\Pos\Resources\PurchaseResource\Pages;
 use App\Filament\Pos\Resources\PurchaseResource\RelationManagers;
 use App\Models\Purchase;
+use App\Models\Supplier;
 use Filament\Actions\ActionGroup;
 use Filament\Facades\Filament;
 use Filament\Forms;
@@ -117,6 +118,8 @@ class PurchaseResource extends Resource
                         ->color('primary'),
                     Tables\Actions\DeleteAction::make()
                         ->visible(fn(Purchase $record): bool => $record->status === 'in_progress'),
+                    Tables\Actions\EditAction::make()
+                        ->visible(fn(Purchase $record): bool => $record->status === 'in_progress'),
                     Tables\Actions\Action::make('clone_to_reception')
                         ->label('Clonar a Recepción')
                         ->icon('phosphor-copy-simple')
@@ -170,7 +173,7 @@ class PurchaseResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //RelationManagers\ItemsRelationManager::class,
+            RelationManagers\ItemsRelationManager::class,
         ];
     }
 

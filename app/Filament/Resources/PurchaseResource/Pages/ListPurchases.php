@@ -102,8 +102,7 @@ class ListPurchases extends ListRecords
                         ->preload(false)               // NO carga todas las opciones al inicio
                         ->getSearchResultsUsing(       // callback personalizado
                             fn(string $search) => Product::withoutGlobalScopes()
-                                ->where('name', 'like', "%{$search}%")
-                                ->limit(50)            // evita traer demasiados de una vez
+                                ->where('name', 'like', "%{$search}%") // evita traer demasiados de una vez
                                 ->pluck('name', 'id')
                                 ->toArray()
                         )

@@ -19,12 +19,12 @@ class Product extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'category_id', //categoría del producto
-        'pharmaceutical_form_id', //forma farmacéutica, si aplica
+        'product_category_id', //categoría del producto
         'bar_code', //código
         'name', //nombre comercial
         'drug', //principio activo
         'drug_concentration', //concentración del principio activo por unidad de medida del producto
+        'recomended_dose', //dosis recomendada
         'description', //presentación comercial
         'is_high_risk', //indica si es de alto riesgo
         'is_mce', //indica si es un medicamento de control especial
@@ -32,7 +32,26 @@ class Product extends Model
         'conversion_factor', //factor de conversión
         'image', // imagen
         'tax', //impuesto
-        'status' //estado:activo o inactivo
+        'status', //estado:activo o inactivo
+        'expediente',
+        'titular',
+        'registro_sanitario',
+        'fecha_expedicion',
+        'fecha_vencimiento',
+        'estado_registro',
+        'consecutivo',
+        'cantidad_cum',
+        'estado_cum',
+        'muestra_medica',
+        'unidad',
+        'atc',
+        'descripcion_atc',
+        'via_administracion',
+        'concentracion',
+        'unidad_medida_pa',
+        'cantidad',
+        'unidad_referencia',
+        'forma_farmaceutica',
     ];
 
     protected function casts(): array
@@ -48,8 +67,18 @@ class Product extends Model
             'conversion_factor' => 'decimal:2',
             'tax' => 'decimal:2',
             'image' => 'string',
-            'status' => 'boolean'
+            'status' => 'boolean',
+            'estado_cum' => 'boolean',
+            'muestra_medica' => 'boolean',
+            'cantidad' => 'decimal:2',
         ];
+    }
+    /**
+     * Query builder sin ningún scope global.
+     */
+    public static function withoutScopes(): Builder
+    {
+        return static::query()->withoutGlobalScopes();
     }
 
     public function product_category(): BelongsTo

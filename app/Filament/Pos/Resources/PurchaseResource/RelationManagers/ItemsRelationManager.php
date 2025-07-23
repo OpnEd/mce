@@ -38,10 +38,11 @@ class ItemsRelationManager extends RelationManager
             ->schema([
                 Forms\Components\Select::make('product_id')
                     ->searchable()
-                    ->relationship('product', 'name')
+                    ->preload(false)
                     ->getSearchResultsUsing(       // callback personalizado
                         fn(string $search) => Product::withoutGlobalScopes()
                             ->where('name', 'like', "%{$search}%")
+                            ->limit(50)
                             ->pluck('name', 'id')
                             ->toArray()
                     )
@@ -71,6 +72,14 @@ class ItemsRelationManager extends RelationManager
                 Forms\Components\Hidden::make('total')
                     ->default(0),
             ]);
+    }
+
+    /**
+     * Query builder sin ningún scope global.
+     */
+    public static function withoutScopes(): Builder
+    {
+        return static::query()->withoutGlobalScopes();
     }
 
     public function table(Table $table): Table
@@ -178,27 +187,4 @@ class ItemsRelationManager extends RelationManager
                 ]),
             ]);
     }
-
-    /* protected function afterCreate(): void
-    {
-        $this->recalculatePurchaseTotal();
-    }
-
-    protected function afterSave(): void
-    {
-        $this->recalculatePurchaseTotal();
-    }
-
-    protected function afterDelete(): void
-    {
-        $this->recalculatePurchaseTotal();
-    }
-
-    protected function recalculatePurchaseTotal(): void
-    {
-        $purchase = $this->getOwnerRecord(); // modelo Purchase
-        $total = $purchase->items()->sum('total');
-
-        $purchase->update(['total' => $total]);
-    } */
 }
