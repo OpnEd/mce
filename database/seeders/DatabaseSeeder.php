@@ -26,7 +26,7 @@ class DatabaseSeeder extends Seeder
             //ManufacturerSeeder::class,
             //ProductCategorySeeder::class,
             //PharmaceuticalFormSeeder::class,
-            //ProductSeeder::class,
+            ProductSeeder::class,
             //SanitaryRegistrySeeder::class,
             //BatchSeeder::class,
             //SupplierSeeder::class,
@@ -44,11 +44,11 @@ class DatabaseSeeder extends Seeder
             //MinutesIvcSectionSeeder::class,
             //MinutesIvcSectionEntrySeeder::class,
             //QualityGoalSeeder::class,
-            ManagementIndicatorSeeder::class,
+            //ManagementIndicatorSeeder::class,
             //SupplierSeeder::class,
-            ManagementIndicatorTeamSeeder::class,
+            //ManagementIndicatorTeamSeeder::class,
             //PurchaseSeeder::class,
-            ProductReceptionSeeder::class,
+            //ProductReceptionSeeder::class,
         ]);
 
         Stock::factory(30)->create();

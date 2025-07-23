@@ -38,35 +38,25 @@ class ItemsRelationManager extends RelationManager
             ->schema([
                 Forms\Components\Select::make('product_id')
                     ->searchable()
-                    ->preload(false)
-                    ->getSearchResultsUsing(       // callback personalizado
+                    ->optionsLimit(200)
+                    ->getSearchResultsUsing(
                         fn(string $search) => Product::withoutGlobalScopes()
-                            ->where('name', 'like', "%{$search}%")
-                            ->limit(50)
-                            ->pluck('name', 'id')
+                            ->where('drug', 'like', "%{$search}%")
+                            ->orWhere('description', 'like', "%{$search}%")
+                            ->get()
+                            ->mapWithKeys(function ($product) {
+                                // Muestra el nombre y el SKU juntos
+                                return [
+                                    $product->id => "{$product->name} ({$product->sku})"
+                                ];
+                            })
                             ->toArray()
                     )
-                    ->afterStateUpdated(function (?string $state, Set $set, Get $get) {
-                        // Obtener la cantidad actual o 1 si es nulo
-                        $quantity = $get('quantity') ?? 1;
-                        // Buscar el precio actualizado del producto seleccionado
-                        $price = CentralProductPrice::find($state)?->price ?? 0;
-                        $set('price', $price);
-                        $set('total', $quantity * $price);
-                    })
-                    ->live()
                     ->required(),
                 Forms\Components\TextInput::make('quantity')
                     ->required()
                     ->numeric()
-                    ->default(1)
-                    ->afterStateUpdated(function (?string $state, Set $set, Get $get) {
-                        // Calcular y persistir price y total aunque no haya inputs
-                        $price = CentralProductPrice::find($get('product_id'))?->price ?? 0;
-                        $set('price', $price);
-                        $set('total', $state * $price);
-                    })
-                    ->live(),
+                    ->default(1),
                 Forms\Components\Hidden::make('price')
                     ->default(0),
                 Forms\Components\Hidden::make('total')
@@ -77,19 +67,18 @@ class ItemsRelationManager extends RelationManager
     /**
      * Query builder sin ningún scope global.
      */
-    public static function withoutScopes(): Builder
+    /* public static function withoutScopes(): Builder
     {
         return static::query()->withoutGlobalScopes();
-    }
+    } */
 
     public function table(Table $table): Table
     {
         return $table
             ->recordTitleAttribute('product_id')
             ->columns([
-                Tables\Columns\TextColumn::make('product.name'),
                 Tables\Columns\TextColumn::make('quantity'),
-                Tables\Columns\TextColumn::make('price'),
+                Tables\Columns\TextColumn::make('product.name'),
             ])
             ->filters([
                 //
