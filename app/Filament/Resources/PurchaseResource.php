@@ -83,8 +83,8 @@ class PurchaseResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('id')
-                    ->label('# Purchase')
+                Tables\Columns\TextColumn::make('code')
+                    ->label(__('Code'))
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\SelectColumn::make('status')
@@ -152,6 +152,10 @@ class PurchaseResource extends Resource
                                     ]);
                                 }
                             }
+
+                            // Cambiar el status del registro Purchase a 'received'
+                            $record->status = 'received';
+                            $record->save();
                             // Redirigir a la página de recepción
                             Redirect::to(
                                 \App\Filament\Resources\ProductReceptionResource::getUrl('edit', ['record' => $reception->id])

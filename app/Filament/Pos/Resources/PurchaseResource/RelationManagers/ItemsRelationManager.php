@@ -47,7 +47,7 @@ class ItemsRelationManager extends RelationManager
                             ->mapWithKeys(function ($product) {
                                 // Muestra el nombre y el SKU juntos
                                 return [
-                                    $product->id => "{$product->name} ({$product->sku})"
+                                    $product->id => "{$product->drug} ({$product->description})"
                                 ];
                             })
                             ->toArray()
@@ -114,9 +114,9 @@ class ItemsRelationManager extends RelationManager
                     ->icon('heroicon-o-check')
                     ->visible(
                         fn(): bool =>
-                        Gate::allows('confirm', $this->ownerRecord)
-                            &&
-                            $this->ownerRecord->items()->count() > 0
+                            Gate::allows('confirm', $this->ownerRecord)
+                            && $this->ownerRecord->items()->count() > 0
+                            && $this->ownerRecord->status === 'in_progress'
                     )
                     ->requiresConfirmation()
                     ->action(function () {

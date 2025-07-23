@@ -55,7 +55,8 @@ class ListPurchases extends ListRecords
                 })
                 ->color('primary'), */
             Action::make('create_with_code')
-                ->label('Registrar nuevo pedido')
+                ->label('Registro simple')
+                ->icon('phosphor-cursor-click')
                 ->form([
                     TextInput::make('code')
                         ->label('Código de la compra')
@@ -68,6 +69,9 @@ class ListPurchases extends ListRecords
                     TextInput::make('total')
                         ->default(0)
                         ->numeric()
+                        ->prefix('$ ')
+                        ->inputMode('decimal')
+                        ->required()
 
                 ])
                 ->action(function (array $data): void {
@@ -99,11 +103,18 @@ class ListPurchases extends ListRecords
                     Forms\Components\Select::make('product_id')
                         ->label('Producto')
                         ->searchable()                 // habilita la búsqueda
-                        ->preload(false)               // NO carga todas las opciones al inicio
-                        ->getSearchResultsUsing(       // callback personalizado
+                        ->preload(false)
+                        ->getSearchResultsUsing(
                             fn(string $search) => Product::withoutGlobalScopes()
-                                ->where('name', 'like', "%{$search}%") // evita traer demasiados de una vez
-                                ->pluck('name', 'id')
+                                ->where('drug', 'like', "%{$search}%")
+                                ->orWhere('description', 'like', "%{$search}%")
+                                ->get()
+                                ->mapWithKeys(function ($product) {
+                                    // Muestra el nombre y el SKU juntos
+                                    return [
+                                        $product->id => "{$product->drug} ({$product->description})"
+                                    ];
+                                })
                                 ->toArray()
                         )
                         ->afterStateUpdated(function (?string $state, Set $set, Get $get) {
@@ -113,7 +124,7 @@ class ListPurchases extends ListRecords
                             $set('total', $state * $price);
                         })
                         ->required(),
-                        
+
                     Forms\Components\Select::make('supplier_id')
                         ->options(
                             Supplier::all()->pluck('name', 'id')
