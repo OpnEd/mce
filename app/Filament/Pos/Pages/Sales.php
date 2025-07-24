@@ -7,7 +7,10 @@ use Filament\Pages\Page;
 
 class Sales extends Page
 {
-    protected static ?string $navigationIcon = 'heroicon-o-document-text';
+    protected static ?string $navigationIcon = 'phosphor-cash-register';
+
+    protected static ?string $navigationGroup = 'POS';
+    
     public $teamId;
 
     public function mount()

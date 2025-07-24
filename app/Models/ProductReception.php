@@ -25,7 +25,6 @@ class ProductReception extends Model
     ];
 
     protected $casts = [
-        'status' => 'boolean',
         'reception_date' => 'datetime',
         'data' => 'array',
     ];

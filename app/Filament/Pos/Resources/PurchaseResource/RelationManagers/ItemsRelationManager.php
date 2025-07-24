@@ -79,6 +79,9 @@ class ItemsRelationManager extends RelationManager
             ->columns([
                 Tables\Columns\TextColumn::make('quantity'),
                 Tables\Columns\TextColumn::make('product.name'),
+                Tables\Columns\TextColumn::make('product.description')
+                    ->label(__('Description'))
+                    ->toggledHiddenByDefault(),
             ])
             ->filters([
                 //

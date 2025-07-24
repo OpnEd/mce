@@ -27,6 +27,12 @@ class ProductReceptionResource extends Resource
             ->schema([
                 Forms\Components\Section::make('Reception Details')
                     ->schema([
+                        Forms\Components\Select::make('status')
+                            ->options([
+                                'in_progress' => 'In Progress',
+                                'done' => 'Done',
+                            ])
+                            ->required(),
                         Forms\Components\Select::make('invoice_id')
                             ->label('Invoice')
                             ->relationship('invoice', 'code')
@@ -60,12 +66,6 @@ class ProductReceptionResource extends Resource
                                     ->label('Datos extra'),
                             ])
                             ->required(),
-                        Forms\Components\Select::make('status')
-                            ->options([
-                                'in_progress' => 'In Progress',
-                                'done' => 'Done',
-                            ])
-                            ->required(),
                         Forms\Components\DateTimePicker::make('reception_date'),
                         Forms\Components\Textarea::make('observations'),
                         Forms\Components\KeyValue::make('data')
@@ -80,19 +80,21 @@ class ProductReceptionResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('team.name')
-                    ->numeric()
-                    ->sortable(),
                 Tables\Columns\TextColumn::make('user.name')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('purchase.id')
+                Tables\Columns\TextColumn::make('purchase.code')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('invoice.id')
+                Tables\Columns\TextColumn::make('invoice.code')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('status'),
+                Tables\Columns\TextColumn::make('status')
+                    ->badge()
+                    ->color(fn(string $state): string => match ($state) {
+                        'done' => 'success',
+                        'in_progress' => 'danger',
+                    }),
                 Tables\Columns\TextColumn::make('reception_date')
                     ->dateTime()
                     ->sortable(),

@@ -92,6 +92,7 @@ class PurchaseResource extends Resource
                         'in_progress' => 'In Progress',
                         'confirmed' => 'Confirmed',
                         'delivered' => 'Delivered',
+                        'received' => 'Received',
                     ]),
                 Tables\Columns\TextColumn::make('total')
                     ->prefix('$ ')

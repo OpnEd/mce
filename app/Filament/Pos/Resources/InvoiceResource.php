@@ -17,7 +17,9 @@ class InvoiceResource extends Resource
 {
     protected static ?string $model = Invoice::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'phosphor-invoice';
+
+    protected static ?string $navigationGroup = 'POS';
 
     public static function form(Form $form): Form
     {
@@ -48,23 +50,25 @@ class InvoiceResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('team_id')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('sale.id')
-                    ->numeric()
+                Tables\Columns\TextColumn::make('sale.code')
+                    ->label(__('Sale Code'))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('supplier.name')
+                    ->label(__('Supplier'))
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('code')
+                    ->label(__('Invoice Code'))
                     ->searchable(),
                 Tables\Columns\TextColumn::make('amount')
+                    ->label(__('Total'))
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\IconColumn::make('is_our')
+                    ->label(__('Internal'))
                     ->boolean(),
                 Tables\Columns\TextColumn::make('issued_date')
+                    ->label(__('Issued Date'))
                     ->date()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('deleted_at')

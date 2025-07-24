@@ -44,7 +44,6 @@ class PosPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Pos/Widgets'), for: 'App\\Filament\\Pos\\Widgets')
             ->widgets([
                 Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -71,12 +70,6 @@ class PosPanelProvider extends PanelProvider
             ->registration()
             ->resources([
                 \App\Filament\Resources\EnvironmentalRecordResource::class,
-            /*    \App\Filament\Resources\BatchResource::class,
-                \App\Filament\Resources\CustomerResource::class,
-                \App\Filament\Resources\PurchaseResource::class,
-                \App\Filament\Resources\PurchaseItemResource::class,
-                \App\Filament\Resources\ProductReceptionResource::class,
-                \App\Filament\Resources\ProductReceptionItemResource::class,*/
             ]) 
             ->passwordReset()
             //->emailVerification()

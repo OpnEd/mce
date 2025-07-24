@@ -86,13 +86,15 @@ class ListPurchases extends ListRecords
                         ->preload(false)
                         ->getSearchResultsUsing(
                             fn(string $search) => Product::withoutGlobalScopes()
-                                ->where('drug', 'like', "%{$search}%")
+                                ->where('name', 'like', "%{$search}%")
+                                ->orWhere('drug', 'like', "%{$search}%")
                                 ->orWhere('description', 'like', "%{$search}%")
+                                ->orWhere('titular', 'like', "%{$search}%")
                                 ->get()
                                 ->mapWithKeys(function ($product) {
                                     // Muestra el nombre y el SKU juntos
                                     return [
-                                        $product->id => "{$product->drug} ({$product->description})"
+                                        $product->id => "{$product->name} - {$product->drug} ({$product->titular} {$product->description})"
                                     ];
                                 })
                                 ->toArray()
