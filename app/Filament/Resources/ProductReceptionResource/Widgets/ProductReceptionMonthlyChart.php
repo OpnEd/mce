@@ -136,7 +136,7 @@ class ProductReceptionMonthlyChart extends ApexChartWidget
             DatePicker::make('date_start')
                 ->default(now()->subMonths(3)),
             DatePicker::make('date_end')
-                ->default(now()),
+                ->default(now()->addDay()),
         ];
     }
 }
