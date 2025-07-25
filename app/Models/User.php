@@ -91,7 +91,7 @@ class User extends Authenticatable implements FilamentUser, HasTenants, HasAvata
         } */
 
         if ($panel->getId() === 'tenantManager') {
-            return str_ends_with($this->email, '@drogueriadigital.net.co');
+            return str_ends_with($this->email, '@gestioncalidad.net.co');
         }
 
         if ($panel->getId() === 'admin' || $panel->getId() === 'pos') {
