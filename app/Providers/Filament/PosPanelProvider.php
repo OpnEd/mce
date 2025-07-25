@@ -83,6 +83,7 @@ class PosPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::GLOBAL_SEARCH_BEFORE,
                 fn(): string => Blade::render('@livewire(\'public-health-go-button\')'),
-            );
+            )
+            ->spa();
     }
 }

@@ -14,7 +14,7 @@ class IndicatorProductReceptionComponent extends Component
     public function mount(IndicatorService $indicatorService, $indicator)
     {
         $this->teamId = Filament::getTenant()->id;
-        $this->data = $indicatorService->getMonthlyReceptionCompliance($this->teamId, $indicator);
+        $this->data = $indicatorService->getMonthlyCompliance($this->teamId, $indicator);
     }
     public function render()
     {
