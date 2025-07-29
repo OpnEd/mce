@@ -1,0 +1,90 @@
+<?php
+
+namespace App\Livewire\Quality;
+
+use App\Models\Quality\Training\Course;
+use App\Services\Quality\TrainingService;
+use Filament\Facades\Filament;
+use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\Auth;
+use Livewire\Component;
+
+class CourseList extends Component
+{
+    /** @var Collection */
+    public $courses;
+    public ?int  $selectedCourseId = null;
+
+    protected $training;
+
+    public function mount(TrainingService $training)
+    {
+        $this->training = $training;
+        // Inyectamos el servicio y obtenemos los cursos
+        $this->courses = $this->training->listAvailableCourses();
+    }
+
+    /**
+     * Ejecuta la inscripción llamando al servicio.
+     */
+    public function confirmEnrollment(int $courseId): void
+    {
+        $training = app(TrainingService::class);
+        $this->selectedCourseId = $courseId;
+
+        if (! $this->selectedCourseId) {
+
+            Notification::make()
+                ->title('Error')
+                ->body('No se ha seleccionado ningún curso.')
+                ->danger()
+                ->send();
+
+            return;
+
+        }
+
+        $teamId   = Filament::getTenant()->id;
+        $userId   = Auth::user()->id;
+        $course = Course::findOrFail($this->selectedCourseId);
+
+        //dd($course, $teamId, $userId, $courseId);
+
+        try {
+
+            $enrolled = $training->enroll($teamId, $userId, $courseId);
+
+            if (! $enrolled) {
+                Notification::make()
+                    ->title('Ya inscrito')
+                    ->body("Ya estás inscrito en el curso: {$course->title}")
+                    ->warning()
+                    ->send();
+            } else {
+                Notification::make()
+                    ->title('Inscripción exitosa')
+                    ->body("Te has inscrito en el curso: {$course->title}")
+                    ->success()
+                    ->send();
+            }
+
+            // Cierra el modal después de la acción, sin importar el resultado
+            $this->dispatch('close-modal', id: 'enrollUser');
+
+        } catch (\Exception $e) {
+            Notification::make()
+                ->title('Error al inscribirse')
+                ->body("No se pudo completar la inscripción: {$e->getMessage()}")
+                ->danger()
+                ->send();
+
+            $this->dispatch('close-modal', id: 'enrollUser');
+        }
+    }
+
+
+    public function render()
+    {
+        return view('livewire.quality.course-list');
+    }
+}

@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\DocumentCategory;
 use App\Models\ProductCategory;
+use App\Models\Quality\Training\Course;
 use App\Models\Role;
 use App\Models\SanitaryRegistry;
 use App\Models\Stock;
@@ -26,7 +27,7 @@ class DatabaseSeeder extends Seeder
             //ManufacturerSeeder::class,
             //ProductCategorySeeder::class,
             //PharmaceuticalFormSeeder::class,
-            ProductSeeder::class,
+            //ProductSeeder::class,
             //SanitaryRegistrySeeder::class,
             //BatchSeeder::class,
             //SupplierSeeder::class,
@@ -49,9 +50,10 @@ class DatabaseSeeder extends Seeder
             //ManagementIndicatorTeamSeeder::class,
             //PurchaseSeeder::class,
             //ProductReceptionSeeder::class,
+            CourseSeeder::class,
         ]);
 
-        Stock::factory(30)->create();
+        //Stock::factory(30)->create();
 
         /* $user = User::factory()->create([
             'name' => 'Test User',

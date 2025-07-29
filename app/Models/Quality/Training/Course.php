@@ -37,12 +37,18 @@ class Course extends Model
 
     public function getImageUrlAttribute()
     {
-        return $this->image ? asset('storage/' . $this->image) : null;
+        $imagePath = storage_path('app/public/course_images/' . $this->image);
+
+        if (!$this->image || !file_exists($imagePath)) {
+            return asset('storage/course_images/default_course.png');
+        }
+
+        return asset('storage/course_images/' . $this->image);
     }
 
     public function instructor(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'instructor');
+        return $this->belongsTo(User::class, 'instructor_id');
     }
 
     public function users()
