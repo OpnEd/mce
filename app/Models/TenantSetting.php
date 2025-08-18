@@ -6,21 +6,31 @@ use Illuminate\Database\Eloquent\Model;
 
 class TenantSetting extends Model
 {
-    
-    protected $guarded =[];
-    protected $casts =[
+
+    protected $guarded = [];
+    protected $casts = [
         "data" => "array"
     ];
 
-// relation to settings.
+    // relation to settings.
     public function setting()
     {
         return $this->belongsTo(Setting::class);
     }
 
-// relation to tenant.
+    // relation to tenant.
     public function tenant()
     {
         return $this->belongsTo(Team::class);
+    }
+    
+    public function getSettingKeyAttribute()
+    {
+        return $this->setting?->key;
+    }
+    
+    public function getSettingValueAttribute()
+    {
+        return $this->setting?->value;
     }
 }

@@ -17,7 +17,7 @@ class Course extends Model
 
     protected $fillable = [
         'title',
-        'objetctive',
+        'objective',
         'description',
         'duration',
         'type',
@@ -123,10 +123,6 @@ class Course extends Model
         return $query->with('users');
     }
 
-    public function scopeWithImageUrl($query)
-    {
-        return $query->select('*', DB::raw("CONCAT('" . asset('storage/') . "', image) as image_url"));
-    }
     public function scopeWithActiveStatus($query)
     {
         return $query->select('*', DB::raw("IF(active, 'Active', 'Inactive') as active_status"));
@@ -150,7 +146,6 @@ class Course extends Model
     public function scopeWithAllDetails($query)
     {
         return $query->with(['instructor', 'users'])
-                     ->withImageUrl()
                      ->withActiveStatus()
                      ->withProgress()
                      ->withStatus();
@@ -161,14 +156,9 @@ class Course extends Model
             $q->where('id', $instructorId);
         }])->with(['users' => function ($q) use ($instructorId) {
             $q->where('instructor_id', $instructorId);
-        }])->withImageUrl()
+        }])
           ->withActiveStatus()
           ->withProgress()
           ->withStatus();
-    }
-    public function teams(): BelongsToMany
-    {
-        return $this->belongsToMany(Team::class, 'course_team')
-                    ->withTimestamps();
     }
 }

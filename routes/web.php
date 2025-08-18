@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\ManufacturerController;
+use App\Http\Controllers\Quality\DocumentController;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
@@ -39,3 +40,41 @@ Route::get('/clear-artisan', function () {
     Artisan::call('route:clear');
     return 'Comandos Artisan ejecutados: optimize:clear, config:clear, cache:clear';
 });
+
+Route::get('/optimize-cache', function () {
+    Artisan::call('config:cache');
+    Artisan::call('route:cache');
+    Artisan::call('view:cache');
+    Artisan::call('filament:cache-components');
+    Artisan::call('optimize');
+
+    return '¡Caché generada exitosamente!';
+});
+
+
+Route::get('/create-symlink', function () {
+    Artisan::call('storage:link');
+});
+
+Route::middleware([
+    'auth',
+])->group(function () {
+    //Route::get('/process/{id}', [ProcessController::class, 'generateCharacterization'])->name('generate.characterization');
+    Route::get('admin/{tenant}/documents/{document:slug}.pdf', [DocumentController::class, 'documentDetails'])->name('document.details')->scopeBindings();
+    //Route::get('/orders/{id}', [OrdenController::class, 'orderDetails'])->name('order.details');
+    //Route::get('/environmental-records', EnvironmentalRecordComponent::class)->name('environmental.records');
+
+});
+
+Route::get('/debug/lesson-template', function () {
+    $cfg = config('lesson_template');
+
+    // Dump legible
+    return response()->json([
+        'found' => $cfg !== null,
+        'type' => gettype($cfg),
+        'count' => is_array($cfg) ? count($cfg) : null,
+        'sample' => is_array($cfg) ? array_slice($cfg, 0, 3) : $cfg,
+    ]);
+});
+

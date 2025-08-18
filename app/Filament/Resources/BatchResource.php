@@ -21,7 +21,8 @@ class BatchResource extends Resource
 
     //protected static ?string $cluster = POS::class;
 
-    protected static ?string $navigationIcon = 'phosphor-barcode';
+    protected static ?string $navigationGroup = 'POS';
+    protected static ?string $navigationLabel = 'Batchs';
 
     public static function form(Form $form): Form
     {

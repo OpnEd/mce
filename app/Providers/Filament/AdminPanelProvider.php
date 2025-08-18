@@ -81,7 +81,7 @@ class AdminPanelProvider extends PanelProvider
             ->login()
             ->registration()
             ->passwordReset()
-            //->emailVerification()
+            ->emailVerification()
             ->profile()
             ->databaseNotifications()
             ->tenant(Team::class)
@@ -105,6 +105,9 @@ class AdminPanelProvider extends PanelProvider
                 NavigationGroup::make()
                     ->label('Registros Diarios')
                     ->icon('phosphor-thermometer-hot'),
+                NavigationGroup::make()
+                    ->label('Universidad')
+                    ->icon('phosphor-student'),
                 NavigationGroup::make()
                     ->label('POS')
                     ->icon('phosphor-barcode'),

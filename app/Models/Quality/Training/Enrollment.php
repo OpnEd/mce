@@ -2,11 +2,13 @@
 
 namespace App\Models\Quality\Training;
 
+use App\Models\Team;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 
 class Enrollment extends Model
 {
@@ -42,9 +44,51 @@ class Enrollment extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function assessmentAttempts()
+    {
+        return $this->hasMany(AssessmentAttempt::class);
+    }
+
+    public function lessons()
+    {
+        // pivot enrollment_lesson
+        return $this->belongsToMany(Lesson::class, 'enrollment_lesson')
+            ->withPivot(['passed', 'passed_at'])
+            ->withTimestamps();
+    }
+    /**
+     * Actualiza y guarda el campo progress (0-100) basado en lecciones aprobadas del curso.
+     */
+    public function updateProgress(): void
+    {
+        // total de lecciones del curso
+        $totalLessons = $this->course->modules()->withCount('lessons')->get()
+            ->sum(fn($m) => $m->lessons_count);
+        if ($totalLessons === 0) {
+            $this->progress = 0;
+            $this->saveQuietly();
+            return;
+        }
+
+        // lecciones aprobadas por este enrollment (pivot passed = true)
+        $approved = DB::table('enrollment_lesson')
+            ->where('enrollment_id', $this->id)
+            ->where('passed', true)
+            ->count();
+
+        $percent = intval(round(($approved / $totalLessons) * 100));
+        $this->progress = $percent;
+        $this->saveQuietly();
+    }
+
     public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class);
+    }
+
+    public function team(): BelongsTo
+    {
+        return $this->belongsTo(Team::class);
     }
 
     public function progress(): HasMany

@@ -2,6 +2,8 @@
 
 namespace App\Policies;
 
+use App\Helpers\CanCreateHelper;
+use App\Helpers\CanUpdateHelper;
 use App\Models\Quality\Training\Lesson;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
@@ -13,7 +15,7 @@ class LessonPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -21,7 +23,7 @@ class LessonPolicy
      */
     public function view(User $user, Lesson $lesson): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -29,15 +31,15 @@ class LessonPolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return CanCreateHelper::canCreate($user, 'create-lesson');
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Lesson $lesson): bool
+    public function update(User $user, Lesson $model): bool
     {
-        return false;
+        return CanUpdateHelper::canUpdate($user, $model, 'edit-lesson');
     }
 
     /**

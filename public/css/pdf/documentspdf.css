@@ -1,0 +1,80 @@
+@page {
+    margin: 30px 15px;
+}
+
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 0px;
+    z-index: 1000;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 50px 50px 50px 50px;
+    /* Margen en las cuatro direcciones */
+    margin-top: 40px;
+}
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+table, th, td {
+    border: 1px solid black;
+    margin: 0;
+}
+
+th, td {
+    padding: 5;
+    text-align: left;
+}
+
+td:nth-child(1) {
+    width: 10%;
+}
+
+td:nth-child(2) {
+    width: 70%;
+}
+
+td:nth-child(3) {
+    width: 20%;
+}
+
+.content {
+    padding: 20px;
+    margin-bottom: 0;
+}
+
+td.titulo-celda {
+    text-align: center;
+}
+
+h2.titulo-celda {
+    color: indigo;
+    margin: 0;
+}
+
+.hijo {
+    width: 2cm;
+    height: 1cm;
+}
+
+footer {
+    position: fixed;
+    bottom: -30px;
+    left: 0px;
+    right: 0px;
+    height: 50px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    text-align: center;
+    line-height: 35px;
+}
+
+.textFooter{text-align: center;width: 100%;}

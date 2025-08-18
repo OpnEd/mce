@@ -4,6 +4,7 @@ namespace App\Models\Quality\Training;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Assessment extends Model
 {
@@ -48,6 +49,11 @@ class Assessment extends Model
     public function attempts()
     {
         return $this->hasMany(AssessmentAttempt::class);
+    }
+
+    public function questions(): HasMany
+    {
+        return $this->hasMany(Question::class);
     }
 
     /**

@@ -2,6 +2,8 @@
 
 namespace App\Policies;
 
+use App\Helpers\CanCreateHelper;
+use App\Helpers\CanUpdateHelper;
 use App\Models\Quality\Training\Enrollment;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
@@ -13,7 +15,7 @@ class EnrollmentPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -21,7 +23,7 @@ class EnrollmentPolicy
      */
     public function view(User $user, Enrollment $enrollment): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -29,15 +31,15 @@ class EnrollmentPolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return CanCreateHelper::canCreate($user, 'create-enrollment');
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Enrollment $enrollment): bool
+    public function update(User $user, Enrollment $model): bool
     {
-        return false;
+        return CanUpdateHelper::canUpdate($user, $model, 'edit-enrollment');
     }
 
     /**

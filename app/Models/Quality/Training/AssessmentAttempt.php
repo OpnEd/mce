@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AssessmentAttempt extends Model
 {
@@ -29,6 +30,7 @@ class AssessmentAttempt extends Model
         'started_at' => 'datetime',
         'completed_at' => 'datetime',
         'responses' => 'array',
+        'passed' => 'boolean',
     ];
 
     public function assessment(): BelongsTo
@@ -39,6 +41,11 @@ class AssessmentAttempt extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function userAnswers(): HasMany
+    {
+        return $this->hasMany(UserAnswer::class);
     }
 
     /**

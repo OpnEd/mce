@@ -1,0 +1,10 @@
+.header {position: fixed;top: 0;left: 0;width: 100%;padding: 0px;text-align: left;vertical-align: top;}
+table {border-collapse: collapse;width: 100%;}
+#thprod, #tdprod {border: 1px solid gray; margin: 0;vertical-align: top}
+table {border: 1px solid gray; margin: 0; vertical-align: top}
+th, td {padding: 5px;text-align: left;vertical-align: top}
+#tdClientProveedor {width: 50%;padding: 10px;vertical-align: top}
+.content {padding: 20px;margin-top: 140px;margin-bottom: 0;}
+h2.titulo-celda {color: indigo; margin: 0;}
+.footer {position: fixed;bottom: 0cm;left: 0cm;width: 100%;background-color: rgb(166, 166, 212);}
+.textFooter{text-align: center;width: 100%;}

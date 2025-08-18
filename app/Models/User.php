@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\RoleType;
+use App\Models\Quality\Training\Enrollment;
 use App\Traits\MultiTenantHasRoles;
 use Filament\Facades\Filament;
 use Filament\Models\Contracts\FilamentUser;
@@ -11,7 +12,7 @@ use Filament\Models\Contracts\HasTenants;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -23,7 +24,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Notifications\DatabaseNotification;
 
-class User extends Authenticatable implements FilamentUser, HasTenants, HasAvatar
+class User extends Authenticatable implements FilamentUser, HasTenants, HasAvatar, MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory,
@@ -42,12 +43,19 @@ class User extends Authenticatable implements FilamentUser, HasTenants, HasAvata
         'email',
         'password',
         'is_surgeon',
+        'signature',
+        'current_team_id',
+        'profile_photo_path',
+        'card_number',
+        'card_type',
+        'is_suspended',
         'data',
     ];
 
     protected $casts = [
         'is_surgeon' => 'boolean',
         'data' => 'array',
+        'is_suspended' => 'boolean',
     ];
 
     /**
@@ -58,7 +66,7 @@ class User extends Authenticatable implements FilamentUser, HasTenants, HasAvata
     protected $hidden = [
         'password',
         'remember_token',
-        
+
     ];
 
     /**
@@ -102,13 +110,13 @@ class User extends Authenticatable implements FilamentUser, HasTenants, HasAvata
                 ->toArray();
 
             foreach ($domains as $domain) {
-                if (str_ends_with($this->email, '@' . $domain)) {
+                if (str_ends_with($this->email, '@' . $domain) && $this->hasVerifiedEmail()) {
                     return true;
                 }
             }
         }
 
-        return false;
+        return true;
     }
 
     public function canAccessTenant(Model $tenant): bool
@@ -125,6 +133,12 @@ class User extends Authenticatable implements FilamentUser, HasTenants, HasAvata
     {
         return $this->hasMany(Dispatch::class);
     }
+
+    public function enrollments(): HasMany
+    {
+        return $this->hasMany(Enrollment::class);
+    }
+
 
     public function getFilamentAvatarUrl(): ?string
     {
@@ -155,15 +169,15 @@ class User extends Authenticatable implements FilamentUser, HasTenants, HasAvata
     public function readNotifications(): MorphMany
     {
         $team = Filament::getTenant();
-        
+
         $query = $this->morphMany(DatabaseNotification::class, 'notifiable')
-                     ->whereNotNull('read_at')
-                     ->orderBy('created_at', 'desc');
-        
+            ->whereNotNull('read_at')
+            ->orderBy('created_at', 'desc');
+
         if ($team) {
             $query->where('team_id', $team->id);
         }
-        
+
         return $query;
     }
 
@@ -189,15 +203,15 @@ class User extends Authenticatable implements FilamentUser, HasTenants, HasAvata
     public function unreadNotifications(): MorphMany
     {
         $team = Filament::getTenant();
-        
+
         $query = $this->morphMany(DatabaseNotification::class, 'notifiable')
-                     ->whereNull('read_at')
-                     ->orderBy('created_at', 'desc');
-        
+            ->whereNull('read_at')
+            ->orderBy('created_at', 'desc');
+
         if ($team) {
             $query->where('team_id', $team->id);
         }
-        
+
         return $query;
     }
 

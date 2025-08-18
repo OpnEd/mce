@@ -7,13 +7,10 @@ use Filament\Support\Contracts\HasLabel;
 enum RoleType: string implements HasLabel
 {
     //case SUPERADMIN     = 'super-admin';
-    case ADMIN          = 'admin';
-    case DIRECTOR       = 'director';
-    case MEDICO         = 'medico';
-    case CLIENTE        = 'cliente';
-    case COMERCIAL      = 'comercial';
-    case AUXILIARVET    = 'auxiliar-vet';
-    case AUXILIARBDG    = 'auxiliar-bodega';
+    case ADMIN          = 'Administrador';
+    case DIRECTOR       = 'Director Técnico';
+    case CLIENTE        = 'Cliente';
+    case COMERCIAL      = 'Auxiliar de Farmacia';
 
     public function getLabel(): ?string
     {
@@ -21,11 +18,8 @@ enum RoleType: string implements HasLabel
             //self::SUPERADMIN     => 'Súper Administrador',
             self::ADMIN          => 'Administrador',
             self::DIRECTOR       => 'Director',
-            self::MEDICO         => 'Médico',
             self::CLIENTE        => 'Cliente',
-            self::COMERCIAL      => 'Asersor Comercial',
-            self::AUXILIARVET    => 'Auxiliar Veterinario',
-            self::AUXILIARBDG    => 'Auxiliar de Bodega',
+            self::COMERCIAL      => 'Auxiliar de Farmacia',
         };
     }
 

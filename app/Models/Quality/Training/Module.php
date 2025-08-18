@@ -55,4 +55,6 @@ class Module extends Model
         $minutes = $this->duration % 60;
         return sprintf('%02d:%02d', $hours, $minutes);
     }
+
+    
 }

@@ -21,18 +21,20 @@ class Lesson extends Model
         'order',
         'content',
         'video_url',
+        'iframe',
         'active',
     ];
 
     protected $casts = [
         'active' => 'boolean',
         'duration' => 'integer',
+        'content' => 'array',
     ];
 
-    public function getVideoUrlAttribute()
+    /* public function getVideoUrlAttribute()
     {
         return $this->video_url ? asset('storage/' . $this->video_url) : null;
-    }
+    } */
     public function module(): BelongsTo
     {
         return $this->belongsTo(Module::class);
@@ -55,12 +57,12 @@ class Lesson extends Model
         $minutes = $this->duration % 60;
         return sprintf('%02d:%02d', $hours, $minutes);
     }
-    public function getContentAttribute()
+    /* public function getContentAttribute()
     {
         return $this->content;
-    }
+    } */
     // Ejemplo avanzado: Devolver el objetivo en mayúsculas y con un resumen
-    public function getObjectiveAttribute()
+    /* public function getObjectiveAttribute()
     {
         $objective = $this->attributes['objective'] ?? '';
         $summary = strlen($objective) > 50 ? substr($objective, 0, 47) . '...' : $objective;
@@ -69,7 +71,7 @@ class Lesson extends Model
             'uppercase' => strtoupper($objective),
             'summary' => $summary,
         ];
-    }
+    } */
 
     /**
      * Obtener la siguiente lección del mismo módulo.

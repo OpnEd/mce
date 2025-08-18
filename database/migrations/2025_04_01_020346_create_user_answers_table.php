@@ -1,7 +1,7 @@
 <?php
 
-use App\Models\Question;
-use App\Models\QuestionOption;
+use App\Models\Quality\Training\Question;
+use App\Models\Quality\Training\QuestionOption;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;

@@ -14,6 +14,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Hash;
+use Saade\FilamentAutograph\Forms\Components\SignaturePad;
 
 class UserResource extends Resource
 {
@@ -43,12 +44,37 @@ class UserResource extends Resource
                     ->dehydrated(fn(?string $state): bool => filled($state))
                     ->required(fn(string $operation): bool => $operation === 'create')
                     ->maxLength(255),
-                Forms\Components\Checkbox::make('is_surgeon')
-                    ->label('Is Surgeon')
+                Forms\Components\Select::make('card_type')
+                    ->label('Card Type')
+                    ->options([
+                        'Cédula de Ciudadanía' => 'C.C.',
+                        'Cédula de Extranjería' => 'C.E.',
+                        'Pasaporte' => 'Pasaporte',
+                        'Permiso Especial de Permanencia' => 'P.E.P.',
+                    ]),
+                Forms\Components\TextInput::make('card_number')
+                    ->label('Card Number')
+                    ->maxLength(50),
+                Forms\Components\Toggle::make('is_suspended')
+                    ->label('Is Suspended?')
+                    ->inline(false)
                     ->default(false),
                 Forms\Components\KeyValue::make('data')
                     ->label('Additional Data')
                     ->keyPlaceholder('Address:')
+                    ->valuePlaceholder('Calle 123 #45-67')
+                    ->columnSpanFull(),
+                SignaturePad::make('signature')
+                    ->label('Signature')
+                    ->columnSpanFull()
+                    ->required(),
+                Forms\Components\FileUpload::make('profile_photo_path')
+                    ->label('Profile Photo')
+                    ->image()
+                    ->disk('public')
+                    ->directory('profile-photos')
+                    ->maxSize(2048)
+                    ->columnSpanFull(),
             ]);
     }
 
@@ -63,7 +89,6 @@ class UserResource extends Resource
                 Tables\Columns\TextColumn::make('email_verified_at')
                     ->dateTime()
                     ->sortable(),
-                Tables\Columns\IconColumn::make('is_surgeon'),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

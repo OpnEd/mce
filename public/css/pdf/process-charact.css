@@ -1,0 +1,10 @@
+
+    .border-all {
+        border: 1px solid black;
+    }
+
+    .td-label {
+        background-color: darkgray;
+        text-align: center;
+        font-weight: 500;
+    }

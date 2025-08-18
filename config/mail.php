@@ -14,7 +14,7 @@ return [
     |
     */
 
-    'default' => env('MAIL_MAILER', 'log'),
+    'default' => env('MAIL_MAILER', 'smtp'),
 
     /*
     |--------------------------------------------------------------------------
@@ -36,8 +36,10 @@ return [
     */
 
     'mailers' => [
-
-        'smtp' => [
+        'mailtrap' => [
+            'transport' => 'mailtrap'
+        ],
+            'smtp' => [
             'transport' => 'smtp',
             'scheme' => env('MAIL_SCHEME'),
             'url' => env('MAIL_URL'),
@@ -109,8 +111,8 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
-        'name' => env('MAIL_FROM_NAME', 'Example'),
+        'address' => env('MAIL_FROM_ADDRESS', 'consultor@gestioncalidad.net.co'),
+        'name' => env('MAIL_FROM_NAME', 'Gestión de Calidad en Establecimientos Farmacéuticos'),
     ],
 
 ];

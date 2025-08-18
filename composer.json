@@ -19,6 +19,7 @@
         "laravel/tinker": "^2.10.1",
         "leandrocfe/filament-apex-charts": "^3.2",
         "livewire/livewire": "^3.6",
+        "saade/filament-autograph": "^3.2",
         "spatie/laravel-permission": "^6.16"
     },
     "require-dev": {

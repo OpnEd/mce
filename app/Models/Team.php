@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Quality\Training\Enrollment;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -81,6 +82,11 @@ class Team extends Model
     public function environmentalRecords(): HasMany
     {
         return $this->hasMany(EnvironmentalRecord::class);
+    }
+
+    public function enrollments(): HasMany
+    {
+        return $this->hasMany(Enrollment::class);
     }
 
     public function improvement_plans(): HasMany
@@ -168,6 +174,29 @@ class Team extends Model
     public function settings(): HasMany
     {
         return $this->hasMany(TenantSetting::class);
+    }
+    /**
+     * Recupera el valor de un setting dado su ID.
+     */
+    public function getSettingValue(int $settingId): ?string
+    {
+        $setting = $this->settings()
+            ->where('setting_id', $settingId)
+            ->first();
+
+        return $setting?->value;
+    }
+
+    /**
+     * Recupera el data (JSON) de un setting dado su ID.
+     */
+    public function getSettingData(int $settingId): ?array
+    {
+        $setting = $this->settings()
+            ->where('setting_id', $settingId)
+            ->first();
+
+        return $setting?->data;
     }
 
     public function tasks(): HasMany
