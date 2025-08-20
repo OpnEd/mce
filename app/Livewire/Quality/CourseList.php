@@ -27,6 +27,7 @@ class CourseList extends Component
         // Inyectamos el servicio y obtenemos los cursos
         $this->courses = $this->training->listAvailableCourses();
         $this->userEnrollments = Enrollment::where('user_id', Auth::user()->id)->where('team_id', $this->teamId)->get()->keyBy('course_id');
+        //dd($this->courses);
     }
 
     /**
@@ -90,6 +91,14 @@ class CourseList extends Component
             $this->dispatch('close-modal', id: 'enrollUser');
 
         }
+    }
+
+    public function goToEnrollment(int $enrollmentId)
+    {
+        return redirect()->route('filament.admin.resources.quality.training.enrollments.view', [
+            'tenant' => $this->teamId,
+            'record' => $enrollmentId,
+        ]);
     }
 
 

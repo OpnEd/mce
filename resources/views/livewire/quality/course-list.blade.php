@@ -1,11 +1,18 @@
 <div class="space-y-6">
+                        
     {{-- Cuadrícula de cursos --}}
     <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         @forelse ($courses as $course)
             {{-- Tarjeta de curso individual --}}
-            <div class="flex flex-col overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-800 dark:ring-white/10">
+            <div
+                class="flex flex-col overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-800 dark:ring-white/10">
                 {{-- Imagen de la tarjeta --}}
-                <div class="flex-shrink-0">
+                    <div
+                        class="flex flex-col items-center justify-center p-12 text-center bg-gray-50 rounded-lg dark:bg-gray-800/50">
+                        <x-filament::icon icon="heroicon-o-video-camera-slash"
+                            class="w-10 h-10 text-gray-400 dark:text-gray-500" />
+                    </div>
+                {{-- <div class="flex-shrink-0">
                     @if ($course->image_url)
                         <img class="h-48 w-full object-cover" src="{{ $course->image_url }}"
                              alt="Imagen del curso {{ $course->title }}">
@@ -14,7 +21,7 @@
                             <x-filament::icon icon="heroicon-o-photo" class="h-16 w-16 text-gray-400 dark:text-gray-500" />
                         </div>
                     @endif
-                </div>
+                </div> --}}
 
                 {{-- Cuerpo de la tarjeta --}}
                 <div class="flex flex-1 flex-col justify-between p-6">
@@ -49,13 +56,13 @@
                             @endphp
 
                             @if ($hasEnrollments && $enrollmentId)
+                                {{-- Si el usuario está inscrito, mostrar botón de acción --}}
                                 {{-- Si el usuario está inscrito, ir al Enrollment específico --}}
-                                <x-filament::button href="{{ route('filament.admin.resources.quality.training.enrollments.view', [
-                                    'tenant' => $teamId,
-                                    'record' => $enrollmentId,
-                                ]) }}" color="success" size="xs">
-                                    Ya estás inscrito, ve al curso!
+                                <x-filament::button wire:click="goToEnrollment({{ $enrollmentId }})"
+                                    tag="button" color="success" size="xs">
+                                    !Ya estás inscrito!
                                 </x-filament::button>
+                                
                             @else
                                 {{-- Si no está inscrito, mostrar acción de inscripción --}}
                                 <x-filament::button wire:click="confirmEnrollment({{ $course->id }})" color="primary">
