@@ -7,5 +7,6 @@ return [
     App\Providers\Filament\PosPanelProvider::class,
     App\Providers\Filament\TenantManagerPanelProvider::class,
     App\Providers\TrainingServiceProvider::class,
+    App\Providers\ViewServiceProvider::class,
     Spatie\Permission\PermissionServiceProvider::class,
 ];
