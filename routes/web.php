@@ -3,6 +3,7 @@
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\ManufacturerController;
 use App\Http\Controllers\Quality\DocumentController;
+use App\Livewire\LandingPage;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
@@ -17,31 +18,31 @@ use Illuminate\Support\Facades\Route;
         Route::post('/invoice/{id}/email', [InvoiceController::class, 'sendByEmail'])->name('invoice.email');
 /*     }); */
 
-Route::get('/', function () {
+/* Route::get('/', function () {
     return redirect()->route('filament.admin.auth.login');
-});
+}); */
 
-Route::get('/debug-session', function () {
+/* Route::get('/debug-session', function () {
     echo '<pre>';
     print_r(session()->all());
     echo '</pre>';
-});
+}); */
 
-Route::get('/clear-session', function () {
+/* Route::get('/clear-session', function () {
     session()->flush();
     return 'Sesión vaciada';
-});
+}); */
 
-Route::get('/clear-artisan', function () {
+/* Route::get('/clear-artisan', function () {
     Artisan::call('optimize:clear');
     Artisan::call('config:clear');
     Artisan::call('cache:clear');
     Artisan::call('view:clear');
     Artisan::call('route:clear');
     return 'Comandos Artisan ejecutados: optimize:clear, config:clear, cache:clear';
-});
+}); */
 
-Route::get('/optimize-cache', function () {
+/* Route::get('/optimize-cache', function () {
     Artisan::call('config:cache');
     Artisan::call('route:cache');
     Artisan::call('view:cache');
@@ -49,12 +50,12 @@ Route::get('/optimize-cache', function () {
     Artisan::call('optimize');
 
     return '¡Caché generada exitosamente!';
-});
+}); */
 
 
-Route::get('/create-symlink', function () {
+/* Route::get('/create-symlink', function () {
     Artisan::call('storage:link');
-});
+}); */
 
 Route::middleware([
     'auth',
@@ -66,7 +67,7 @@ Route::middleware([
 
 });
 
-Route::get('/debug/lesson-template', function () {
+/* Route::get('/debug/lesson-template', function () {
     $cfg = config('lesson_template');
 
     // Dump legible
@@ -76,5 +77,7 @@ Route::get('/debug/lesson-template', function () {
         'count' => is_array($cfg) ? count($cfg) : null,
         'sample' => is_array($cfg) ? array_slice($cfg, 0, 3) : $cfg,
     ]);
-});
+}); */
+
+Route::get('/', LandingPage::class);
 
