@@ -86,3 +86,7 @@ protected function getWidgets(): array
 - El componente audit.section-entry-form gestiona el formulario/evidencia para cada sección.
 
 Se pone la tabla de contenido en el dashboard ActaDashboard
+
+## Recepción técnica
+
+Para hacer la recepción técnica se requiere una purchase, no se puede crear desde cero, ajustar

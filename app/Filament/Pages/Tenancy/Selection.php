@@ -1,0 +1,57 @@
+<?php
+
+namespace App\Filament\Pages\Tenancy;
+
+use App\Filament\Clusters\InspectionSurveillanceControlAudit;
+use Filament\Pages\Page;
+use App\Models\MinutesIvcSectionEntry;
+use App\Services\LinkResolver;
+use Filament\Facades\Filament;
+
+class Selection extends Page
+{
+    //protected static ?string $cluster = InspectionSurveillanceControlAudit::class;
+
+    protected static ?int $navigationSort = 31;
+    protected static ?string $navigationLabel = '10. Selección';
+    protected static ?string $navigationGroup = 'Secretaría de Salud';
+
+    protected static string $view = 'filament.pages.tenancy.selection';
+    protected static ?string $slug = 'seleccion';
+    public $teamId;
+    public $section = ' Proceso de Selección';    // grouped settings ready for rendering;
+    public $entries = [];    // raw tenant_settings collection/array
+    public $sectionEntries = [];
+
+    public function mount(LinkResolver $linkResolver): void
+    {
+        // obtener tenant de Filament (adapta si usas otro método)
+        $this->teamId = Filament::getTenant()?->id ?? null;
+
+        if (! $this->teamId) {
+            $this->entries = [];
+            return;
+        }
+
+        // Eager-load de la relación 'setting' para evitar N+1
+        //$tenantSettings = TenantSetting::with('setting')
+        $minutesIvcSectionEntries = MinutesIvcSectionEntry::with('minutesIvcSection')
+            ->whereHas('minutesIvcSection', function ($query) {
+                $query->where('team_id', $this->teamId)
+                    ->where('name', $this->section);
+            })
+            ->get()
+            ->toArray();
+
+        // Procesar links usando LinkResolver
+        foreach ($minutesIvcSectionEntries as &$entry) {
+            $entry['resolved_links'] = [];
+            if (!empty($entry['links']) && is_array($entry['links'])) {
+                $entry['resolved_links'] = $linkResolver->resolve($entry['links'], $entry, $this->teamId);
+            }
+        }
+
+        // Conserva el array bruto si lo necesitas (por ejemplo para export)
+        $this->sectionEntries = $minutesIvcSectionEntries;
+    }
+}

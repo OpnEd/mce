@@ -7,16 +7,19 @@ use App\Livewire\LandingPage;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/generate-invoice-pdf/{id}', [InvoiceController::class, 'generatePdf'])->name('invoice.download');
+Route::get('/invoice/{id}/print', [InvoiceController::class, 'print'])->name('invoice.print');
+Route::post('/invoice/{id}/email', [InvoiceController::class, 'sendByEmail'])->name('invoice.email');
 /**
  * Descargar, imprimir y enviar por correo electrónico facturas
  */
 /* Route::middleware(['auth', 'team.context'])
     ->prefix('admin/{team}')
-    ->group(function () { */
+    ->group(function () { 
         Route::get('/generate-invoice-pdf/{id}', [InvoiceController::class, 'generatePdf'])->name('invoice.download');
         Route::get('/invoice/{id}/print', [InvoiceController::class, 'print'])->name('invoice.print');
         Route::post('/invoice/{id}/email', [InvoiceController::class, 'sendByEmail'])->name('invoice.email');
-/*     }); */
+    }); */
 
 /* Route::get('/', function () {
     return redirect()->route('filament.admin.auth.login');
@@ -33,14 +36,14 @@ use Illuminate\Support\Facades\Route;
     return 'Sesión vaciada';
 }); */
 
-/* Route::get('/clear-artisan', function () {
+Route::get('/clear-artisan', function () {
     Artisan::call('optimize:clear');
     Artisan::call('config:clear');
     Artisan::call('cache:clear');
     Artisan::call('view:clear');
     Artisan::call('route:clear');
     return 'Comandos Artisan ejecutados: optimize:clear, config:clear, cache:clear';
-}); */
+});
 
 /* Route::get('/optimize-cache', function () {
     Artisan::call('config:cache');
@@ -80,4 +83,3 @@ Route::middleware([
 }); */
 
 Route::get('/', LandingPage::class);
-

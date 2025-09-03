@@ -14,8 +14,8 @@
     </x-slot>
         @foreach ($sections as $section)
         {{-- slug se refiere a la ruta --}}
-            @if (Route::has($section->slug))
-                <a href="{{ route($section->slug, $tenant) }}"
+            @if (Route::has($section->route))
+                <a href="{{ route($section->route, $tenant) }}"
                     class="block px-2 py-2 hover:bg-gray-100 rounded text-blue-600">
                     {{ $section->order }}. {{ $section->name }}
                 </a>

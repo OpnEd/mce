@@ -19,7 +19,7 @@ class Setting extends Model
         "attributes" => "array",
     ];
 
-    public function settings(): HasMany
+    public function tenantSettings(): HasMany
     {
         return $this->hasMany(TenantSetting::class);
     }

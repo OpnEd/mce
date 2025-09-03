@@ -20,8 +20,6 @@ class ProductReceptionResource extends Resource
 
     protected static ?string $navigationGroup = 'POS';
 
-    protected static ?string $navigationIcon = 'phosphor-hand-arrow-down';
-
     public static function form(Form $form): Form
     {
         return $form

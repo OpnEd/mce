@@ -7,6 +7,7 @@ use App\Models\Setting as ModelsSetting;
 use App\Models\TenantSetting;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Tabs;
 use Filament\Forms\Components\Tabs\Tab;
@@ -18,6 +19,7 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Collection;
+use Filament\Forms\Components\KeyValue;
 
 class Setting extends Page implements HasForms
 {
@@ -25,7 +27,7 @@ class Setting extends Page implements HasForms
 
     protected static ?string $navigationGroup = 'Settings';
     //protected static ?string $navigationIcon = 'phosphor-faders';
-    protected static ?string $navigationLabel = 'Team Settings';
+    protected static ?string $navigationLabel = 'Plataforma Estratégica';
 
     public ?array $data = [];
 
@@ -98,7 +100,8 @@ class Setting extends Page implements HasForms
     public function generateField($setting)
     {
         $label = str($setting->key)->title()->replace("_", " ");
-        $name = "{$setting->group}.{$setting->key}";
+        $key_cut = \Illuminate\Support\Str::words($setting->key, 4);
+        $name = "{$setting->group}.{$key_cut}";
         return match ($setting->type) {
             'text' => TextInput::make($name)
                 ->label($label),
@@ -113,7 +116,20 @@ class Setting extends Page implements HasForms
                 }),
 
             "file" => FileUpload::make($name)
-                ->label($label),
+                ->label($label)
+                ->multiple(),
+
+            "repeater" => Repeater::make($name)
+                ->label($label)
+                ->schema([
+                    TextInput::make(''),
+                ])
+                ->columns(1),
+
+
+            "key-value" => KeyValue::make($name)
+                ->label($label)
+                ->columnSpanFull(),
 
             default => TextInput::make($name)
                 ->label($label)
@@ -124,9 +140,12 @@ class Setting extends Page implements HasForms
     {
         $tenantId = Filament::getTenant()->id;
         foreach ($this->form->getState() as $group) {
+            // dd($group);
             if (is_array($group)) {
                 foreach ($group as $key => $value) {
+                    // dd($key);
                     $settings[$key] = $value;
+                    //dd($settings);
                 }
             }
         }

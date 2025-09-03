@@ -11,7 +11,7 @@ return new class extends Migration
      *
      * Renombramos `progress` a `enrollment_lesson` y agregamos las columnas necesarias.
      */
-    public function up(): void
+    /* public function up(): void
     {
         // 1) Renombrar 'progress' a 'enrollment_lesson' solo si 'progress' existe y 'enrollment_lesson' no.
         if (Schema::hasTable('progress') && !Schema::hasTable('enrollment_lesson')) {
@@ -68,7 +68,7 @@ return new class extends Migration
                 $table->unique(['enrollment_id', 'lesson_id'], 'enrollment_lesson_unique');
             }
         });
-    }
+    } */
 
     /**
      * Reverse the migrations.

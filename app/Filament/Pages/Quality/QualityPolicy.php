@@ -10,8 +10,10 @@ use Illuminate\Contracts\View\View;
 class QualityPolicy extends Page
 {
     protected static string $view = 'filament.pages.quality.quality-policy';
-    protected static ?string $navigationGroup = '9. Sistema de Gestión de la Calidad';
+    protected static ?string $navigationGroup = 'Secretaría de Salud';
+    protected static ?int $navigationSort = 16;
     protected static ?string $navigationLabel = '9.8 - Política de Calidad';
+
 
     public $tenantSetting;
     public $qualityPolicy;
@@ -23,6 +25,13 @@ class QualityPolicy extends Page
     public array  $policyData = [];
     public array $headerLinks = [];
     public $customPageIcon = 'phosphor-file-arrow-up';
+
+    
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
 
     public function mount()
     {

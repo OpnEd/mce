@@ -4,9 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class MinutesIvcSectionEntry extends Model
 {
+
+    use SoftDeletes;
+    
     protected $fillable = [
         'team_id',
         'minutes_ivc_section_id',

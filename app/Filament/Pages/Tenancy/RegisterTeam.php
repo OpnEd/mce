@@ -2,32 +2,35 @@
 
 namespace App\Filament\Pages\Tenancy;
 
-use App\Enums\PermissionType;
-use App\Models\Event;
-use App\Models\Document;
-use App\Models\DocumentCategory;
+use App\Models\Team;
+use App\Models\User;
 use App\Models\ManagementIndicator;
 use App\Models\MinutesIvcSection;
-use App\Models\Permission;
-use App\Models\Process;
-use App\Models\ProcessType;
-use App\Models\Quality\Training\Course;
-use App\Models\Quality\Training\Enrollment;
-use App\Models\Role;
+use App\Models\MinutesIvcSectionEntry;
 use App\Models\Setting;
-use App\Models\Team;
 use App\Models\TenantSetting;
-use App\Models\User;
+use App\Models\Document;
+use App\Models\Process;
+use App\Models\DocumentCategory;
+use App\Models\Quality\Training\Enrollment;
+use App\Models\Schedule;
+use App\Models\Event;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
+use Illuminate\Validation\ValidationException;
+use App\Enums\PermissionType;
+use App\Models\Quality\Training\Course;
 use Database\Seeders\ManagementIndicatorTeamSeeder;
 use Dom\Text;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Pages\Tenancy\RegisterTenant;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
-use Spatie\Permission\PermissionRegistrar;
 
 class RegisterTeam extends RegisterTenant
 {
@@ -40,135 +43,227 @@ class RegisterTeam extends RegisterTenant
     {
         return $form
             ->schema([
-                TextInput::make('name')
-                    ->label('Nombre de la compañía')
-                    ->required(),
-                TextInput::make('identification')
-                    ->label('NIT')
-                    ->required(),
-                TextInput::make('address')
-                    ->label('Dirección')
-                    ->required(),
-                TextInput::make('email')
-                    ->label('E-mail')
-                    ->email()
-                    ->required(),
-                TextInput::make('phonenumber')
-                    ->label('Teléfono (fijo o celular)')
-                    ->tel()
-                    ->required(),
+                TextInput::make('name')->label('Nombre de la compañía')->required(),
+                TextInput::make('identification')->label('NIT')->required(),
+                TextInput::make('address')->label('Dirección')->required(),
+                TextInput::make('email')->label('E-mail')->email()->required(),
+                TextInput::make('phonenumber')->label('Teléfono (fijo o celular)')->tel()->required(),
             ]);
     }
 
+    /**
+     * Maneja todo el proceso de registro en una transacción.
+     *
+     * @param array $data
+     * @return Team
+     * @throws \Throwable
+     */
     protected function handleRegistration(array $data): Team
     {
-        $team = Team::create($data);
-        $consultant = User::where('id', 1)->first();
+        return DB::transaction(function () use ($data) {
+            $team = $this->createTeam($data);
 
-        $team->users()->attach(\Illuminate\Support\Facades\Auth::user());
-        $team->users()->attach($consultant);
+            $consultant = $this->getConsultant();
 
-        $roleAdmin = Role::firstOrCreate(
-            [
-                'name' => 'Administrador',
-                'guard_name' => 'web',
-                'team_id' => $team->id,
-            ]
+            $this->attachUsersToTeam($team, Auth::user(), $consultant);
+
+            [$roleAdmin, $roleConsultant] = $this->createRoles($team);
+
+            // Configura Spatie para que trabaje por team
+            app(PermissionRegistrar::class)->setPermissionsTeamId($team->id);
+
+            $this->assignRoles($team, Auth::user(), $consultant, $roleAdmin, $roleConsultant);
+
+            $this->populateManagementIndicators($team, $roleAdmin);
+
+            $this->populateIvcSectionsAndEntries($team);
+
+            $this->createPermissionsAndSyncRole($team, $roleAdmin);
+
+            $this->createTenantSettingsFromConfig($team);
+
+            $this->populateDocumentsFromConfig($team, $consultant);
+
+            $this->populateTrainingSchedule($team, $roleAdmin);
+
+            $this->enrollInitialCourse($team);
+
+            // Opcional: emitir evento para listeners / jobs pesadas
+            // event(new \App\Events\TeamCreated($team));
+
+            return $team;
+        });
+    }
+
+    private function createTeam(array $data): Team
+    {
+        // Validaciones extra opcionales
+        return Team::create($data);
+    }
+
+    private function getConsultant(): ?User
+    {
+        $consultantId = config('app.default_consultant_id', 1);
+        return User::find($consultantId);
+    }
+
+    private function attachUsersToTeam(Team $team, User $owner, ?User $consultant): void
+    {
+        $team->users()->syncWithoutDetaching([
+            $owner->id,
+            $consultant?->id,
+        ]);
+    }
+
+    /**
+     * Crea (o recupera) roles scoped al team.
+     * @return array [Role $adminRole, Role $consultantRole]
+     */
+    private function createRoles(Team $team): array
+    {
+        $admin = Role::firstOrCreate(
+            ['name' => 'Administrador', 'guard_name' => 'web', 'team_id' => $team->id]
         );
-        $roleConsultant = Role::firstOrCreate(
-            [
-                'name' => 'Consultor',
-                'guard_name' => 'web',
-                'team_id' => $team->id,
-            ]
+
+        $consultant = Role::firstOrCreate(
+            ['name' => 'Consultor', 'guard_name' => 'web', 'team_id' => $team->id]
         );
 
-        // 4) ¡Muy importante! Configura el team activo para Spatie:
-        app(PermissionRegistrar::class)
-            ->setPermissionsTeamId($team->id);
+        return [$admin, $consultant];
+    }
 
-        // 5) Asigna el rol **sobre el modelo User**, no sobre su ID
-        $user = Auth::user();
-        $user->assignRole($roleAdmin);
+    private function assignRoles(Team $team, User $user, ?User $consultant, Role $adminRole, Role $consultantRole): void
+    {
+        // Asignar roles sobre modelos (no sobre IDs)
+        $user->assignRole($adminRole);
+        if ($consultant) {
+            $consultant->assignRole($consultantRole);
+        }
+    }
 
-        $consultant->assignRole($roleConsultant);
+    /**
+     * Pobla management indicators relacionando existing indicators según config
+     */
+    private function populateManagementIndicators(Team $team, Role $roleAdmin): void
+    {
+        $indicatorNames = config('management-indicators', []);
 
-        // Definimos los nombres de los indicadores según tu array original
+        // Recuperar indicadores existentes por nombre en una sola query
+        $indicators = ManagementIndicator::whereIn('name', $indicatorNames)->get()->keyBy('name');
 
-        $indicators = config('management-indicators');
-
-        $sections = config('minutes-ivc-sections');
-
-        $entries = config('minutes-ivc-nine-section-entries');
-
-        $permissionNames = [];
-
-        foreach ($indicators as $name) {
-            $indicator = ManagementIndicator::where('name', $name)->first();
-
+        foreach ($indicatorNames as $name) {
+            $indicator = $indicators->get($name);
             if (! $indicator) {
-                // Opcional: lanza excepción, loguéalo o haz continue
-                \Illuminate\Support\Facades\Log::warning("ManagementIndicator no hallado para name='{$name}'");
+                Log::warning("ManagementIndicator no hallado para name='{$name}'");
                 continue;
             }
-            // Conectar sin eliminar posibles existentes
+
             $team->managementIndicators()
                 ->syncWithoutDetaching([
                     $indicator->id => [
                         'role_id' => $roleAdmin->id,
-                        // Periodicidad arbitraria; ajústala si necesitas distintos valores
-                        'periodicity'    => 'Mensual',
-                        // Usamos la meta global como meta personalizada
+                        'periodicity' => 'Mensual',
                         'indicator_goal' => $indicator->indicator_goal,
-                        'created_at'     => now(),
-                        'updated_at'     => now(),
+                        'created_at' => now(),
+                        'updated_at' => now(),
                     ],
                 ]);
         }
+    }
 
+    /**
+     * Pobla las secciones de IVC y sus entradas según config.
+     */
+    private function populateIvcSectionsAndEntries(Team $team): void
+    {
+        $sections = config('minutes-ivc-sections', []);
+        if (! is_array($sections)) return;
 
+        // Crear/actualizar secciones (idempotente)
         foreach ($sections as $s) {
-            \App\Models\MinutesIvcSection::updateOrCreate(
-                //
+            MinutesIvcSection::updateOrCreate(
                 [
                     'team_id' => $team->id,
-                    'order' => $s['order'],
-                    'slug' => $s['slug'],
-                    'name' => $s['name'],
-                    'description' => $s['description'],
-                    'status' => $s['status']
-                ]
-            );
-        }
-
-        $minutes_ivc_section = MinutesIvcSection::where('team_id', $team->id)->where('name', 'Sistema de gestión de calidad')->first();
-        $minutes_ivc_section_id = $minutes_ivc_section->id;
-
-        foreach ($entries as $e) {
-            \App\Models\MinutesIvcSectionEntry::updateOrCreate(
-                //
+                    'order' => $s['order'] ?? null,
+                    'slug' => $s['slug'] ?? null,
+                ],
                 [
-                    'minutes_ivc_section_id' => $minutes_ivc_section_id,
-                    'apply' => $e['apply'],
-                    'entry_id' => $e['entry_id'],
-                    'criticality' => $e['criticality'],
-                    'question' => $e['question'],
-                    'answer' => $e['answer'],
-                    'entry_type' => $e['entry_type'],
-                    'links' => $e['links'],
-                    'compliance' => $e['compliance'],
+                    'name' => $s['name'] ?? null,
+                    'description' => $s['description'] ?? null,
+                    'status' => $s['status'] ?? null,
                 ]
             );
         }
+
+        // Mapeo: variable => archivo de entradas
+        $sectionConfigMap = [
+            'Recurso Humano'                    => 'minutes-ivc-second-section-entries',
+            'Infraestructura Física'            => 'minutes-ivc-third-section-entries',
+            'Saneamiento de edificaciones'      => 'minutes-ivc-fourth-section-entries',
+            'Áreas'                             => 'minutes-ivc-fifth-section-entries',
+            'Clasificación del Establecimiento' => 'minutes-ivc-sixth-section-entries',
+            'Servicios Ofrecidos'               => 'minutes-ivc-seventh-section-entries',
+            'Inyectología'                      => 'minutes-ivc-inyectologia-section-entries',
+            'Otros aspectos'                    => 'minutes-ivc-eighth-section-entries',
+            'Sistema de gestión de calidad'     => 'minutes-ivc-nine-section-entries',
+            ' Proceso de Selección'             => 'minutes-ivc-tenth-section-entries',
+            ' Proceso de Adquisición'           => 'minutes-ivc-eleventh-section-entries',
+            ' Proceso de Recepción'             => 'minutes-ivc-twelveth-section-entries',
+            ' Proceso de Almacenamiento'        => 'minutes-ivc-thirteenth-section-entries',
+            ' Proceso de Dispensación'          => 'minutes-ivc-fourteenth-section-entries',
+            ' Proceso de Devoluciones'          => 'minutes-ivc-fifteenth-section-entries',
+            ' Proceso de Manejo de Medicamentos Cadena de Frío' => 'minutes-ivc-sixteenth-section-entries',
+        ];
+
+        // Poblar entradas para cada sección
+        foreach ($sectionConfigMap as $sectionName => $configKey) {
+            $section = MinutesIvcSection::where('team_id', $team->id)
+                ->where('name', $sectionName)
+                ->first();
+
+            if (! $section) {
+                Log::warning("Sección IVC no encontrada: {$sectionName} (team {$team->id})");
+                continue;
+            }
+
+            $entries = config($configKey, []);
+            if (! is_array($entries)) continue;
+
+            foreach ($entries as $e) {
+                MinutesIvcSectionEntry::updateOrCreate(
+                    [
+                        'minutes_ivc_section_id' => $section->id,
+                        'entry_id' => $e['entry_id'] ?? null,
+                        'question' => $e['question'] ?? null,
+                    ],
+                    [
+                        'apply' => $e['apply'] ?? true,
+                        'criticality' => $e['criticality'] ?? null,
+                        'answer' => $e['answer'] ?? null,
+                        'entry_type' => $e['entry_type'] ?? null,
+                        'links' => $e['links'] ?? null,
+                        'compliance' => $e['compliance'] ?? null,
+                    ]
+                );
+            }
+        }
+    }
+
+    /**
+     * Crea permisos base y sincroniza al rol administrador.
+     */
+    private function createPermissionsAndSyncRole(Team $team, Role $roleAdmin): void
+    {
+        $permissionNames = [];
 
         foreach (PermissionType::cases() as $permissionType) {
+            // firstOrCreate por team_id si tu tabla la tiene
             $perm = Permission::firstOrCreate([
                 'name'       => $permissionType->value,
                 'guard_name' => 'web',
-                'team_id'    => $team->id, // si aplica
+                'team_id'    => $team->id,
             ]);
 
-            // Si tu tabla permissions tiene columna 'label', la actualizamos:
             if (array_key_exists('label', $perm->getAttributes())) {
                 $perm->label = $permissionType->getLabel();
                 $perm->save();
@@ -177,122 +272,123 @@ class RegisterTeam extends RegisterTenant
             $permissionNames[] = $perm->name;
         }
 
-        // 4) Fijamos el context de team para la asignación, si usas teams
-        // app(PermissionRegistrar::class)->setPermissionsTeamId($tuTeamId);
-
-        // 5) Sincronizamos todos los permisos al rol
         $roleAdmin->syncPermissions($permissionNames);
+    }
 
-        // 1) Carga desde config los textos de misión, visión y política
-        $cfg = config('tenant_settings');
+    /**
+     * Crea TenantSettings (misión/visión/política) desde config
+     */
+    private function createTenantSettingsFromConfig(Team $team): void
+    {
+        $cfg = config('tenant_settings', []);
+        $mission = $cfg['mission'] ?? null;
+        $vision  = $cfg['vision'] ?? null;
+        $policy  = $cfg['quality_policy'] ?? [];
 
-        $missionText = $cfg['mission'] ?? null;
-        $visionText  = $cfg['vision']  ?? null;
-        $policy      = $cfg['quality_policy'] ?? [];
-
-        $policyText  = $policy['statement']   ?? null;
-        $policyData  = [
-            'objectives'  => $policy['objectives']  ?? [],
+        $policyText = $policy['statement'] ?? null;
+        $policyData = [
+            'objectives' => $policy['objectives'] ?? [],
             'commitments' => $policy['commitments'] ?? [],
         ];
 
-        // 2) Recorre todos los Setting existentes
         $allSettingIds = Setting::pluck('id');
 
         foreach ($allSettingIds as $settingId) {
-            // Decide el value y el data según el ID
             switch ($settingId) {
-                case 1: // Misión
-                    $value = $missionText;
-                    $data  = null;
+                case 1:
+                    $value = $mission;
+                    $data = null;
                     break;
-                case 2: // Visión
-                    $value = $visionText;
-                    $data  = null;
+                case 2:
+                    $value = $vision;
+                    $data = null;
                     break;
-                case 3: // Política de Calidad
+                case 3:
                     $value = $policyText;
-                    $data  = $policyData;
+                    $data = $policyData;
                     break;
                 default:
                     $value = null;
-                    $data  = null;
+                    $data = null;
             }
 
-            // 3) Inserta o actualiza el TenantSetting
             TenantSetting::updateOrCreate(
                 [
-                    'team_id'    => $team->id,
+                    'team_id' => $team->id,
                     'setting_id' => $settingId,
                 ],
                 [
-                    'value'      => $value,
-                    'data'       => $data,
+                    'value' => $value,
+                    'data'  => $data,
                     'updated_at' => now(),
                 ]
             );
         }
+    }
 
-        //  POBLAMIENTO AUTOMÁTICO DE DOCUMENTOS 
-        //
-
-        // 1) Carga las plantillas
+    /**
+     * Crea o actualiza documentos a partir de plantillas config.
+     */
+    private function populateDocumentsFromConfig(Team $team, ?User $consultant): void
+    {
         $templates = config('document_templates.default_docs', []);
+        if (! is_array($templates) || empty($templates)) return;
 
         foreach ($templates as $tpl) {
-
-            $consultant = User::where('id', 1)
-                ->first();
-            //dd($consultant);
-            // 2) Resuelve ProcessType y DocumentType por su código
-            $processId  = Process::where('code', $tpl['process_id'])
-                ->value('id');
-            $categoryId = DocumentCategory::where('code', $tpl['document_category_id'])
-                ->value('id');
+            $processId = Process::where('code', $tpl['process_id'] ?? null)->value('id');
+            $categoryId = DocumentCategory::where('code', $tpl['document_category_id'] ?? null)->value('id');
 
             if (! $processId || ! $categoryId) {
-                // Opcional: loguea o lanza excepción si no los encuentra
                 Log::warning("Plantilla de documento: tipo o proceso no hallado", $tpl);
                 continue;
             }
 
-            // 3) Inserta o actualiza el documento para este team
             Document::updateOrCreate(
                 [
                     'team_id' => $team->id,
-                    'slug'    => $tpl['slug'],
+                    'slug' => $tpl['slug'],
                 ],
                 [
-                    'title'                => $tpl['title'],
-                    'sequence'             => 0, // o calcula si usas sequence automático
-                    'process_id'           => $processId,
+                    'title' => $tpl['title'] ?? null,
+                    'sequence' => 0,
+                    'process_id' => $processId,
                     'document_category_id' => $categoryId,
-                    'objective'            => $tpl['objective'] ?? null,
-                    'scope'                => $tpl['scope'] ?? null,
-                    'references'           => $tpl['references'] ?? [],
-                    'terms'                => $tpl['terms'] ?? [],
-                    'responsibilities'     => $tpl['responsibilities'] ?? [],
-                    'procedure'            => $tpl['procedure'] ?? [],
-                    'records'              => $tpl['records'] ?? [],
-                    'annexes'              => $tpl['annexes'] ?? [],
-                    'data'                 => $tpl['data'] ?? [],
-                    'prepared_by'          => $consultant->id,
-                    'reviewed_by'          => $tpl['reviewed_by'] ?: null,
-                    'approved_by'          => $tpl['approved_by'] ?: null,
-                    'updated_at'           => now(),
+                    'objective' => $tpl['objective'] ?? null,
+                    'scope' => $tpl['scope'] ?? null,
+                    'references' => $tpl['references'] ?? [],
+                    'terms' => $tpl['terms'] ?? [],
+                    'responsibilities' => $tpl['responsibilities'] ?? [],
+                    'procedure' => $tpl['procedure'] ?? [],
+                    'records' => $tpl['records'] ?? [],
+                    'annexes' => $tpl['annexes'] ?? [],
+                    'data' => $tpl['data'] ?? [],
+                    'prepared_by' => $consultant?->id,
+                    'reviewed_by' => is_numeric($tpl['reviewed_by'] ?? null) ? (int)$tpl['reviewed_by'] : null,
+                    'approved_by' => is_numeric($tpl['approved_by'] ?? null) ? (int)$tpl['approved_by'] : null,
+                    'updated_at' => now(),
                 ]
             );
         }
+    }
 
-        $scheduleItems = config('training_schedule')(now());
+    /**
+     * Crea cronograma de capacitación y eventos asociados.
+     */
+    private function populateTrainingSchedule(Team $team, Role $roleAdmin): void
+    {
+        $callable = config('training_schedule');
+        if (! is_callable($callable)) {
+            Log::warning("training_schedule config no es callable");
+            return;
+        }
 
-        foreach ($scheduleItems as $item) {
-            $schedule = \App\Models\Schedule::create(array_merge($item, [
+        $items = $callable(now());
+        foreach ($items as $item) {
+            $schedule = Schedule::create(array_merge($item, [
                 'team_id' => $team->id,
                 'user_id' => Auth::id(),
             ]));
 
-            // Clonar a la tabla Events para que se visualice en el calendario
             Event::create([
                 'team_id' => $team->id,
                 'user_id' => Auth::id(),
@@ -308,22 +404,35 @@ class RegisterTeam extends RegisterTenant
                 'end_time' => null,
             ]);
         }
-        //  fin poblamiento de documentos
-        Enrollment::create([
+    }
+
+    /**
+     * Matricula inicial en curso por defecto (si existe).
+     */
+    private function enrollInitialCourse(Team $team): void
+    {
+        $courseTitle = '¿Cómo pasar la visita de la Secretaría de Salud?';
+        $course = Course::where('title', $courseTitle)->first();
+
+        if (! $course) {
+            Log::warning("Curso inicial no encontrado: {$courseTitle}");
+            return;
+        }
+
+        // Evitar duplicados
+        Enrollment::firstOrCreate([
             'team_id' => $team->id,
             'user_id' => Auth::id(),
-            'course_id' => Course::where('title', '¿Cómo pasar la visita de la Secretaría de Salud?')->first()->id,
-            'status' => 'in_progress', // e.g. => , 'completed' => , 'in_progress'
-            'progress' => 0, // Percentage of course completed
+            'course_id' => $course->id,
+        ], [
+            'status' => 'in_progress',
+            'progress' => 0,
             'started_at' => null,
             'completed_at' => null,
             'last_accessed_at' => null,
-            'certificated_at' => null, // Timestamp when the certificate was issued
-            'certificate_url' => null, // URL to the completion certificate if applicable
-            'score_final' => null, // Final score if applicable
+            'certificated_at' => null,
+            'certificate_url' => null,
+            'score_final' => null,
         ]);
-
-
-        return $team;
     }
 }

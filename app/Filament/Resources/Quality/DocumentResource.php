@@ -20,8 +20,9 @@ class DocumentResource extends Resource
 {
     protected static ?string $model = Document::class;
 
-    protected static ?string $navigationGroup = '9. Sistema de Gestión de la Calidad';
-    protected static ?string $navigationLabel = '9.7 - Gestión de Documentos';
+    protected static ?int $navigationSort = 15;
+    protected static ?string $navigationGroup = 'Settings';
+    protected static ?string $navigationLabel = 'Gestión de Documental';
 
     public static function form(Form $form): Form
     {

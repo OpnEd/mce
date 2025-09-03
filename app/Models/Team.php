@@ -28,7 +28,7 @@ class Team extends Model
         'address',
         'email',
         'phonenumber',
-        'data'
+        'data',
     ];
 
     protected $casts = [

@@ -18,7 +18,7 @@ return new class extends Migration
                 ->constrained()
                 ->cascadeOnDelete();
             $table->boolean('apply');
-            $table->string('entry_id', 5)->unique();
+            $table->string('entry_id', 15)->unique();
             $table->enum('criticality', ['critical', 'major', 'minor']); //Critical; Major; Minor
             $table->text('question');
             $table->text('answer')->nullable();

@@ -112,8 +112,8 @@ class AdminPanelProvider extends PanelProvider
                     ->label('POS')
                     ->icon('phosphor-barcode'),
                 NavigationGroup::make()
-                    ->label('9. Sistema de Gestión de la Calidad')
-                    ->icon('phosphor-presentation-chart'),
+                    ->label('Secretaría de Salud')
+                    ->icon('phosphor-bug-beetle'),
                 NavigationGroup::make()
                     ->label('Roles y Permisos')
                     ->icon('phosphor-fingerprint'),

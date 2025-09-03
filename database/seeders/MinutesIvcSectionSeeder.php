@@ -121,6 +121,15 @@ class MinutesIvcSectionSeeder extends Seeder
                 'description' => '', 
                 'status' => 1
             ],
+            //12
+            [
+                'team_id' => 1,
+                'order' => 17,
+                'slug' => 'inyectologia',         
+                'name' => 'Inyectología', 
+                'description' => '', 
+                'status' => 1
+            ],
         ];
         foreach ($sections as $s) {
             \App\Models\MinutesIvcSection::updateOrCreate(

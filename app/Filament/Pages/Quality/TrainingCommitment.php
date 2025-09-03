@@ -11,7 +11,8 @@ class TrainingCommitment extends Page
 {
     protected static string $view = 'filament.pages.quality.training-commitment';
 
-    protected static ?string $navigationGroup = '9. Sistema de Gestión de la Calidad';
+    protected static ?int $navigationSort = 20;
+    protected static ?string $navigationGroup = 'Secretaría de Salud';
     protected static ?string $navigationLabel = '9.12 - Capacitación';
 
     public $tenantSetting;
@@ -30,6 +31,11 @@ class TrainingCommitment extends Page
      *  - params: (opcional) array de parámetros para route()
      */
     public array $headerLinks = [];
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
 
     public function mount()
     {
