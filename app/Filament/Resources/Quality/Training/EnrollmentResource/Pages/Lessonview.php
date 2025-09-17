@@ -13,7 +13,7 @@ class Lessonview extends ViewRecord
     use InteractsWithRecord;
     protected static string $resource = EnrollmentResource::class;
 
-    protected static string $view = 'filament.pages.quality.lessonview';
+    protected static string $view = 'filament.pages.quality.lesson-view';
     
     
     public function mount(int | string $record): void

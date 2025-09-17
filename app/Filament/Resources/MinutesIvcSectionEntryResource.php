@@ -33,8 +33,6 @@ class MinutesIvcSectionEntryResource extends Resource
                     ->required(),
                 Forms\Components\Toggle::make('apply')
                     ->required(),
-                Forms\Components\TextInput::make('entry_id')
-                    ->maxLength(15),
                 Forms\Components\TextInput::make('entry_type')
                     ->required(),
                 Forms\Components\TextInput::make('criticality')

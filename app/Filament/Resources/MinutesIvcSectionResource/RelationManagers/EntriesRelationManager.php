@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\MinutesIvcSectionResource\RelationManagers;
 
 use Filament\Forms;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
@@ -18,24 +19,23 @@ class EntriesRelationManager extends RelationManager
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('entry_id')
-                    ->required()
-                    ->maxLength(255)
-                    ->unique(ignorable: fn ($record) => $record)
-                    ->disabled(),
-                Forms\Components\Select::make('minutes_ivc_section_id')
-                    ->relationship('minutesIvcSection', 'name')
-                    ->required()
-                    ->disabled(),
-                Forms\Components\Toggle::make('apply')
-                    ->required()
-                    ->disabled(),
-                Forms\Components\TextInput::make('entry_type')
-                    ->required()
-                    ->disabled(),
-                Forms\Components\TextInput::make('criticality')
-                    ->required()
-                    ->disabled(),
+                Section::make('Detalles de Entrada')
+                    ->schema([
+                        Forms\Components\Select::make('minutes_ivc_section_id')
+                            ->relationship('minutesIvcSection', 'name')
+                            ->required()
+                            ->disabled(),
+                        Forms\Components\Toggle::make('apply')
+                            ->required()
+                            ->disabled(),
+                        Forms\Components\TextInput::make('entry_type')
+                            ->required()
+                            ->disabled(),
+                        Forms\Components\TextInput::make('criticality')
+                            ->required()
+                            ->disabled()
+                    ])
+                    ->collapsed(),
                 Forms\Components\Textarea::make('question')
                     ->required()
                     ->columnSpanFull()

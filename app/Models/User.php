@@ -181,6 +181,12 @@ class User extends Authenticatable implements FilamentUser, HasTenants, HasAvata
         return $query;
     }
 
+
+    public function spillCleanups(): HasMany
+    {
+        return $this->hasMany(SpillCleanup::class);
+    }
+    
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class);

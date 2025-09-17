@@ -20,6 +20,7 @@ use App\Models\Process;
 use App\Models\DocumentCategory;
 use App\Models\Schedule;
 use App\Models\Event;
+use App\Models\User;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 
@@ -74,21 +75,21 @@ class Populate extends Page implements HasForms
             // agrega más según tus configs
         ];
     }
-    
-    
+
+
     public function form(Form $form): Form
     {
         return $form
             ->schema([
-            Select::make('team_id')
-                ->label('Seleccione Team')
-                ->options(Team::query()->orderBy('name')->pluck('name', 'id')->toArray())
-                ->searchable()
-                ->required(),
-            Select::make('config_key')
-                ->label('Archivo de configuración a aplicar')
-                ->options($this->getConfigOptions())
-                ->required(),
+                Select::make('team_id')
+                    ->label('Seleccione Team')
+                    ->options(Team::query()->orderBy('name')->pluck('name', 'id')->toArray())
+                    ->searchable()
+                    ->required(),
+                Select::make('config_key')
+                    ->label('Archivo de configuración a aplicar')
+                    ->options($this->getConfigOptions())
+                    ->required(),
             ])
             ->statePath('formData');
     }
@@ -134,7 +135,7 @@ class Populate extends Page implements HasForms
                 ->success()
                 ->body("Se aplicó correctamente '{$this->getConfigOptions()[$configKey]}' al team '{$team->name}'.")
                 ->send();
-                
+
             $schedule = Schedule::create([
                 'team_id' => $team->id,
                 'user_id' => Auth::id(),
@@ -176,6 +177,8 @@ class Populate extends Page implements HasForms
      */
     protected function handlePopulate(Team $team, string $configKey): void
     {
+        $consultant = $this->getConsultant();
+
         switch ($configKey) {
             case 'management-indicators':
                 $this->populateManagementIndicators($team);
@@ -207,7 +210,7 @@ class Populate extends Page implements HasForms
                 break;
 
             case 'document_templates.default_docs':
-                $this->populateDocumentTemplates($team);
+                $this->populateDocumentTemplates($team, $consultant);
                 break;
 
             case 'training_schedule':
@@ -217,6 +220,12 @@ class Populate extends Page implements HasForms
             default:
                 throw new \InvalidArgumentException("Clave de configuración no reconocida: {$configKey}");
         }
+    }
+
+    private function getConsultant(): ?User
+    {
+        $consultantId = config('app.default_consultant_id', 1);
+        return User::find($consultantId);
     }
 
     /**
@@ -282,7 +291,7 @@ class Populate extends Page implements HasForms
         // El configKey debe corresponder a la clave en config y devolver un array de entradas
         $entries = config($configKey, []);
         if (! is_array($entries) || empty($entries)) return;
-        
+
         // Mapeo de prefijos de entry_id a nombre de sección
         $sectionPrefixes = [
             '0.'  => 'Cédula del establecimiento',
@@ -303,7 +312,7 @@ class Populate extends Page implements HasForms
             '16.' => ' Proceso de Manejo de Medicamentos Cadena de Frío',
             'I'   => 'Inyectología',
         ];
-        
+
         foreach ($entries as $e) {
             $entryId = $e['entry_id'] ?? '';
             $sectionName = null;
@@ -318,8 +327,8 @@ class Populate extends Page implements HasForms
             $sectionId = null;
             if ($sectionName) {
                 $section = MinutesIvcSection::where('team_id', $team->id)
-                ->where('name', $sectionName)
-                ->first();
+                    ->where('name', $sectionName)
+                    ->first();
                 $sectionId = $section?->id;
             } elseif (!empty($e['minutes_ivc_section_id'])) {
                 $sectionId = $e['minutes_ivc_section_id'];
@@ -349,7 +358,7 @@ class Populate extends Page implements HasForms
         }
     }
 
-    protected function populateDocumentTemplates(Team $team): void
+    protected function populateDocumentTemplates(Team $team, ?User $consultant): void
     {
         $templates = config('document_templates.default_docs', []);
         if (! is_array($templates)) return;
@@ -363,31 +372,39 @@ class Populate extends Page implements HasForms
                 continue;
             }
 
-            Document::updateOrCreate(
+            // Buscamos el documento o creamos una nueva instancia en memoria
+            $document = Document::firstOrNew(
                 [
                     'team_id' => $team->id,
                     'slug' => $tpl['slug'],
-                ],
-                [
-                    'title' => $tpl['title'] ?? null,
-                    'sequence' => $tpl['sequence'] ?? 0,
-                    'process_id' => $processId,
-                    'document_category_id' => $categoryId,
-                    'objective' => $tpl['objective'] ?? null,
-                    'scope' => $tpl['scope'] ?? null,
-                    'references' => $tpl['references'] ?? [],
-                    'terms' => $tpl['terms'] ?? [],
-                    'responsibilities' => $tpl['responsibilities'] ?? [],
-                    'procedure' => $tpl['procedure'] ?? [],
-                    'records' => $tpl['records'] ?? [],
-                    'annexes' => $tpl['annexes'] ?? [],
-                    'data' => $tpl['data'] ?? [],
-                    'prepared_by' => $tpl['prepared_by'] ?? null,
-                    'reviewed_by' => $tpl['reviewed_by'] ?? null,
-                    'approved_by' => $tpl['approved_by'] ?? null,
-                    'updated_at' => now(),
                 ]
             );
+
+            // Si el documento ya existe y ha sido actualizado al menos una vez, continuamos.
+            if ($document->exists && $document->updated_at->gt($document->created_at)) {
+                continue;
+            }
+
+            // Si es nuevo o nunca ha sido actualizado, lo llenamos con los datos y guardamos.
+            $document->fill([
+                'title' => $tpl['title'] ?? null,
+                'sequence' => $tpl['sequence'] ?? 0,
+                'process_id' => $processId,
+                'document_category_id' => $categoryId,
+                'objective' => $tpl['objective'] ?? null,
+                'scope' => $tpl['scope'] ?? null,
+                'references' => $tpl['references'] ?? [],
+                'terms' => $tpl['terms'] ?? [],
+                'responsibilities' => $tpl['responsibilities'] ?? [],
+                'procedure' => $tpl['procedure'] ?? [],
+                'records' => $tpl['records'] ?? [],
+                'annexes' => $tpl['annexes'] ?? [],
+                'data' => $tpl['data'] ?? [],
+                'prepared_by' => $consultant?->id,
+                'reviewed_by' => is_numeric($tpl['reviewed_by'] ?? null) ? (int)$tpl['reviewed_by'] : null,
+                'approved_by' => is_numeric($tpl['approved_by'] ?? null) ? (int)$tpl['approved_by'] : null,
+                'updated_at' => now(),
+            ])->save();
         }
     }
 

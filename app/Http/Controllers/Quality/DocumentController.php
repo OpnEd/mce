@@ -107,9 +107,9 @@ class DocumentController extends Controller
         $process = Process::where('id', $document->process_id)->first();
         $processType = ProcessType::where('id', $process->process_type_id)->first();
         $documentStrReplace = str_replace(' ', '-', $document->title);
-        $documentCategory = $document->documentType->name;
+        $documentCategory = $document->document_category->name;
         //dd($document->data['validity']);
-        $documentCode = $document->process->code . '-' . $document->documentType->code . '-' . $document->sequence_padded;
+        $documentCode = $document->process->code . '-' . $document->document_category->code . '-' . $document->sequence_padded;
         //$company = Team::first();
         $label = "";
         switch ($documentCategory) {

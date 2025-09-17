@@ -5,10 +5,12 @@ namespace App\Filament\Resources\Quality;
 use App\Filament\Resources\Quality\DocumentResource\Pages;
 use App\Filament\Resources\Quality\DocumentResource\RelationManagers;
 use App\Models\Document;
+use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -48,7 +50,7 @@ class DocumentResource extends Resource
                 Forms\Components\Select::make('document_category_id')
                     ->label(__('Document Category'))
                     ->helperText(str('Selecciona la **Categoría de Documento** a la que pertenece el documento. Ejm.: *Procedimiento*')->inlineMarkdown()->toHtmlString())
-                    ->relationship('documentType', 'name')
+                    ->relationship('document_category', 'name')
                     ->required(),
                 Forms\Components\TextInput::make('slug')
                     ->label(__('Slug'))
@@ -142,7 +144,7 @@ class DocumentResource extends Resource
                     ->disabled()
                     ->helperText(str('**Usuario** que aprobó el documento.')->inlineMarkdown()->toHtmlString())
                     ->columnSpanFull(),
-                
+
             ]);
     }
 
@@ -150,13 +152,36 @@ class DocumentResource extends Resource
     {
         return $table
             ->columns([
-                //
+                Tables\Columns\TextColumn::make('title')->label(__('Title'))->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('process.name')->label(__('Process'))->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('document_category.name')->label(__('Document Category'))->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label(__('Created At'))
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('updated_at')
+                    ->label(__('Updated At'))
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('deleted_at')
+                    ->label(__('Deleted At'))
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\Action::make('Pdf')
+                        ->icon('phosphor-eye')
+                        ->url(fn(Document $record) => route('document.details', ['tenant' => Filament::getTenant()->id, 'document' =>$record]))
+                        ->openUrlInNewTab(),
+                ])
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

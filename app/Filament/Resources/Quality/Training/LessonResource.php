@@ -22,8 +22,12 @@ class LessonResource extends Resource
 
     protected static bool $isScopedToTenant = false;
 
-    protected static ?string $navigationGroup = 'Universidad';
-    protected static ?string $navigationLabel = 'Lecciones';
+    //protected static ?string $navigationGroup = 'Universidad';
+    //protected static ?string $navigationLabel = 'Lecciones';
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
 
     public static function form(Form $form): Form
     {

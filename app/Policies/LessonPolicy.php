@@ -31,7 +31,8 @@ class LessonPolicy
      */
     public function create(User $user): bool
     {
-        return CanCreateHelper::canCreate($user, 'create-lesson');
+        return true;
+        //return CanCreateHelper::canCreate($user, 'create-lesson');
     }
 
     /**
@@ -39,7 +40,8 @@ class LessonPolicy
      */
     public function update(User $user, Lesson $model): bool
     {
-        return CanUpdateHelper::canUpdate($user, $model, 'edit-lesson');
+        return true;
+        //return CanUpdateHelper::canUpdate($user, $model, 'edit-lesson');
     }
 
     /**

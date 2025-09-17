@@ -6,6 +6,7 @@ use App\Filament\Resources\MinutesIvcSectionResource\Pages;
 use App\Filament\Resources\MinutesIvcSectionResource\RelationManagers;
 use App\Models\MinutesIvcSection;
 use Filament\Forms;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -23,29 +24,33 @@ class MinutesIvcSectionResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')
-                    ->required()
-                    ->maxLength(255)
-                    ->disabled(),
-                Forms\Components\Textarea::make('description')
-                    ->columnSpanFull()
-                    ->disabled(),
-                Forms\Components\TextInput::make('slug')
-                    ->required()
-                    ->maxLength(255)
-                    ->disabled(),
-                Forms\Components\TextInput::make('route')
-                    ->maxLength(255)
-                    ->disabled(),
-                Forms\Components\TextInput::make('order')
-                    ->required()
-                    ->numeric()
-                    ->disabled(),
-                Forms\Components\TextInput::make('status')
-                    ->required()
-                    ->numeric()
-                    ->default(1)
-                    ->disabled(),
+                Section::make('Detalles de Sección')
+                    ->schema([
+                        Forms\Components\TextInput::make('name')
+                            ->required()
+                            ->maxLength(255)
+                            ->disabled(),
+                        Forms\Components\Textarea::make('description')
+                            ->columnSpanFull()
+                            ->disabled(),
+                        Forms\Components\TextInput::make('slug')
+                            ->required()
+                            ->maxLength(255)
+                            ->disabled(),
+                        Forms\Components\TextInput::make('route')
+                            ->maxLength(255)
+                            ->disabled(),
+                        Forms\Components\TextInput::make('order')
+                            ->required()
+                            ->numeric()
+                            ->disabled(),
+                        Forms\Components\TextInput::make('status')
+                            ->required()
+                            ->numeric()
+                            ->default(1)
+                            ->disabled(),  // ...
+                    ])
+                    ->collapsed()
             ]);
     }
 

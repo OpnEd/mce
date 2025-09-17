@@ -175,6 +175,11 @@ class Team extends Model
     {
         return $this->hasMany(TenantSetting::class);
     }
+
+    public function spillCleanups(): HasMany
+    {
+        return $this->hasMany(SpillCleanup::class);
+    }
     /**
      * Recupera el valor de un setting dado su ID.
      */

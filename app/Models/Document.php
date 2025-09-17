@@ -94,7 +94,7 @@ class Document extends Model
         return $this->belongsTo(Process::class);
     }
 
-    public function documentType(): BelongsTo
+    public function document_category(): BelongsTo
     {
         return $this->belongsTo(DocumentCategory::class, 'document_category_id');
     }

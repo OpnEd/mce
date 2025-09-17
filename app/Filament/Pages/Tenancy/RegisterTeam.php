@@ -195,45 +195,43 @@ class RegisterTeam extends RegisterTenant
             );
         }
 
-        // Mapeo: variable => archivo de entradas
+        // Mapeo: nombre de sección => archivo de configuración de entradas
         $sectionConfigMap = [
-            'Recurso Humano'                    => 'minutes-ivc-second-section-entries',
-            'Infraestructura Física'            => 'minutes-ivc-third-section-entries',
-            'Saneamiento de edificaciones'      => 'minutes-ivc-fourth-section-entries',
-            'Áreas'                             => 'minutes-ivc-fifth-section-entries',
+            'Cédula del establecimiento'        => 'minutes-ivc-first-section-entries',
+            'Recurso Humano' => 'minutes-ivc-second-section-entries',
+            'Infraestructura Física' => 'minutes-ivc-third-section-entries',
+            'Saneamiento de edificaciones' => 'minutes-ivc-fourth-section-entries',
+            'Áreas' => 'minutes-ivc-fifth-section-entries',
             'Clasificación del Establecimiento' => 'minutes-ivc-sixth-section-entries',
-            'Servicios Ofrecidos'               => 'minutes-ivc-seventh-section-entries',
-            'Inyectología'                      => 'minutes-ivc-inyectologia-section-entries',
-            'Otros aspectos'                    => 'minutes-ivc-eighth-section-entries',
-            'Sistema de gestión de calidad'     => 'minutes-ivc-nine-section-entries',
-            ' Proceso de Selección'             => 'minutes-ivc-tenth-section-entries',
-            ' Proceso de Adquisición'           => 'minutes-ivc-eleventh-section-entries',
-            ' Proceso de Recepción'             => 'minutes-ivc-twelveth-section-entries',
-            ' Proceso de Almacenamiento'        => 'minutes-ivc-thirteenth-section-entries',
-            ' Proceso de Dispensación'          => 'minutes-ivc-fourteenth-section-entries',
-            ' Proceso de Devoluciones'          => 'minutes-ivc-fifteenth-section-entries',
+            'Servicios Ofrecidos' => 'minutes-ivc-seventh-section-entries',
+            'Otros aspectos' => 'minutes-ivc-eighth-section-entries',
+            'Sistema de gestión de calidad' => 'minutes-ivc-nine-section-entries',
+            ' Proceso de Selección' => 'minutes-ivc-tenth-section-entries',
+            ' Proceso de Adquisición' => 'minutes-ivc-eleventh-section-entries',
+            ' Proceso de Recepción' => 'minutes-ivc-twelveth-section-entries',
+            ' Proceso de Almacenamiento' => 'minutes-ivc-thirteenth-section-entries',
+            ' Proceso de Dispensación' => 'minutes-ivc-fourteenth-section-entries',
+            ' Proceso de Devoluciones' => 'minutes-ivc-fifteenth-section-entries',
             ' Proceso de Manejo de Medicamentos Cadena de Frío' => 'minutes-ivc-sixteenth-section-entries',
+            'Inyectología' => 'minutes-ivc-inyectologia-section-entries',
         ];
+
+        // Obtener todas las secciones del team en una sola consulta para eficiencia
+        $teamSections = MinutesIvcSection::where('team_id', $team->id)->get()->keyBy('name');
 
         // Poblar entradas para cada sección
         foreach ($sectionConfigMap as $sectionName => $configKey) {
-            $section = MinutesIvcSection::where('team_id', $team->id)
-                ->where('name', $sectionName)
-                ->first();
-
-            if (! $section) {
+            $section = $teamSections->get($sectionName);
+            if (!$section) {
                 Log::warning("Sección IVC no encontrada: {$sectionName} (team {$team->id})");
                 continue;
             }
 
             $entries = config($configKey, []);
-            if (! is_array($entries)) continue;
-
             foreach ($entries as $e) {
                 MinutesIvcSectionEntry::updateOrCreate(
                     [
                         'minutes_ivc_section_id' => $section->id,
-                        'entry_id' => $e['entry_id'] ?? null,
                         'question' => $e['question'] ?? null,
                     ],
                     [
