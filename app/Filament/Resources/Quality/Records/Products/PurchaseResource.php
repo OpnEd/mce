@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Filament\Resources;
+namespace App\Filament\Resources\Quality\Records\Products;
 
 use App\Filament\Clusters\POS;
-use App\Filament\Resources\PurchaseResource\Pages;
+use App\Filament\Resources\Quality\Records\Products\PurchaseResource\Pages;
 use App\Filament\Resources\PurchaseResource\RelationManagers;
 use App\Models\Purchase;
 use Filament\Actions\ActionGroup;
@@ -26,7 +26,11 @@ class PurchaseResource extends Resource
 {
     protected static ?string $model = Purchase::class;
 
-    protected static ?string $navigationGroup = 'POS';
+    protected static ?string $navigationGroup = 'Registros Diarios';
+    protected static ?string $navigationLabel = 'Productos Faltantes';
+    //protected static ?string $recordTitleAttribute = 'temp';
+    //protected ?string $heading = 'Órdenes de compra e Indicadores de Selección y Adquisición';
+    protected static ?string $slug = 'productos-faltates';
 
     public static function getNavigationBadge(): ?string
     {
@@ -48,7 +52,7 @@ class PurchaseResource extends Resource
     {
         return $form
             ->schema([
-                Section::make('Order details')
+                Section::make(__('Order details'))
                     ->schema([
                         Forms\Components\Select::make('status')
                             ->options([
@@ -64,13 +68,12 @@ class PurchaseResource extends Resource
                             ->disabled()
                             ->dehydrated(false) // para que no se guarde de nuevo en update
                             ->formatStateUsing(fn($state) => number_format($state, 0, ',', '.')),
-                    ])
-                    ->columns(2)
-                    ->collapsed(),
-                Section::make('Order meta-data')
-                    ->schema([
-                        Forms\Components\Textarea::make('observations'),
+                        Forms\Components\Textarea::make('observations')
+                            ->rows(3)
+                            ->columnSpanFull()
+                            ->maxLength(65535),
                         Forms\Components\KeyValue::make('data')
+                            ->columnSpanFull()
                     ])
                     ->columns(2)
                     ->collapsed(),

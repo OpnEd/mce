@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Filament\Resources\PurchaseResource\Pages;
+namespace App\Filament\Resources\Quality\Records\Products\PurchaseResource\Pages;
 
 use App\Models\Purchase;
-use App\Filament\Resources\PurchaseResource;
+use App\Filament\Resources\Quality\Records\Products\PurchaseResource;
 use Filament\Resources\Components\Tab;
 use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\SaleResource;
@@ -25,35 +25,41 @@ use Filament\Forms\Get;
 use Filament\Forms\Set;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Gate;
+use App\Filament\Resources\Quality\Records\Products\PurchaseResource\Widgets\MissingProductAquisitionProgressChart;
+use App\Filament\Resources\Quality\Records\Products\PurchaseResource\Widgets\MissingProductAquisitionChart;
+use App\Filament\Resources\Quality\Records\Products\PurchaseResource\Widgets\MissingProductSelectionChart;
 
 class ListPurchases extends ListRecords
 {
     protected static string $resource = PurchaseResource::class;
 
+    public function getHeaderWidgetsColumns(): int | array
+    {
+        return 3;
+    }
+
+    public function getHeading(): string
+    {
+        return __('Registro diario de Faltantes, e Indicadores de Selección y Adquisición');
+    }
+
+    public function getSubheading(): ?string
+    {
+        return __('Registra: 1) los productos de alta rotación que se están acabando (fatantes ordinarios), 2) los productos que ya están en cero (faltantes efectivos) y 3) los productos de baja rotación (alto costo y control especial, por ejemplo) que han sido solicitados');
+    }
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            MissingProductSelectionChart::class,
+            MissingProductAquisitionChart::class,
+            MissingProductAquisitionProgressChart::class,
+        ];
+    }
+
     protected function getHeaderActions(): array
     {
         return [
-            /* Action::make('createWithDefaults')
-                ->label('Go shopping!')
-                ->icon('phosphor-shopping-bag')
-                ->action(function () {
-                    // 1️⃣ Crear el Purchase con valores por defecto
-                    $purchase = Purchase::create([
-                        'team_id'       => Filament::getTenant()->id,
-                        'supplier_id'   => 1,
-                        'status'        => 'pending',  // ejemplo
-                        'observations'  => null,
-                        'total'         => 0,
-                        'data'          => [],
-                        // …otros campos por defecto…
-                    ]);
-
-                    // 2️⃣ Redirigir al formulario de edición de este Purchase
-                    Redirect::to(
-                        PurchaseResource::getUrl('edit', ['record' => $purchase->id])
-                    );
-                })
-                ->color('primary'), */
             Action::make('create_with_code')
                 ->label('Registro simple')
                 ->icon('phosphor-cursor-click')

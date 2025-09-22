@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Resources\PurchaseResource\Pages;
+namespace App\Filament\Resources\Quality\Records\Products\PurchaseResource\Pages;
 
-use App\Filament\Resources\PurchaseResource;
+use App\Filament\Resources\Quality\Records\Products\PurchaseResource;
 use App\Models\Purchase;
 use Filament\Actions;
 use Filament\Actions\Action;
@@ -56,6 +56,11 @@ class EditPurchase extends EditRecord
                     }
                 }) */
         ];
+    }
+
+    public function getHeading(): string
+    {
+        return __('Edición de órdenes de compra');
     }
 
     public function getContentTabIcon(): ?string

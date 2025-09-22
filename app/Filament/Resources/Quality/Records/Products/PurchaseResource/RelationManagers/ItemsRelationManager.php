@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\PurchaseResource\RelationManagers;
 
-use App\Filament\Resources\PurchaseResource;
+use App\Filament\Resources\Quality\Records\Products\PurchaseResource;
 use App\Helpers\PermissionVerificationHelper;
 use App\Models\CentralProductPrice;
 use App\Models\Product;
@@ -29,7 +29,7 @@ class ItemsRelationManager extends RelationManager
 {
     protected static string $relationship = 'items';
     protected static ?string $title = 'Products';
-    protected static ?string $model = Purchase::class;
+    //protected static ?string $model = Purchase::class;
 
 
     public function form(Form $form): Form
@@ -37,6 +37,7 @@ class ItemsRelationManager extends RelationManager
         return $form
             ->schema([
                 Forms\Components\Select::make('product_id')
+                    ->label(__('Product'))
                     ->searchable()
                     ->relationship('product', 'name')
                     ->getSearchResultsUsing(       // callback personalizado
@@ -55,7 +56,9 @@ class ItemsRelationManager extends RelationManager
                     })
                     ->live()
                     ->required(),
+
                 Forms\Components\TextInput::make('quantity')
+                    ->label(__('Quantity'))
                     ->required()
                     ->numeric()
                     ->default(1)
@@ -66,10 +69,36 @@ class ItemsRelationManager extends RelationManager
                         $set('total', $state * $price);
                     })
                     ->live(),
+
+                Forms\Components\Select::make('type')
+                    ->label('Tipo de Faltante')
+                    ->helperText(str('**Faltante Ordinario**: Producto a solicitar que aún tiene existencias. **Faltante Efectivo**: Producto de alta rotación solicitado por los usuarios y que no pudimos dispensar por existencias cero (0). **Faltante Baja Rotación**: Producto de baja rotación solicitado por los usuarios y que no pudimos dispensar por existencias cero (0)')->inlineMarkdown()->toHtmlString())
+                    ->options([
+                        'faltante_ordinario' => 'Faltante Ordinario',
+                        'faltante_efectivo' => 'Faltante Efectivo',
+                        'faltante_baja_rotacion' => 'Faltante Baja Rotación',
+                    ]) // ->default('faltante_ordinario')
+                    ->default('faltante_ordinario')
+                    ->required()
+                    ->columnSpanFull(),
+
                 Forms\Components\Hidden::make('price')
                     ->default(0),
                 Forms\Components\Hidden::make('total')
                     ->default(0),
+
+                // --- Campo para forzar team_id igual al del Purchase dueño ---
+                Forms\Components\Hidden::make('team_id')
+                    ->default(function () {
+                        // Si hay owner record, tomar su team_id; si no, tomar team del usuario
+                        $owner = $this->getOwnerRecord();
+                        if ($owner && isset($owner->team_id)) {
+                            return $owner->team_id;
+                        }
+                        return Auth::user()?->team_id ?? null;
+                    })
+                    ->dehydrated(true)
+                    ->required(),
             ]);
     }
 
@@ -78,9 +107,21 @@ class ItemsRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('product_id')
             ->columns([
-                Tables\Columns\TextColumn::make('product.name'),
-                Tables\Columns\TextColumn::make('quantity'),
-                Tables\Columns\TextColumn::make('price'),
+                Tables\Columns\TextColumn::make('product.name')
+                    ->label(__('Product'))
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('quantity')
+                    ->label(__('Quantity'))
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('type')
+                    ->label('Tipo de Faltante')
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('price')
+                    ->label(__('Price'))
+                    ->money('cop', true)
+                    ->sortable(),
             ])
             ->filters([
                 //
@@ -104,6 +145,16 @@ class ItemsRelationManager extends RelationManager
                             // Cancelar la acción correctamente
                             $action->cancel();
                         }
+                    })
+                    // FORZAR team_id desde el Purchase dueño antes de crear
+                    ->mutateFormDataUsing(function (array $data) {
+                        $owner = $this->getOwnerRecord();
+                        if ($owner && isset($owner->team_id)) {
+                            $data['team_id'] = $owner->team_id;
+                        } else {
+                            $data['team_id'] = Auth::user()?->team_id ?? null;
+                        }
+                        return $data;
                     })
                     ->after(function ($record) {
                         DB::transaction(function ($livewire) use ($record) {

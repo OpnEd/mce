@@ -2,7 +2,11 @@
 
 namespace App\Models;
 
+use App\Models\Quality\Records\Cleaning\StablishmentArea;
+use App\Models\Quality\Records\Cleaning\CleaningImplement;
+use App\Models\Quality\Records\Products\MissingProduct;
 use App\Models\Quality\Training\Enrollment;
+use App\Models\Quality\Training\Question;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -65,6 +69,11 @@ class Team extends Model
         return $this->hasMany(Customer::class);
     }
 
+    public function cleaning_implements(): HasMany
+    {
+        return $this->hasMany(CleaningImplement::class);
+    }
+
     public function dispatches(): HasMany
     {
         return $this->hasMany(Dispatch::class);
@@ -121,6 +130,11 @@ class Team extends Model
         return $this->hasOne(MinutesIvcSection::class);
     }
 
+    public function missing_products(): HasMany
+    {
+        return $this->hasMany(MissingProduct::class);
+    }
+
     public function patients(): BelongsToMany
     {
         return $this->belongsToMany(Patient::class);
@@ -174,6 +188,11 @@ class Team extends Model
     public function settings(): HasMany
     {
         return $this->hasMany(TenantSetting::class);
+    }
+
+    public function stablishment_areas(): HasMany
+    {
+        return $this->hasMany(StablishmentArea::class);
     }
 
     public function spillCleanups(): HasMany

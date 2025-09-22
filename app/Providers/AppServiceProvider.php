@@ -24,6 +24,7 @@ use Illuminate\Notifications\DatabaseNotification;
 use App\Models\TeamNotification;
 use App\Observers\AnesthesiaSheetObserver;
 use App\Observers\DocumentObserver;
+use App\Services\Quality\Records\Products\MissingProductService;
 use App\Services\IndicatorService;
 
 class AppServiceProvider extends ServiceProvider
@@ -58,6 +59,10 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->singleton(IndicatorService::class, function ($app) {
             return new IndicatorService();
+        });
+
+        $this->app->singleton(MissingProductService::class, function ($app) {
+            return new MissingProductService();
         });
 
         $this->app->bind(DatabaseNotification::class, TeamNotification::class);

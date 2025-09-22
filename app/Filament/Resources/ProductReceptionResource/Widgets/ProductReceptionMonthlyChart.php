@@ -39,7 +39,7 @@ class ProductReceptionMonthlyChart extends ApexChartWidget
     {
         $recepcion = app(IndicatorService::class);
         $teamId = Filament::getTenant()->id;
-        $indicator = 'Recepción Técnica';
+        $indicator = 'Recepción';
         $indicador = $recepcion->getMonthlyCompliance($teamId, $indicator);
 
         $metaValue = $indicador['goal'];
