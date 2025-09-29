@@ -37,7 +37,7 @@ class ItemsRelationManager extends RelationManager
         return $form
             ->schema([
                 Forms\Components\Select::make('product_id')
-                    ->label(__('Product'))
+                    ->label(__('fields.product'))
                     ->searchable()
                     ->relationship('product', 'name')
                     ->getSearchResultsUsing(       // callback personalizado
@@ -128,7 +128,7 @@ class ItemsRelationManager extends RelationManager
             ])
             ->headerActions([
                 CreateAction::make()
-                    ->label('Add product')
+                    ->label('Agregar producto')
                     ->icon('phosphor-plus')
                     ->visible(fn(): bool => Gate::allows('confirm', $this->ownerRecord))
                     ->before(function (array $data, $action) {
@@ -162,7 +162,7 @@ class ItemsRelationManager extends RelationManager
                         });
                     }),
                 Tables\Actions\Action::make('confirmPurchase')
-                    ->label('Confirm Purchase')
+                    ->label('Confirmar Compra')
                     ->color('success')
                     ->icon('heroicon-o-check')
                     ->visible(

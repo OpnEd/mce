@@ -107,7 +107,7 @@ class ListPurchases extends ListRecords
                 ->modalHeading(__('New Purchase'))
                 ->form([
                     Forms\Components\Select::make('product_id')
-                        ->label('Producto')
+                        ->label(__('fields.product'))
                         ->searchable()                 // habilita la búsqueda
                         ->preload(false)
                         ->getSearchResultsUsing(
@@ -132,6 +132,7 @@ class ListPurchases extends ListRecords
                         ->required(),
 
                     Forms\Components\Select::make('supplier_id')
+                        ->label(__('fields.supplier'))
                         ->options(
                             Supplier::all()->pluck('name', 'id')
                         )
@@ -139,6 +140,7 @@ class ListPurchases extends ListRecords
                         ->required(),
 
                     Forms\Components\TextInput::make('quantity')
+                        ->label(__('fields.quantity'))
                         ->required()
                         ->numeric()
                         ->default(1)
@@ -209,10 +211,13 @@ class ListPurchases extends ListRecords
     public function getTabs(): array
     {
         return [
-            'all' => Tab::make(),
+            'all' => Tab::make()
+                ->label(__('fields.all')),
             'confirmed' => Tab::make()
+                ->label(__('fields.confirmed'))
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('status', 'confirmed')),
             'delivered' => Tab::make()
+                ->label(__('fields.delivered'))
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('status', 'delivered')),
         ];
     }

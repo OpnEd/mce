@@ -7,6 +7,7 @@ use App\Filament\Resources\UserResource\Pages;
 use App\Filament\Resources\UserResource\RelationManagers;
 use App\Models\User;
 use Filament\Forms;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -25,27 +26,32 @@ class UserResource extends Resource
     //protected static ?string $navigationIcon = 'phosphor-user';
 
     protected static ?string $navigationGroup = 'Settings';
+    protected static ?string $pluralModelLabel = 'Usuarios';
+    protected static ?string $modelLabel = 'Usuario';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')
+                TextInput::make('name')
+                    ->label(__('fields.name'))
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('email')
+                    ->label(__('fields.email'))
                     ->email()
                     ->required()
                     ->unique(ignoreRecord: true)
                     ->maxLength(255),
                 Forms\Components\TextInput::make('password')
+                    ->label(__('fields.password'))
                     ->password()
                     ->dehydrateStateUsing(fn(string $state): string => Hash::make($state))
                     ->dehydrated(fn(?string $state): bool => filled($state))
                     ->required(fn(string $operation): bool => $operation === 'create')
                     ->maxLength(255),
                 Forms\Components\Select::make('card_type')
-                    ->label('Card Type')
+                    ->label(__('fields.card_type'))
                     ->options([
                         'Cédula de Ciudadanía' => 'C.C.',
                         'Cédula de Extranjería' => 'C.E.',
@@ -53,23 +59,22 @@ class UserResource extends Resource
                         'Permiso Especial de Permanencia' => 'P.E.P.',
                     ]),
                 Forms\Components\TextInput::make('card_number')
-                    ->label('Card Number')
+                    ->label(__('fields.card_number'))
                     ->maxLength(50),
                 Forms\Components\Toggle::make('is_suspended')
-                    ->label('Is Suspended?')
+                    ->label(__('fields.is_suspended'))
                     ->inline(false)
                     ->default(false),
                 Forms\Components\KeyValue::make('data')
-                    ->label('Additional Data')
+                    ->label(__('fields.extra_data'))
                     ->keyPlaceholder('Address:')
                     ->valuePlaceholder('Calle 123 #45-67')
                     ->columnSpanFull(),
                 SignaturePad::make('signature')
-                    ->label('Signature')
-                    ->columnSpanFull()
-                    ->required(),
+                    ->label(__('fields.signature'))
+                    ->columnSpanFull(),
                 Forms\Components\FileUpload::make('profile_photo_path')
-                    ->label('Profile Photo')
+                    ->label(__('fields.profile_photo'))
                     ->image()
                     ->disk('public')
                     ->directory('profile-photos')

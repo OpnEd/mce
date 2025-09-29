@@ -1,6 +1,6 @@
 <x-filament-panels::page>
 
-    <x-filament::section collapsible collapsed icon="phosphor-hand-coins" icon-color="info" icon-size="lg">
+    <x-filament::section collapsible collapsed icon="phosphor-hand-coins" icon-color="success" icon-size="lg">
 
         <x-slot name="heading">
             Recepción técnica
@@ -39,7 +39,7 @@
 
     </x-filament::section>
 
-    <x-filament::section collapsible collapsed icon="phosphor-hand-coins" icon-color="info" icon-size="lg">
+    <x-filament::section collapsible collapsed icon="phosphor-hand-pointing" icon-color="success" icon-size="lg">
 
         <x-slot name="heading">
             Selección de productos
@@ -75,7 +75,7 @@
 
     </x-filament::section>
 
-    <x-filament::section collapsible collapsed icon="phosphor-hand-coins" icon-color="info" icon-size="lg">
+    <x-filament::section collapsible collapsed icon="phosphor-shopping-cart" icon-color="success" icon-size="lg">
 
         <x-slot name="heading">
             Adquisición de productos

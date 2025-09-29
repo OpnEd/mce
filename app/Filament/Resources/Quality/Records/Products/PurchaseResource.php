@@ -29,8 +29,10 @@ class PurchaseResource extends Resource
     protected static ?string $navigationGroup = 'Registros Diarios';
     protected static ?string $navigationLabel = 'Productos Faltantes';
     //protected static ?string $recordTitleAttribute = 'temp';
-    //protected ?string $heading = 'Órdenes de compra e Indicadores de Selección y Adquisición';
-    protected static ?string $slug = 'productos-faltates';
+    protected static ?string $heading = 'Órdenes de compra e Indicadores de Selección y Adquisición';
+    protected static ?string $slug = 'ordenes-de-compra'; // Cambiado de 'productos-faltantes'
+    protected static ?string $pluralModelLabel = 'Órdenes de Compra';
+    protected static ?string $modelLabel = 'Orden de Compra';
 
     public static function getNavigationBadge(): ?string
     {

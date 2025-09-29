@@ -18,56 +18,65 @@ class ProductReceptionResource extends Resource
 {
     protected static ?string $model = ProductReception::class;
 
-    protected static ?string $navigationGroup = 'POS';
+    protected static ?string $navigationGroup = 'POS'; // Agrupación en el menú de navegación
+    protected static ?string $pluralModelLabel = 'Recepciones';
+    protected static ?string $modelLabel = 'Recepción Técnica';
+    protected static ?string $slug = 'recepciones-tecnicas';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Reception Details')
+                Forms\Components\Section::make(__('fields.reception_details'))
                     ->schema([
                         Forms\Components\Select::make('invoice_id')
-                            ->label('Invoice')
+                            ->label(__('fields.invoice'))
                             ->relationship('invoice', 'code')
                             ->createOptionForm([   // form para crear nueva Invoice “in-line”
                                 Forms\Components\TextInput::make('code')
-                                    ->label('Código')
+                                    ->label(__('fields.code'))
                                     ->required()
                                     ->unique(ignoreRecord: true),
 
                                 Forms\Components\TextInput::make('amount')
-                                    ->label('Monto')
+                                    ->label(__('fields.amount'))
                                     ->numeric()
                                     ->required(),
 
                                 Forms\Components\Hidden::make('is_our')
+                                    ->label(__('fields.is_our'))
                                     ->default(false),
 
                                 Forms\Components\DatePicker::make('issued_date')
-                                    ->label('Fecha de emisión')
+                                    ->label(__('fields.issued_date'))
                                     ->required(),
 
                                 // Si necesitas vincular Supplier o Sale, puedes usar:
                                 Forms\Components\Select::make('supplier_id')
-                                    ->label('Proveedor')
+                                    ->label(__('fields.supplier'))
                                     ->relationship('supplier', 'name')
                                     ->searchable()
                                     ->nullable(),
 
-                                // Datos adicionales:
+                                // Additional data:
                                 Forms\Components\KeyValue::make('data')
-                                    ->label('Datos extra'),
+                                    ->label(__('fields.extra_data')),
                             ])
                             ->required(),
                         Forms\Components\Select::make('status')
+                            ->label(__('fields.status'))
                             ->options([
-                                'in_progress' => 'In Progress',
-                                'done' => 'Done',
+                                'in_progress' => __('fields.in_progress'),
+                                'done' => __('fields.done'),
                             ])
                             ->required(),
-                        Forms\Components\DateTimePicker::make('reception_date'),
-                        Forms\Components\Textarea::make('observations'),
+                        Forms\Components\DateTimePicker::make('reception_date')
+                            ->label(__('fields.reception_date')),
+                        Forms\Components\Textarea::make('observations')
+                            ->label(__('fields.observations'))
+                            ->columnSpanFull(),
                         Forms\Components\KeyValue::make('data')
+                            ->label(__('fields.extra_data'))
                             ->columnSpanFull(),
                     ])
                     ->columns(2)
@@ -79,20 +88,23 @@ class ProductReceptionResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('team.name')
-                    ->numeric()
-                    ->sortable(),
                 Tables\Columns\TextColumn::make('user.name')
-                    ->numeric()
+                    ->label(__('fields.created_by'))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('purchase.id')
+                    ->label(__('fields.purchase_id'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('invoice.id')
-                    ->numeric()
+                Tables\Columns\TextColumn::make('supplier.name')
+                    ->label(__('fields.supplier'))
                     ->sortable(),
-                Tables\Columns\TextColumn::make('status'),
+                Tables\Columns\TextColumn::make('invoice.code')
+                    ->label(__('fields.invoice_id'))
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('status')
+                    ->label(__('fields.status')),
                 Tables\Columns\TextColumn::make('reception_date')
+                    ->label(__('fields.reception_date'))
                     ->dateTime()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('deleted_at')

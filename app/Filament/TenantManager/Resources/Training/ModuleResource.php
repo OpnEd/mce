@@ -28,7 +28,7 @@ class ModuleResource extends Resource
                 Forms\Components\Textarea::make('description'),
                 Forms\Components\TextInput::make('duration'), // Duration in minute)s
                 Forms\Components\Select::make('course_id')
-                    ->relationship('course', 'name'),
+                    ->relationship('course', 'title'),
                 Forms\Components\TextInput::make('order'),
                 Forms\Components\TextInput::make('image'),
                 Forms\Components\Checkbox::make('active')
@@ -41,6 +41,7 @@ class ModuleResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('title'),
+                Tables\Columns\TextColumn::make('course.title'),
             ])
             ->filters([
                 //

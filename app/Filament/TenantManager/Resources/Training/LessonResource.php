@@ -32,6 +32,7 @@ class LessonResource extends Resource
                 Forms\Components\TextInput::make('order'),
                 Forms\Components\MarkdownEditor::make('content'),
                 Forms\Components\TextInput::make('video_url'),
+                Forms\Components\TextInput::make('iframe'),
                 Forms\Components\Checkbox::make('active'),
             ]);
     }
@@ -40,7 +41,17 @@ class LessonResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('title'),
+                Tables\Columns\TextColumn::make('title')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('module.title')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('module.title')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('order')
+                    ->sortable(),
             ])
             ->filters([
                 //

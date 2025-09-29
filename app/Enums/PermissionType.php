@@ -102,6 +102,14 @@ enum PermissionType: string implements HasLabel
     case RESTORE_INVOICE_ITEMS      = 'restore-invoice-items';
     case FORCE_DELETE_INVOICE_ITEMS = 'force-delete-invoice-items';
 
+        // Management Indicator Team
+    case VIEW_MANAGEMENT_INDICATOR_TEAM         = 'view-management-indicator-team';
+    case CREATE_MANAGEMENT_INDICATOR_TEAM       = 'create-management-indicator-team';
+    case EDIT_MANAGEMENT_INDICATOR_TEAM         = 'edit-management-indicator-team';
+    case DELETE_MANAGEMENT_INDICATOR_TEAM       = 'delete-management-indicator-team';
+    case RESTORE_MANAGEMENT_INDICATOR_TEAM      = 'restore-management-indicator-team';
+    case FORCE_DELETE_MANAGEMENT_INDICATOR_TEAM = 'force-delete-management-indicator-team';
+
         // Manufacturer
     case VIEW_MANUFACTURER         = 'view-manufacturer';
     case CREATE_MANUFACTURER       = 'create-manufacturer';
@@ -409,6 +417,14 @@ enum PermissionType: string implements HasLabel
             self::DELETE_INVOICE_ITEMS       => 'Eliminar ítems de Facturas',
             self::RESTORE_INVOICE_ITEMS      => 'Restaurar ítems de Facturas',
             self::FORCE_DELETE_INVOICE_ITEMS => 'Forzar la eliminación de ítems de Facturas',
+
+            // Management Indicator Team
+            self::VIEW_MANAGEMENT_INDICATOR_TEAM         => 'Ver Indicadores de Gestión del Equipo',
+            self::CREATE_MANAGEMENT_INDICATOR_TEAM       => 'Crear Indicadores de Gestión del Equipo',
+            self::EDIT_MANAGEMENT_INDICATOR_TEAM         => 'Editar Indicadores de Gestión del Equipo',
+            self::DELETE_MANAGEMENT_INDICATOR_TEAM       => 'Eliminar Indicadores de Gestión del Equipo',
+            self::RESTORE_MANAGEMENT_INDICATOR_TEAM      => 'Restaurar Indicadores de Gestión del Equipo',
+            self::FORCE_DELETE_MANAGEMENT_INDICATOR_TEAM => 'Forzar la eliminación de Indicadores de Gestión del Equipo',
 
             // Manufacturer
             self::VIEW_MANUFACTURER         => 'Ver Fabricantes',

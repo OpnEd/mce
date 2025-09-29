@@ -14,7 +14,7 @@ class ViewPurchase extends ViewRecord
     {
         return [
             Actions\EditAction::make()
-                ->label('Add products'),
+                ->label('Agregar productos'),
         ];
     }
 }

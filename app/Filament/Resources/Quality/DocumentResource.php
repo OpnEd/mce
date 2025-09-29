@@ -25,13 +25,15 @@ class DocumentResource extends Resource
     protected static ?int $navigationSort = 15;
     protected static ?string $navigationGroup = 'Settings';
     protected static ?string $navigationLabel = 'Gestión de Documental';
+    protected static ?string $pluralModelLabel = 'Documentos';
+    protected static ?string $modelLabel = 'Documento';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\TextInput::make('title')
-                    ->label(__('Title'))
+                    ->label(__('fields.title'))
                     ->required()
                     ->maxLength(255)
                     ->live(onBlur: true)
@@ -43,12 +45,12 @@ class DocumentResource extends Resource
                         $set('slug', Str::slug($state));
                     }),
                 Forms\Components\Select::make('process_id')
-                    ->label(__('Process'))
+                    ->label(__('fields.process'))
                     ->helperText(str('Selecciona el **Proceso** al que pertenece el documento. Ejm.: *Gestión de Documentos*')->inlineMarkdown()->toHtmlString())
                     ->relationship('process', 'name')
                     ->required(),
                 Forms\Components\Select::make('document_category_id')
-                    ->label(__('Document Category'))
+                    ->label(__('fields.document_category'))
                     ->helperText(str('Selecciona la **Categoría de Documento** a la que pertenece el documento. Ejm.: *Procedimiento*')->inlineMarkdown()->toHtmlString())
                     ->relationship('document_category', 'name')
                     ->required(),
