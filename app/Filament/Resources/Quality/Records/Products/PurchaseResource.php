@@ -4,7 +4,7 @@ namespace App\Filament\Resources\Quality\Records\Products;
 
 use App\Filament\Clusters\POS;
 use App\Filament\Resources\Quality\Records\Products\PurchaseResource\Pages;
-use App\Filament\Resources\PurchaseResource\RelationManagers;
+use App\Filament\Resources\Quality\Records\Products\PurchaseResource\RelationManagers;
 use App\Models\Purchase;
 use Filament\Actions\ActionGroup;
 use Filament\Facades\Filament;

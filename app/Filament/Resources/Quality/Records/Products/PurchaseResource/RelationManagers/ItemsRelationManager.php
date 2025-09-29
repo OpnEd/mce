@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\PurchaseResource\RelationManagers;
+namespace App\Filament\Resources\Quality\Records\Products\PurchaseResource\RelationManagers;
 
 use App\Filament\Resources\Quality\Records\Products\PurchaseResource;
 use App\Helpers\PermissionVerificationHelper;

@@ -4,7 +4,6 @@ namespace App\Services\Quality\Records\Products;
 
 use App\Models\ManagementIndicator;
 use App\Models\PurchaseItem;
-use App\Models\Quality\Records\Products\MissingProduct;
 use Carbon\Carbon;
 use Filament\Facades\Filament;
 
