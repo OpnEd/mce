@@ -24,13 +24,8 @@ class StablishmentArea extends Model
     ];
 
     protected $casts = [
-        'activa' => 'boolean',
+        'active' => 'boolean',
     ];
-
-    public function cleaning_records(): HasMany
-    {
-        return $this->hasMany(CelaningRecord::class, 'area_id');
-    }
 
     public static function getTypes()
     {

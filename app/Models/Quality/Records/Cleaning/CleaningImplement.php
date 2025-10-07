@@ -25,7 +25,7 @@ class CleaningImplement extends Model
 
     protected $casts = [
         'areas_use' => 'array',
-        'activo' => 'boolean',
+        'active' => 'boolean',
     ];
 
     public static function getTypes()

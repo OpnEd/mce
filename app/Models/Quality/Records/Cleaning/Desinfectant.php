@@ -27,7 +27,7 @@ class Desinfectant extends Model
 
     protected $casts = [
         'applicable_areas' => 'array',
-        'activa' => 'boolean',
+        'active' => 'boolean',
     ];
 
     public static function getNiveles()
@@ -41,10 +41,10 @@ class Desinfectant extends Model
 
     public function getNivelLabelAttribute()
     {
-        return self::getNiveles()[$this->nivel] ?? $this->nivel;
+        return self::getNiveles()[$this->level] ?? $this->level;
     }
 
-    public function getApplicableAreasAttribute()
+    public function getApplicableAreasModelsAttribute()
     {
         if (!$this->applicable_areas) {
             return collect();

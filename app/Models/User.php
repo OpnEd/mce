@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\RoleType;
+use App\Models\Quality\Records\Cleaning\CleaningRecord;
 use App\Models\Quality\Training\Enrollment;
 use App\Traits\MultiTenantHasRoles;
 use Filament\Facades\Filament;
@@ -122,6 +123,11 @@ class User extends Authenticatable implements FilamentUser, HasTenants, HasAvata
     public function canAccessTenant(Model $tenant): bool
     {
         return $this->teams()->whereKey($tenant)->exists();
+    }
+
+    public function cleaningRecords(): HasMany
+    {
+        return $this->hasMany(CleaningRecord::class);
     }
 
     public function currentTeam()

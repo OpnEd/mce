@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up()
     {
-       /*  Schema::create('desinfectants', function (Blueprint $table) {
+         Schema::create('desinfectants', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(\App\Models\Team::class)
                   ->constrained()
@@ -23,7 +23,7 @@ return new class extends Migration
             $table->timestamps();
             
             $table->index(['team_id', 'active']);
-        }); */
+        }); 
     }
 
     public function down()

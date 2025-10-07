@@ -93,7 +93,6 @@ class AppServiceProvider extends ServiceProvider
         DispatchItems::observe(DispatchItemsObserver::class);
         Sale::observe(SaleObserver::class);
         SaleItem::observe(SaleItemObserver::class);
-        AnesthesiaSheet::observe(AnesthesiaSheetObserver::class);
         Document::observe(DocumentObserver::class);
     }
 }

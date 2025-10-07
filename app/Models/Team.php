@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
+use App\Models\Quality\ManagementIndicatorTeam;
 use App\Models\Quality\Records\Cleaning\StablishmentArea;
 use App\Models\Quality\Records\Cleaning\CleaningImplement;
+use App\Models\Quality\Records\Cleaning\CleaningRecord;
+use App\Models\Quality\Records\Cleaning\Desinfectant;
 use App\Models\Quality\Records\Products\MissingProduct;
 use App\Models\Quality\Training\Enrollment;
 use App\Models\Quality\Training\Question;
@@ -39,11 +42,6 @@ class Team extends Model
         'data' => 'array'
     ];
 
-    public function anesthesiaSheets(): HasMany
-    {
-        return $this->hasMany(AnesthesiaSheet::class);
-    }
-
     public function batches(): HasMany
     {
         return $this->hasMany(Batch::class);
@@ -69,9 +67,19 @@ class Team extends Model
         return $this->hasMany(Customer::class);
     }
 
-    public function cleaning_implements(): HasMany
+    public function cleaningImplements(): HasMany
     {
         return $this->hasMany(CleaningImplement::class);
+    }
+
+    public function cleaningRecords(): HasMany
+    {
+        return $this->hasMany(CleaningRecord::class);
+    }
+
+    public function desinfectants(): HasMany
+    {
+        return $this->hasMany(Desinfectant::class);
     }
 
     public function dispatches(): HasMany
@@ -170,11 +178,6 @@ class Team extends Model
         return $this->hasMany(Question::class);
     }
 
-    public function recipebooks(): HasMany
-    {
-        return $this->hasMany(Recipebook::class);
-    }
-
     public function roles(): HasMany
     {
         return $this->hasMany(Role::class);
@@ -190,7 +193,7 @@ class Team extends Model
         return $this->hasMany(TenantSetting::class);
     }
 
-    public function stablishment_areas(): HasMany
+    public function stablishmentAreas(): HasMany
     {
         return $this->hasMany(StablishmentArea::class);
     }
