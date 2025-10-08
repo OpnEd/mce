@@ -23,7 +23,7 @@ class DocumentResource extends Resource
     protected static ?string $model = Document::class;
 
     protected static ?int $navigationSort = 15;
-    protected static ?string $navigationGroup = 'Settings';
+    protected static ?string $navigationGroup = 'Configuración de plataforma';
     protected static ?string $navigationLabel = 'Gestión de Documental';
     protected static ?string $pluralModelLabel = 'Documentos';
     protected static ?string $modelLabel = 'Documento';

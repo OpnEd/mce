@@ -25,7 +25,7 @@ class UserResource extends Resource
     protected static ?string $tenantOwnershipRelationshipName = 'teams';
     //protected static ?string $navigationIcon = 'phosphor-user';
 
-    protected static ?string $navigationGroup = 'Settings';
+    protected static ?string $navigationGroup = 'Configuración de plataforma';
     protected static ?string $pluralModelLabel = 'Usuarios';
     protected static ?string $modelLabel = 'Usuario';
 

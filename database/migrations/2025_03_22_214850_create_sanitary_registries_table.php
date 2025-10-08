@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('sanitary_registries', function (Blueprint $table) {
             $table->id();
             $table->string('code');
-            $table->string('cum');
+            $table->string('cum')->nullable();
             $table->timestamps();
         });
     }

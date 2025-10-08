@@ -37,9 +37,11 @@ class EnvironmentalRecordResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('temp')
+                    ->label(__('fields.temperature'))
                     ->required()
                     ->numeric(),
                 Forms\Components\TextInput::make('hum')
+                    ->label(__('fields.humidity'))
                     ->required()
                     ->numeric(),
             ]);
@@ -50,21 +52,25 @@ class EnvironmentalRecordResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('user.name')
-                    ->label(__('User'))
+                    ->label(__('fields.created_by'))
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('temp')
+                    ->label(__('fields.temperature'))
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('hum')
+                    ->label(__('fields.humidity'))
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
+                    ->label(__('fields.created_at'))
+                    ->dateTime('d/m/Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
+                    ->label(__('fields.updated_at'))
+                    ->dateTime('d/m/Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])

@@ -21,31 +21,39 @@ class CustomerResource extends Resource
     protected static ?string $model = Customer::class;
 
     protected static ?string $navigationGroup = 'POS';
-
-    protected static ?string $navigationIcon = 'phosphor-identification-badge';
+    protected static ?string $pluralModelLabel = 'Clientes';
+    protected static ?string $modelLabel = 'Cliente';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
+                    ->label(__('fields.name'))
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('identification')
+                    ->label(__('fields.identification'))
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('address')
+                    ->label(__('fields.address'))
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('email')
+                    ->label(__('fields.email'))
                     ->email()
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('phonenumber')
+                    ->label(__('fields.phonenumber'))
                     ->tel()
                     ->required()
                     ->maxLength(255),
-                Forms\Components\Textarea::make('data')
+                Forms\Components\KeyValue::make('data')
+                    ->label(__('fields.extra_data'))
+                    ->keyPlaceholder(__('fields.birthday'))
+                    ->valuePlaceholder('10/06/1990')
                     ->columnSpanFull(),
             ]);
     }
@@ -55,25 +63,33 @@ class CustomerResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
+                    ->label(__('fields.name'))
                     ->searchable(),
                 Tables\Columns\TextColumn::make('identification')
+                    ->label(__('fields.identification'))
                     ->searchable(),
                 Tables\Columns\TextColumn::make('address')
+                    ->label(__('fields.address'))
                     ->searchable(),
                 Tables\Columns\TextColumn::make('email')
+                    ->label(__('fields.email'))
                     ->searchable(),
                 Tables\Columns\TextColumn::make('phonenumber')
+                    ->label(__('fields.phonenumber'))
                     ->searchable(),
                 Tables\Columns\TextColumn::make('deleted_at')
-                    ->dateTime()
+                    ->label(__('fields.deleted_at'))
+                    ->dateTime('d/m/Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
+                    ->label(__('fields.created_at'))
+                    ->dateTime('d/m/Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
+                    ->label(__('fields.updated_at'))
+                    ->dateTime('d/m/Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])

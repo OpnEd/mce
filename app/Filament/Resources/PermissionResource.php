@@ -21,10 +21,9 @@ class PermissionResource extends Resource
 {
     protected static ?string $model = Permission::class;
 
-    //protected static ?string $cluster = Settings::class;
-
-    //protected static ?string $navigationIcon = 'phosphor-lock-open';
-    protected static ?string $navigationGroup = 'Settings';
+    protected static ?string $pluralModelLabel = 'Permisos';
+    protected static ?string $modelLabel = 'Permiso';
+    protected static ?string $navigationGroup = 'Configuración de plataforma';
 
     public static function form(Form $form): Form
     {

@@ -7,6 +7,7 @@ use App\Filament\Resources\BatchResource\Pages;
 use App\Filament\Resources\BatchResource\RelationManagers;
 use App\Models\Batch;
 use App\Models\Product;
+use App\Models\SanitaryRegistry;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -22,30 +23,37 @@ class BatchResource extends Resource
     //protected static ?string $cluster = POS::class;
 
     protected static ?string $navigationGroup = 'POS';
-    protected static ?string $navigationLabel = 'Batchs';
+    protected static ?string $pluralModelLabel = 'Lotes';
+    protected static ?string $modelLabel = 'Lote';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\Select::make('manufacturer_id')
+                    ->label(__('fields.manufacturer'))
                     ->relationship(name: 'manufacturer', titleAttribute: 'name')
                     ->searchable()
                     ->preload()
                     ->required(),
                 Forms\Components\Select::make('sanitary_registry')
-                    ->options(Product::pluck('registro_sanitario', 'registro_sanitario'))
+                    ->label(__('fields.sanitary_registry'))
+                    ->options(SanitaryRegistry::all()->pluck('code', 'code'))
                     ->searchable()
                     ->preload()
                     ->required(),
                 Forms\Components\TextInput::make('code')
+                    ->label(__('fields.batch'))
                     ->required()
                     ->maxLength(255),
                 Forms\Components\DatePicker::make('manufacturing_date')
+                    ->label(__('fields.manufacturing_date'))
                     ->required(),
                 Forms\Components\DatePicker::make('expiration_date')
+                    ->label(__('fields.expiration_date'))
                     ->required(),
                 Forms\Components\KeyValue::make('data')
+                    ->label(__('fields.extra_data'))
                     ->columnSpanFull(),
             ]);
     }
@@ -54,29 +62,32 @@ class BatchResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('team_id')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('sanitary_registry_id')
-                    ->numeric()
+                Tables\Columns\TextColumn::make('sanitary_registry')
+                    ->label(__('fields.sanitary_registry'))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('code')
+                    ->label(__('fields.batch'))
                     ->searchable(),
                 Tables\Columns\TextColumn::make('manufacturing_date')
+                    ->label(__('fields.manufacturing_date'))
                     ->date()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('expiration_date')
+                    ->label(__('fields.expiration_date'))
                     ->date()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('deleted_at')
+                    ->label(__('fields.deleted_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
+                    ->label(__('fields.created_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('updated_at')
+                    ->label(__('fields.updated_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

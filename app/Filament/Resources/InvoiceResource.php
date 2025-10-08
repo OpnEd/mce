@@ -20,8 +20,8 @@ class InvoiceResource extends Resource
     protected static ?string $model = Invoice::class;
 
     protected static ?string $navigationGroup = 'POS';
-
-    protected static ?string $navigationIcon = 'phosphor-invoice';
+    protected static ?string $pluralModelLabel = 'Facturas';
+    protected static ?string $modelLabel = 'Factura';
 
     public static function form(Form $form): Form
     {
@@ -29,63 +29,72 @@ class InvoiceResource extends Resource
             ->schema([
                 Section::make('Order details')
                     ->schema([
-                Forms\Components\Select::make('sale_id')
-                    ->relationship('sale', 'id'),
-                Forms\Components\TextInput::make('code')
-                    ->label(__('Invoice Code'))
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('amount')
-                    ->label(__('Total'))
-                    ->required()
-                    ->numeric(),
-                Forms\Components\Toggle::make('is_our')
-                    ->label(__('Is Our Invoice'))
-                    ->inline(false)
-                    ->required(),
-                Forms\Components\DatePicker::make('issued_date')
-                    ->label(__('Issued Date'))
-                    ->default(now())
-                    ->required(),
-                Forms\Components\TextInput::make('data'),
+                        Forms\Components\Select::make('sale_id')
+                            ->label(__('fields.sale_number'))
+                            ->relationship('sale', 'id'),
+                        Forms\Components\TextInput::make('code')
+                            ->label(__('fields.invoice_code'))
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('amount')
+                            ->label(__('fields.amount'))
+                            ->required()
+                            ->numeric(),
+                        Forms\Components\Toggle::make('is_our')
+                            ->label(__('fields.is_our'))
+                            ->inline(false)
+                            ->required(),
+                        Forms\Components\DatePicker::make('issued_date')
+                            ->label(__('fields.issued_date'))
+                            ->default(now())
+                            ->required(),
+                        Forms\Components\KeyValue::make('data')
+                            ->label(__('fields.extra_data'))
+                            ->columnSpanFull(),
                     ])
                     ->columns(4),
-                ]);
+            ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('team_id')
-                    ->numeric()
-                    ->sortable(),
                 Tables\Columns\TextColumn::make('sale.id')
-                    ->numeric()
-                    ->sortable(),
+                    ->label(__('fields.sale_number'))
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('supplier.name')
+                    ->label(__('fields.supplier'))
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('code')
+                    ->label(__('fields.invoice_code'))
                     ->searchable(),
                 Tables\Columns\TextColumn::make('amount')
+                    ->label(__('fields.amount'))
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\IconColumn::make('is_our')
+                    ->label(__('fields.is_our'))
                     ->boolean(),
                 Tables\Columns\TextColumn::make('issued_date')
-                    ->date()
+                    ->label(__('fields.issued_date'))
+                    ->date('d/m/Y')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('deleted_at')
-                    ->dateTime()
+                    ->label(__('fields.deleted_at'))
+                    ->dateTime('d/m/Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
+                    ->label(__('fields.created_at'))
+                    ->dateTime('d/m/Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
+                    ->label(__('fields.updated_at'))
+                    ->dateTime('d/m/Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])

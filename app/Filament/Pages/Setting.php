@@ -25,7 +25,7 @@ class Setting extends Page implements HasForms
 {
     use InteractsWithForms;
 
-    protected static ?string $navigationGroup = 'Settings';
+    protected static ?string $navigationGroup = 'Configuración de plataforma';
     //protected static ?string $navigationIcon = 'phosphor-faders';
     protected static ?string $navigationLabel = 'Plataforma Estratégica';
 

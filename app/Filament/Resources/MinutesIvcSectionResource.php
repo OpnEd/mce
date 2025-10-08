@@ -17,8 +17,10 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class MinutesIvcSectionResource extends Resource
 {
     protected static ?string $model = MinutesIvcSection::class;
-    protected static ?string $navigationGroup = 'Settings';
+    protected static ?string $navigationGroup = 'Configuración de plataforma';
     protected static ?string $navigationLabel = 'Acta de Inspección';
+    protected static ?string $pluralModelLabel = 'Secciones de Acta';
+    protected static ?string $modelLabel = 'Sección de Acta';
 
     public static function form(Form $form): Form
     {
@@ -60,7 +62,7 @@ class MinutesIvcSectionResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('slug')
+/*                 Tables\Columns\TextColumn::make('slug')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('route')
                     ->searchable(),
@@ -77,7 +79,7 @@ class MinutesIvcSectionResource extends Resource
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: true), */
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),

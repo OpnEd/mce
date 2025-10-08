@@ -118,7 +118,7 @@ class AdminPanelProvider extends PanelProvider
                     ->label('Roles y Permisos')
                     ->icon('phosphor-fingerprint'),
                 NavigationGroup::make()
-                    ->label('Settings')
+                    ->label('Configuración de plataforma')
                     ->icon('phosphor-gear-six'),
             ])
             ->renderHook(
