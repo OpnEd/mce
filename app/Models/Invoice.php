@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\TeamScope;
 use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -35,6 +36,8 @@ class Invoice extends Model
     
     protected static function booted()
     {
+        static::addGlobalScope(new TeamScope);
+        
         static::creating(function (Invoice $invoice) {
             // Si no está explícito en $invoice->team_id
             if (empty($invoice->team_id)) {

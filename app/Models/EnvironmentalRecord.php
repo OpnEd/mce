@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\TeamScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -22,6 +23,11 @@ class EnvironmentalRecord extends Model
         'temp' => 'decimal:2',
         'hum' => 'decimal:2'
     ];
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new TeamScope);
+    }
 
     public function user(): BelongsTo
     {

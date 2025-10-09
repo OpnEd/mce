@@ -1,7 +1,7 @@
 <x-filament-panels::page>
 
     <x-filament::section collapsible collapsed icon="phosphor-hand-coins" icon-color="success" icon-size="lg">
-
+        
         <x-slot name="heading">
             Recepción técnica
         </x-slot>

@@ -16,8 +16,13 @@ class ManagementIndicators extends Page
     //protected static ?string $navigationLabel = '9.16 / 9.20- Indicadores de G.';
 
     protected static string $view = 'filament.pages.management-indicators';
+    public $user;
 
-
+    public function mount(): void
+    {
+        $this->user = auth()->user();
+    }
+    
     public function getHeading(): string
     {
         return __('pages.management_indicators');
