@@ -125,6 +125,7 @@ class AdminPanelProvider extends PanelProvider
                 PanelsRenderHook::GLOBAL_SEARCH_BEFORE,
                 fn(): string => Blade::render('@livewire(\'iniciar-venta-button\')'),
             )
-            ->spa();
+            ->spa()
+            ->favicon(asset('storage/landing-page-images/logo.png'));
     }
 }

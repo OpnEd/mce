@@ -1,11 +1,8 @@
 <?php
 
-namespace App\Filament\Resources;
+namespace App\Filament\Resources\Quality\Records\Products;
 
-use App\Filament\Clusters\POS;
-use App\Filament\Clusters\SaludPublica;
-use App\Filament\Resources\PurchaseItemResource\Pages;
-use App\Filament\Resources\PurchaseItemResource\RelationManagers;
+use App\Filament\Resources\Quality\Records\Products\PurchaseItemResource\Pages;
 use App\Models\PurchaseItem;
 use Filament\Forms;
 use Filament\Forms\Form;

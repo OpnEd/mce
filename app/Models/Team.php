@@ -7,6 +7,7 @@ use App\Models\Quality\Records\Cleaning\StablishmentArea;
 use App\Models\Quality\Records\Cleaning\CleaningImplement;
 use App\Models\Quality\Records\Cleaning\CleaningRecord;
 use App\Models\Quality\Records\Cleaning\Desinfectant;
+use App\Models\Quality\Records\Products\DispenseRecord;
 use App\Models\Quality\Records\Products\MissingProduct;
 use App\Models\Quality\Training\Enrollment;
 use App\Models\Quality\Training\Question;
@@ -85,6 +86,11 @@ class Team extends Model
     public function dispatches(): HasMany
     {
         return $this->hasMany(Dispatch::class);
+    }
+
+    public function dispenseRecords(): HasMany
+    {
+        return $this->hasMany(DispenseRecord::class);
     }
 
     public function documents(): HasMany

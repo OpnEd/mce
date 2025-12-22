@@ -6,6 +6,8 @@ use App\Http\Controllers\Quality\DocumentController;
 use App\Livewire\LandingPage;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use Illuminate\Http\Request;
 
 Route::get('/generate-invoice-pdf/{id}', [InvoiceController::class, 'generatePdf'])->name('invoice.download');
 Route::get('/invoice/{id}/print', [InvoiceController::class, 'print'])->name('invoice.print');
@@ -83,3 +85,42 @@ Route::middleware([
 }); */
 
 Route::get('/', LandingPage::class);
+
+// Página que muestra "por favor verifica tu correo"
+Route::get('/email/verify', function () {
+    return view('auth.verify-email'); // crea esta vista o adapta
+})->middleware('auth')->name('verification.notice');
+
+// La ruta que marca el email como verificado (nombre requerido: verification.verify)
+Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+    $request->fulfill(); // marca email_verified_at y dispara Verified event
+
+    // redirige donde quieras; para Filament panel usa la ruta del panel:
+    return redirect()->intended('/admin'); // ajusta a tu prefijo Filament
+})->middleware(['auth', 'signed'])->name('verification.verify');
+
+// Reenviar link de verificación
+Route::post('/email/verification-notification', function (Request $request) {
+    $request->user()->sendEmailVerificationNotification();
+
+    return back()->with('status', 'verification-link-sent');
+})->middleware(['auth', 'throttle:6,1'])->name('verification.send');
+
+Route::get('/login', function () {
+    return redirect('/admin/login');
+})->name('login');
+
+/* Route::get('/debug-mail-config', function () {
+    // Solo si no es producción estricta
+    if (config('app.env') === 'production' && !config('app.debug')) {
+        return 'Debug no disponible';
+    }
+    
+    return response()->json([
+        'mail_smtp_config' => config('mail.mailers.smtp'),
+        'mail_from_config' => config('mail.from'),
+        'app_env' => config('app.env'),
+        'config_cached' => file_exists(base_path('bootstrap/cache/config.php'))
+    ], 200, [], JSON_PRETTY_PRINT);
+}); */
+
