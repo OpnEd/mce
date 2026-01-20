@@ -9,7 +9,7 @@ class Setting extends Model
 {
     
     protected $fillable = [
-        'key',
+        "key",
         "value",
         "type",
         "attributes",

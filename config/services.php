@@ -34,5 +34,15 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    'external_orders' => [
+        'secret' => env('EXTERNAL_ORDERS_SECRET'),
+    ],
+
+    'nominatim' => [
+        'url' => env('NOMINATIM_URL', 'https://nominatim.openstreetmap.org'),
+        'email' => env('NOMINATIM_EMAIL', 'contacto@drogueriadigital.net.co'),
+        'user_agent' => env('NOMINATIM_USER_AGENT', 'Droguería Digital/1.0 (contacto@drogueriadigital.net.co)'),
+    ],
+
 
 ];

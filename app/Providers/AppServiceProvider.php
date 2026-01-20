@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\AnesthesiaSheet;
+use App\Models\Api\ExternalOrder;
 use App\Models\DispatchItems;
 use App\Models\Document;
 use App\Models\Sale;
@@ -24,8 +25,11 @@ use Illuminate\Notifications\DatabaseNotification;
 use App\Models\TeamNotification;
 use App\Observers\AnesthesiaSheetObserver;
 use App\Observers\DocumentObserver;
+use App\Observers\ExternalOrderObserver;
 use App\Services\Quality\Records\Products\MissingProductService;
 use App\Services\IndicatorService;
+use Filament\Support\Assets\Js;
+use Filament\Support\Facades\FilamentAsset;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -66,7 +70,6 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->app->bind(DatabaseNotification::class, TeamNotification::class);
-
     }
 
     /**
@@ -94,5 +97,6 @@ class AppServiceProvider extends ServiceProvider
         Sale::observe(SaleObserver::class);
         SaleItem::observe(SaleItemObserver::class);
         Document::observe(DocumentObserver::class);
+        ExternalOrder::observe(ExternalOrderObserver::class);
     }
 }

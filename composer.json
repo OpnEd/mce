@@ -16,9 +16,12 @@
         "flowframe/laravel-trend": "^0.4.0",
         "guzzlehttp/guzzle": "^7.9",
         "laravel/framework": "^12.0",
+        "laravel/reverb": "^1.7",
+        "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
         "leandrocfe/filament-apex-charts": "^3.2",
         "livewire/livewire": "^3.6",
+        "php-open-source-saver/jwt-auth": "^2.8",
         "saade/filament-autograph": "^3.2",
         "spatie/laravel-permission": "^6.16"
     },

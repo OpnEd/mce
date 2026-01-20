@@ -24,8 +24,9 @@ use App\Traits\HasTeamRoles;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Notifications\DatabaseNotification;
+use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable implements FilamentUser, HasTenants, HasAvatar, MustVerifyEmail
+class User extends Authenticatable implements FilamentUser, HasTenants, HasAvatar, MustVerifyEmail, JWTSubject
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory,
@@ -155,6 +156,26 @@ class User extends Authenticatable implements FilamentUser, HasTenants, HasAvata
     {
         return $this->teams;
     }
+ 
+    /**
+     * Get the identifier that will be stored in the subject claim of the JWT.
+     *
+     * @return mixed
+     */
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+ 
+    /**
+     * Return a key value array, containing any custom claims to be added to the JWT.
+     *
+     * @return array
+     */
+    public function getJWTCustomClaims()
+    {
+        return [];
+    }
 
     public function notifications()
     {
@@ -226,10 +247,92 @@ class User extends Authenticatable implements FilamentUser, HasTenants, HasAvata
 
         return $query;
     }
+    /**
+     * Ensure notifications created via the database channel include the current
+     * tenant as `team_id`, so Filament's database notifications (which filter
+     * by team_id) can find them.
+     *
+     * This returns an object that implements `create()` and delegates to the
+     * normal relation while injecting `team_id` into the payload.
+     *
+     * @param  \Illuminate\Notifications\Notification|null  $notification
+     * @return \Illuminate\Database\Eloquent\Relations\MorphMany|object
+     */
+    public function routeNotificationForDatabase($notification = null)
+    {
+        $relation = $this->morphMany(DatabaseNotification::class, 'notifiable');
+
+        // Prefer the current Filament tenant when available (web requests) — this
+        // will be null when running queued jobs or when executed outside a
+        // tenant-aware request.
+        $team = Filament::getTenant();
+
+        // When running in queue (no Filament tenant), attempt to extract the
+        // team from the Notification instance (our NewExternalOrderNotification
+        // carries a public $team property).
+        if (! $team && is_object($notification)) {
+            if (property_exists($notification, 'team') && $notification->team) {
+                $team = $notification->team;
+            }
+
+            // Fallback: if the notification encodes team_id in its database data
+            // (e.g. ['meta' => ['team_id' => 123]]), use that too.
+            if (! $team && method_exists($notification, 'toDatabase')) {
+                try {
+                    $data = $notification->toDatabase($this);
+                    if (is_array($data)) {
+                        if (isset($data['team_id'])) {
+                            $teamId = $data['team_id'];
+                        } elseif (isset($data['meta']['team_id'])) {
+                            $teamId = $data['meta']['team_id'];
+                        }
+
+                        if (! empty($teamId)) {
+                            $team = \App\Models\Team::find($teamId);
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    // Ignore — we don't want to break notification sending on errors
+                }
+            }
+        }
+
+        if (! $team) {
+            return $relation;
+        }
+
+        return new class($relation, $team) {
+            protected $relation;
+            protected $team;
+
+            public function __construct($relation, $team)
+            {
+                $this->relation = $relation;
+                $this->team = $team;
+            }
+
+            public function create(array $attributes)
+            {
+                $attributes['team_id'] = $this->team->id;
+
+                return $this->relation->create($attributes);
+            }
+        };
+    }
 
     public function user_answers(): HasMany
     {
         return $this->hasMany(UserAnswer::class);
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->hasRole('admin');
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->hasRole('super-admin');
     }
 }
 

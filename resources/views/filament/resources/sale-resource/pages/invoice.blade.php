@@ -1,4 +1,5 @@
 <x-filament-panels::page>
+@livewire('notifications')
     <head>
         <title>Sale to {{ $sale->customer?->name }}</title>
     </head>

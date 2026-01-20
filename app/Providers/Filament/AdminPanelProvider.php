@@ -84,6 +84,7 @@ class AdminPanelProvider extends PanelProvider
             ->emailVerification()
             ->profile()
             ->databaseNotifications()
+            ->databaseNotificationsPolling('10s')
             ->tenant(Team::class)
             ->tenantMenuItems([
                 'profile' => MenuItem::make()->label('Edit team profile'),
@@ -124,6 +125,10 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::GLOBAL_SEARCH_BEFORE,
                 fn(): string => Blade::render('@livewire(\'iniciar-venta-button\')'),
+            )
+            ->renderHook(
+                PanelsRenderHook::HEAD_END,
+                fn(): string => Blade::render('<meta name="team-id" content="{{ \Filament\Facades\Filament::getTenant()?->id }}">'),
             )
             ->spa()
             ->favicon(asset('storage/landing-page-images/logo.png'));

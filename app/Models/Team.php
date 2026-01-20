@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Api\ExternalOrderTeamCandidate;
 use App\Models\Quality\ManagementIndicatorTeam;
 use App\Models\Quality\Records\Cleaning\StablishmentArea;
 use App\Models\Quality\Records\Cleaning\CleaningImplement;
@@ -37,10 +38,16 @@ class Team extends Model
         'email',
         'phonenumber',
         'data',
+        'is_active',
+        'latitude',
+        'longitude',
     ];
 
     protected $casts = [
-        'data' => 'array'
+        'data' => 'array',
+        'is_active' => 'boolean',
+        'latitude' => 'float',
+        'longitude' => 'float',
     ];
 
     public function batches(): HasMany
@@ -110,6 +117,11 @@ class Team extends Model
     public function enrollments(): HasMany
     {
         return $this->hasMany(Enrollment::class);
+    }
+
+    public function externalOrderTeamCandidates(): HasMany
+    {
+        return $this->hasMany(ExternalOrderTeamCandidate::class, 'team_id');
     }
 
     public function improvement_plans(): HasMany

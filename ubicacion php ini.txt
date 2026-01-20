@@ -1,0 +1,9 @@
+curl.cainfo="C:\xampp\apache\bin\curl-ca-bundle.crt"
+
+openssl.cafile="C:\xampp\apache\bin\curl-ca-bundle.crt"
+
+
+++++++ php_ini_loaded_file(); // ubicación del archivo php.ini cargado +++++
+++++++   C:\Users\PAOLA\.config\herd\bin\php84\php.ini    ++++++++
+
+curl.cainfo ="C:\Users\PAOLA\.config\herd\config\php\cacert.pem"
