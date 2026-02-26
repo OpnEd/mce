@@ -1,7 +1,6 @@
 <?php
 
 return [
-
     /*
     |--------------------------------------------------------------------------
     | Settings
@@ -21,6 +20,8 @@ return [
     'convert_entities' => true,
 
     'options' => [
+        'encoding' => 'UTF-8',
+        'isHtml5ParserEnabled' => true,
         /**
          * The location of the DOMPDF font directory
          *

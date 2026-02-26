@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Api\ExternalOrder;
 use App\Traits\FilterByUser;
 use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -60,7 +61,8 @@ class Sale extends Model
 
     public function generateCode(): string
     {
-        $teamId = Filament::getTenant()->id;
+        //$teamId = Filament::getTenant()->id;
+        $teamId = 1;
         $lastSale = self::where('team_id', $teamId)
             ->orderBy('created_at', 'desc')
             ->first();
@@ -128,5 +130,8 @@ class Sale extends Model
     {
         return $query->whereBetween('total', [$minTotal, $maxTotal]);
     }
-    
+    public function externalOrder()
+    {
+        return $this->belongsTo(ExternalOrder::class, 'external_order_id');
+    }
 }

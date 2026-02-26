@@ -28,6 +28,7 @@ use App\Observers\DocumentObserver;
 use App\Observers\ExternalOrderObserver;
 use App\Services\Quality\Records\Products\MissingProductService;
 use App\Services\IndicatorService;
+use App\Services\ExternalOrderActionService;
 use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
 
@@ -67,6 +68,11 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->singleton(MissingProductService::class, function ($app) {
             return new MissingProductService();
+        });
+
+        // Registramos ExternalOrderActionService como singleton
+        $this->app->singleton(ExternalOrderActionService::class, function ($app) {
+            return new ExternalOrderActionService();
         });
 
         $this->app->bind(DatabaseNotification::class, TeamNotification::class);

@@ -85,7 +85,7 @@ class AdminPanelProvider extends PanelProvider
             ->profile()
             ->databaseNotifications()
             ->databaseNotificationsPolling('10s')
-            ->tenant(Team::class)
+            ->tenant(Team::class, ownershipRelationship: 'team')
             ->tenantMenuItems([
                 'profile' => MenuItem::make()->label('Edit team profile'),
                 'register' => MenuItem::make()->label('Register new team'),
@@ -106,6 +106,9 @@ class AdminPanelProvider extends PanelProvider
                 NavigationGroup::make()
                     ->label('Registros Diarios')
                     ->icon('phosphor-thermometer-hot'),
+                NavigationGroup::make()
+                    ->label('Informes')
+                    ->icon('heroicon-o-document-chart-bar'),
                 NavigationGroup::make()
                     ->label('Universidad')
                     ->icon('phosphor-student'),

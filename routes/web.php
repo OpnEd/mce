@@ -3,11 +3,14 @@
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\ManufacturerController;
 use App\Http\Controllers\Quality\DocumentController;
+use App\Http\Controllers\Quality\Records\WasteGenerationReportController;
 use App\Livewire\LandingPage;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Whatsapp\WhatsAppWebhookController;
+use App\Http\Controllers\ResiduoReportController;
 
 Route::get('/generate-invoice-pdf/{id}', [InvoiceController::class, 'generatePdf'])->name('invoice.download');
 Route::get('/invoice/{id}/print', [InvoiceController::class, 'print'])->name('invoice.print');
@@ -69,6 +72,14 @@ Route::middleware([
     Route::get('admin/{tenant}/documents/{document:slug}.pdf', [DocumentController::class, 'documentDetails'])->name('document.details')->scopeBindings();
     //Route::get('/orders/{id}', [OrdenController::class, 'orderDetails'])->name('order.details');
     //Route::get('/environmental-records', EnvironmentalRecordComponent::class)->name('environmental.records');
+    //Route::get('admin/{tenant}/informes/residuos/{report:numero_informe}.pdf', [WasteGenerationReportController::class, 'downloadLastYear'])->name('informe.residuos')->scopeBindings();
+    
+    // DEBUG: Ruta temporal para interceptar parámetros si tienes problemas de 404 (Descomentar para probar)
+     Route::get('admin/{tenant}/informes/residuos/{report}.pdf', function ($tenant, $report) {
+         dd('Parámetros crudos recibidos:', $tenant, $report);
+     })->name('informe.residuos');
+
+    //Route::get('admin/{tenant}/informes/residuos/{report:numero_informe}.pdf', [WasteGenerationReportController::class, 'downloadLastYear'])->name('informe.residuos');
 
 });
 
@@ -124,3 +135,7 @@ Route::get('/login', function () {
     ], 200, [], JSON_PRETTY_PRINT);
 }); */
 
+
+//Route::match(['get', 'post'], '/webhook/whatsapp', WhatsAppWebhookController::class);
+Route::get('webhook/whatsapp', [WhatsAppWebhookController::class, 'verifyWebhook']);
+Route::post('webhook/whatsapp', [WhatsAppWebhookController::class, 'handleIncomingMessage']);

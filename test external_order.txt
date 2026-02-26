@@ -1,4 +1,4 @@
-$requestId = '550e8407-e29b-41d4-a716-446655440000';
+$requestId = '550e8450-e29b-41d4-a716-446655440000';
 
 $payload = '{"external_order_id":"ORDER-TEST-0023","created_at":"2025-12-22 14:30:00","customer":{"name":"Ricardo Pérez","phone":"+573001234567",
 "email":"ricardo22@example.com","address":"Calle 45 #12-34, Bogotá, Colombia","lat":4.711,"lng":-74.0721},"items":[{"sku":"SKU-PARA-500","product_i
@@ -6,10 +6,7 @@ d":12,"name":"Paracetamol 500 mg","qty":2,"price":1200},{"sku":"SKU-SILLA-001","
 0000}],"meta":{"notify_radius_m":5000,"notes":"Entregar en portería","payment_method":"offline","estimated_total":252400}}';
 
 $secret = 'super-secret-key-123';
-
 $signedPayload = $requestId . '.' . $payload;
-
 $computed = hash_hmac('sha256', $signedPayload, $secret);
-
 $expected = 'sha256=' . $computed;
 

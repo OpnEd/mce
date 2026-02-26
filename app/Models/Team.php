@@ -2,7 +2,10 @@
 
 namespace App\Models;
 
+use App\Models\Api\ExternalOrder;
 use App\Models\Api\ExternalOrderTeamCandidate;
+use App\Models\Residuo;
+use App\Models\Quality\WasteGenerationReport;
 use App\Models\Quality\ManagementIndicatorTeam;
 use App\Models\Quality\Records\Cleaning\StablishmentArea;
 use App\Models\Quality\Records\Cleaning\CleaningImplement;
@@ -119,6 +122,11 @@ class Team extends Model
         return $this->hasMany(Enrollment::class);
     }
 
+    public function externalOrders(): HasMany
+    {
+        return $this->hasMany(ExternalOrder::class);
+    }
+
     public function externalOrderTeamCandidates(): HasMany
     {
         return $this->hasMany(ExternalOrderTeamCandidate::class, 'team_id');
@@ -196,6 +204,11 @@ class Team extends Model
         return $this->hasMany(Question::class);
     }
 
+    public function resiudos(): HasMany
+    {
+        return $this->hasMany(Residuo::class);
+    }
+
     public function roles(): HasMany
     {
         return $this->hasMany(Role::class);
@@ -267,5 +280,15 @@ class Team extends Model
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class);
+    }
+    
+    public function reports(): HasMany
+    {
+        return $this->hasMany(WasteGenerationReport::class);
+    }
+
+    public function wastes(): HasMany
+    {
+        return $this->hasMany(Waste::class);
     }
 }

@@ -43,6 +43,12 @@ return [
         'email' => env('NOMINATIM_EMAIL', 'contacto@drogueriadigital.net.co'),
         'user_agent' => env('NOMINATIM_USER_AGENT', 'Droguería Digital/1.0 (contacto@drogueriadigital.net.co)'),
     ],
+    
+    'whatsapp' => [
+        'verify_token' => env('WHATSAPP_TOKEN'),
+        'access_token' => env('WHATSAPP_APP_SECRET'),
+        'phone_number_id' => env('WHATSAPP_PHONE_NUMBER_ID'),
+    ],
 
 
 ];

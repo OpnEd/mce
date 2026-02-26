@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\RoleType;
 use App\Models\Quality\Records\Cleaning\CleaningRecord;
+use App\Models\Quality\Residuo;
 use App\Models\Quality\Training\Enrollment;
 use App\Traits\MultiTenantHasRoles;
 use Filament\Facades\Filament;
@@ -188,6 +189,11 @@ class User extends Authenticatable implements FilamentUser, HasTenants, HasAvata
         }
 
         return $query->orderBy('created_at', 'desc');
+    }
+
+    public function resiudos(): HasMany
+    {
+        return $this->hasMany(Residuo::class);
     }
 
     /**

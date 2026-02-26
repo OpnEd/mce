@@ -20,26 +20,85 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Throwable;
 
+/**
+ * NotifyNearbyTeamsJob
+ *
+ * Job asincrónico que identifica equipos cercanos a una orden externa y les envía notificaciones.
+ *
+ * Flujo principal:
+ * 1. Carga la orden externa y valida sus coordenadas (con geocodificación si es necesario)
+ * 2. Busca equipos activos dentro del radio de notificación especificado usando cálculo Haversine
+ * 3. Intenta geocodificar equipos sin coordenadas desde tenant_settings
+ * 4. Crea registros de candidatos en external_order_team_candidates
+ * 5. Marca la orden como NOTIFIED
+ * 6. Envía notificaciones a usuarios de equipos candidatos
+ *
+ * Características de resiliencia:
+ * - Reintentos configurables (5 por defecto)
+ * - Transacciones para consistencia de datos
+ * - Geocodificación mediante Nominatim/OpenStreetMap
+ * - Manejo de rate-limiting para APIs externas
+ * - Logging detallado de cada paso
+ * - Idempotencia mediante firstOrCreate en candidatos
+ *
+ * @package App\Jobs
+ * @author Desarrollo
+ * @implements ShouldQueue
+ */
 class NotifyNearbyTeamsJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    /**
+     * ID de la orden externa a procesar
+     *
+     * @var int
+     */
     public int $externalOrderId;
 
-    // Retry attempts
+    /**
+     * Número máximo de reintentos del job
+     *
+     * @var int
+     */
     public $tries = 5;
 
-    // Radius in meters (5 km)
+    /**
+     * Radio de notificación en metros (500 km por defecto)
+     *
+     * @var int
+     */
     protected int $notifyRadiusMeters = 500000;
 
-    // Nominatim base URL (configurable)
+    /**
+     * URL base de API Nominatim para geocodificación
+     *
+     * @var string
+     */
     protected string $nominatimUrl;
 
-    // User-Agent for Nominatim requirement (config/services.php or fallback)
+    /**
+     * User-Agent para cumplir con políticas de Nominatim
+     *
+     * @var string
+     */
     protected string $userAgent;
 
+    /**
+     * Email de contacto para Nominatim (requerido por su política de uso)
+     *
+     * @var string|null
+     */
     protected ?string $email = null;
 
+    /**
+     * Constructor del Job
+     *
+     * Inicializa las propiedades del job con configuración de Nominatim.
+     * Construye el User-Agent según políticas de Nominatim.
+     *
+     * @param int $externalOrderId ID de la orden externa a procesar
+     */
     public function __construct(int $externalOrderId)
     {
         $this->externalOrderId = $externalOrderId;
@@ -57,16 +116,31 @@ class NotifyNearbyTeamsJob implements ShouldQueue
         $this->userAgent = config('services.nominatim.user_agent', $defaultUA);
     }
 
+    /**
+     * Procesa el job: identifica equipos cercanos y envía notificaciones
+     *
+     * Flujo de ejecución:
+     * 1. Valida configuración de Nominatim
+     * 2. Carga la orden externa
+     * 3. Verifica/geocodifica coordenadas del cliente
+     * 4. Busca equipos dentro del radio de notificación
+     * 5. Crea candidatos de entrega
+     * 6. Actualiza estado de orden a NOTIFIED
+     * 7. Envía notificaciones a usuarios de equipos candidatos
+     *
+     * @return void
+     * @throws \Exception Si falta configuración de Nominatim o error crítico
+     */
     public function handle(): void
     {
-        // Política: Email obligatorio
+        // Validación: Email obligatorio para cumplir políticas de Nominatim
         if (empty($this->email)) {
             $msg = 'NotifyNearbyTeamsJob: El email es obligatorio para cumplir políticas de Nominatim (services.nominatim.email).';
             Log::critical($msg);
             throw new \Exception($msg);
         }
 
-        // 1) Load the external order fresh
+        // Paso 1: Cargar la orden externa
         $order = ExternalOrder::with('items')->find($this->externalOrderId);
 
         if (! $order) {
@@ -74,22 +148,17 @@ class NotifyNearbyTeamsJob implements ShouldQueue
             return;
         }
 
-        // FUSION: Usar radio dinámico de la orden si existe, o el default de la clase
+        // Usar radio dinámico de la orden si existe, o el default de la clase
         $radiusMeters = $order->notify_radius_m ?? $this->notifyRadiusMeters;
 
-        // If already assigned, nothing to do
+        // Si la orden ya fue asignada a un equipo, no procesar
         if ($order->team_id !== null) {
             Log::info('NotifyNearbyTeamsJob: order already assigned, skipping', ['order_id' => $order->id, 'team_id' => $order->team_id]);
             return;
         }
 
-        // Idempotencia: Si ya fue notificada o cancelada, no procesar de nuevo.
-        /* if (in_array($order->status, ['notified', 'cancelled', 'no_candidates'])) {
-            Log::info('NotifyNearbyTeamsJob: order status is final or processed, skipping', ['order_id' => $order->id, 'status' => $order->status]);
-            return;
-        } */
-
-        // 2) Ensure we have customer's lat/lng. If present, use them; otherwise attempt geocoding using Nominatim.
+        // Paso 2: Validar/geocodificar coordenadas del cliente
+        // Si existen coordenadas, usarlas; si no, intentar geocodificación mediante Nominatim
         if (! empty($order->customer_lat) && ! empty($order->customer_lng)) {
             Log::info('NotifyNearbyTeamsJob: Using order stored coordinates', ['order_id' => $order->id, 'lat' => $order->customer_lat, 'lng' => $order->customer_lng]);
         } else {
@@ -113,7 +182,7 @@ class NotifyNearbyTeamsJob implements ShouldQueue
             }
         }
 
-        // Re-check customer coords
+        // Validar que las coordenadas estén disponibles
         if (empty($order->customer_lat) || empty($order->customer_lng)) {
             Log::warning('NotifyNearbyTeamsJob: cannot proceed, order missing lat/lng', ['order_id' => $order->id]);
             return;
@@ -122,15 +191,16 @@ class NotifyNearbyTeamsJob implements ShouldQueue
         $customerLat = (float) $order->customer_lat;
         $customerLng = (float) $order->customer_lng;
 
-        // 3) Query teams that already have coordinates and are active
+        // Paso 3: Buscar equipos activos dentro del radio de notificación
+        // Primero buscamos equipos que ya tienen coordenadas guardadas
         // We'll compute distances via SQL (Haversine) for teams with lat/lng.
         $earthRadius = 6371000; // meters
 
-        // Haversine SQL expression (distance in meters)
-        // Se eliminan los prefijos 'teams.' para mayor seguridad y compatibilidad
+        // Expresión Haversine en SQL para calcular distancia en metros
+        // Fórmula: distancia = R * arccos(sin(lat1)*sin(lat2) + cos(lat1)*cos(lat2)*cos(lng2-lng1))
         $haversine = "( $earthRadius * acos( cos( radians(?) ) * cos( radians(latitude) ) * cos( radians(longitude) - radians(?) ) + sin( radians(?) ) * sin( radians(latitude) ) ) )";
 
-        // Select teams with coordinates first
+        // Buscar equipos que ya tienen coordenadas
         $teamsWithCoords = DB::table('teams')
             ->selectRaw("teams.*, $haversine as distance_m", [$customerLat, $customerLng, $customerLat])
             ->whereNotNull('latitude')
@@ -151,7 +221,8 @@ class NotifyNearbyTeamsJob implements ShouldQueue
             ];
         }
 
-        // 4) For teams without coordinates, attempt to geocode them from tenant_settings -> address
+        // Paso 4: Geocodificar equipos sin coordenadas
+        // Obtener dirección desde tenant_settings e intentar geocodificar
         // We'll fetch a manageable number to geocode to avoid hitting rate limits; you may adjust or paginate
         $teamsWithoutCoords = DB::table('teams')
             ->where(function ($q) {
@@ -231,27 +302,28 @@ class NotifyNearbyTeamsJob implements ShouldQueue
             }
         }
 
-        // Remove duplicates (in case same team found twice)
+        // Eliminar duplicados (en caso que el mismo equipo se encuentre dos veces)
         $candidates = collect($candidates)
             ->unique('team_id')
             ->sortBy('distance_m')
             ->values()
             ->all();
 
-        // 5) Create external_order_team_candidates entries (Transactional) & Identify new notifications
+        // Paso 5: Crear registros de candidatos y actualizar estado de orden a NOTIFIED
         $newNotifications = DB::transaction(function () use ($order, $candidates) {
-            // Bloqueamos la orden para asegurar que nadie más la esté modificando en este instante
+            // Bloquear la orden para evitar que otros procesos la modifiquen simultáneamente
             $lockedOrder = ExternalOrder::lockForUpdate()->find($order->id);
 
-            // Si la orden fue tomada o eliminada mientras geocodificábamos, abortamos
+            // Si la orden fue asignada mientras geocodificábamos, abortar
             if (! $lockedOrder || $lockedOrder->team_id !== null) {
                 return [];
             }
 
             $notificationsToSend = [];
 
+            // Procesar cada equipo candidato
             foreach ($candidates as $cand) {
-                // Usamos firstOrCreate para manejar la idempotencia de forma segura
+                // Crear candidato con idempotencia: si ya existe, no duplicar
                 $candidate = ExternalOrderTeamCandidate::firstOrCreate(
                     [
                         'external_order_id' => $lockedOrder->id,
@@ -265,7 +337,7 @@ class NotifyNearbyTeamsJob implements ShouldQueue
                     ]
                 );
 
-                // Solo notificamos si el registro se acaba de crear (evita duplicados en reintentos)
+                // Solo notificar si es un registro nuevo (evita duplicados en reintentos)
                 if ($candidate->wasRecentlyCreated) {
                     $notificationsToSend[] = [
                         'team_id' => $cand['team_id'],
@@ -274,36 +346,46 @@ class NotifyNearbyTeamsJob implements ShouldQueue
                 }
             }
 
-            // Actualizar estado para evitar reprocesos futuros
-            $status = empty($candidates) ? 'no_candidates' : 'notified';
+            // ACTUALIZAR ESTADO DE LA ORDEN A NOTIFIED
+            // Si hay candidatos, marcar como NOTIFIED; si no hay candidatos, marcar como NO_CANDIDATES
+            $status = empty($candidates) ? 'NO_CANDIDATES' : 'NOTIFIED';
             $lockedOrder->update(['status' => $status]);
+            
+            Log::info('NotifyNearbyTeamsJob: ExternalOrder status updated', [
+                'order_id' => $lockedOrder->id,
+                'status' => $status,
+                'candidates_count' => count($candidates)
+            ]);
 
             return $notificationsToSend;
         });
 
-        // 6) Send notifications outside transaction (Fail-safe)
-        Log::info('NotifyNearbyTeamsJob: notifying users', [
+        // Paso 6: Enviar notificaciones (fuera de la transacción para mayor resiliencia)
+        Log::info('NotifyNearbyTeamsJob: sending notifications to teams', [
             'order_id' => $order->id,
             'teams'    => count($newNotifications),
         ]);
 
         $dispatchedCount = 0;
 
+        // Iterar sobre cada equipo candidato y notificar a sus usuarios
         foreach ($newNotifications as $item) {
             $team = Team::find($item['team_id']);
             if (! $team) {
                 continue;
             }
 
-            // Cargar users del team
+            // Cargar usuarios del equipo
             $team->loadMissing('users');
 
+            // Notificar a cada usuario activo del equipo
             foreach ($team->users as $user) {
+                // Saltar usuarios suspendidos
                 if ($user->is_suspended) {
                     continue;
                 }
 
-                // Evitar notificación duplicada
+                // Evitar duplicar notificaciones si el usuario ya fue notificado
                 $alreadyNotified = $user->notifications()
                     ->where('data->order_id', $order->id)
                     ->exists();
@@ -313,37 +395,42 @@ class NotifyNearbyTeamsJob implements ShouldQueue
                 }
 
                 try {
-
+                    // Enviar notificación al usuario
                     $user->notify(new NewExternalOrderNotification($order, $team, (int) round($item['distance_m'])));
 
-                    // 2) Trigger immediate refresh of Filament database notifications (Livewire/Echo)
+                    // Disparar evento para refrescar notificaciones en Filament (Livewire/Echo)
                     try {
                         DatabaseNotificationsSent::dispatch($user);
                     } catch (\Throwable $e) {
-                        Log::warning('NotifyNearbyTeamsJob: No se pudo enviar evento de broadcast (¿Falta configurar Reverb/Pusher?)', ['error' => $e->getMessage()]);
+                        Log::warning('NotifyNearbyTeamsJob: no se pudo enviar evento de broadcast (¿Reverb/Pusher no configurados?)', ['error' => $e->getMessage()]);
                     }
                     
                     $dispatchedCount++;
 
                 } catch (\Throwable $e) {
-                    Log::error('NotifyNearbyTeamsJob: notification failed', ['user_id' => $user->id, 'error' => $e->getMessage()]);
+                    Log::error('NotifyNearbyTeamsJob: notification send failed', ['user_id' => $user->id, 'error' => $e->getMessage()]);
                 }
             }
         }
 
-        Log::info('NotifyNearbyTeamsJob: notifications dispatched', [
-            'order_id'          => $order->id,
-            'new_notifications' => $dispatchedCount,
+        // Log final: resumen de notificaciones enviadas
+        Log::info('NotifyNearbyTeamsJob: completed successfully', [
+            'order_id'              => $order->id,
+            'total_notifications'   => $dispatchedCount,
+            'candidates_count'      => count($newNotifications),
         ]);
     }
 
     /**
-     * Geocode freeform address using Nominatim / OpenStreetMap.
-     * Returns ['lat' => float, 'lng' => float] or null.
+     * Geocodifica una dirección en formato libre usando Nominatim/OpenStreetMap
+     *
+     * @param string $address Dirección en formato libre (ej: "Calle Principal 123, Ciudad")
+     * @return array|null Array con estructura ['lat' => float, 'lng' => float] o null si falla
+     * @throws \Exception Si la API retorna 403 Forbidden (rate limit o User-Agent inválido)
      */
     protected function geocodeFreeformAddress(string $address): ?array
     {
-        // Rate-limit estricto (1s antes de la petición)
+        // Aplicar rate-limit estricto: 1 segundo antes de cada petición (política de Nominatim)
         sleep(1);
 
         $endpoint = rtrim($this->nominatimUrl, '/') . '/search';
@@ -354,6 +441,7 @@ class NotifyNearbyTeamsJob implements ShouldQueue
             'addressdetails' => 0,
         ];
 
+        // Realizar petición HTTP con headers requeridos por Nominatim
         $response = Http::withOptions([
             'verify' => false,
             'timeout' => 10,
@@ -362,19 +450,20 @@ class NotifyNearbyTeamsJob implements ShouldQueue
             'Accept-Language' => 'es',
         ])->get($endpoint, $params);
 
-        // Manejo explícito de 403
+        // Validar respuesta: 403 Forbidden indica problema de User-Agent o rate limit
         if ($response->status() === 403) {
-            Log::critical('NotifyNearbyTeamsJob: Nominatim 403 Forbidden. Verifique User-Agent y Rate Limits.', ['ua' => $this->userAgent]);
+            Log::critical('NotifyNearbyTeamsJob: Nominatim 403 Forbidden. Verificar User-Agent y Rate Limits', ['ua' => $this->userAgent]);
             throw new \Exception('Nominatim 403 Forbidden');
         }
 
         if (! $response->ok()) {
-            Log::warning('NotifyNearbyTeamsJob: nominatim freeform request not ok', ['status' => $response->status(), 'address' => $address]);
+            Log::warning('NotifyNearbyTeamsJob: Nominatim freeform request failed', ['status' => $response->status(), 'address' => $address]);
             return null;
         }
 
         $json = $response->json();
 
+        // Validar que la respuesta contenga al menos un resultado con lat/lng
         if (empty($json) || ! isset($json[0]['lat'], $json[0]['lon'])) {
             return null;
         }
@@ -386,12 +475,17 @@ class NotifyNearbyTeamsJob implements ShouldQueue
     }
 
     /**
-     * Geocode structured address using Nominatim parameters (street, city, state, country, postalcode).
-     * $structured is an array with keys like 'street','city','state','country','postalcode' or similar.
+     * Geocodifica una dirección estructurada usando parámetros de Nominatim
+     *
+     * Soporta componentes: street, city, state, country, postalcode
+     *
+     * @param array $structured Array con claves como 'street', 'city', 'state', 'country', 'postalcode', etc.
+     * @return array|null Array con estructura ['lat' => float, 'lng' => float] o null si falla
+     * @throws \Exception Si la API retorna 403 Forbidden
      */
     protected function geocodeStructuredAddress(array $structured): ?array
     {
-        // Rate-limit estricto (1s antes de la petición)
+        // Aplicar rate-limit estricto: 1 segundo antes de cada petición
         sleep(1);
 
         $endpoint = rtrim($this->nominatimUrl, '/') . '/search';
@@ -401,29 +495,30 @@ class NotifyNearbyTeamsJob implements ShouldQueue
             'addressdetails' => 0,
         ];
 
-        // Map known keys
+        // Mapear componentes de dirección estructurada
         if (! empty($structured['street'])) $params['street'] = $structured['street'];
         if (! empty($structured['city'])) $params['city'] = $structured['city'];
         if (! empty($structured['state'])) $params['state'] = $structured['state'];
         if (! empty($structured['country'])) $params['country'] = $structured['country'];
         if (! empty($structured['postalcode'])) $params['postalcode'] = $structured['postalcode'];
 
-        // If there is a freeform q, include it as well
+        // Si existe búsqueda libre (q), incluirla también
         if (! empty($structured['q'])) $params['q'] = $structured['q'];
 
+        // Realizar petición HTTP con headers requeridos
         $response = Http::withHeaders([
             'User-Agent' => $this->userAgent,
             'Accept-Language' => 'es',
         ])->get($endpoint, $params);
 
-        // Manejo explícito de 403
+        // Validar respuesta: 403 Forbidden
         if ($response->status() === 403) {
-            Log::critical('NotifyNearbyTeamsJob: Nominatim 403 Forbidden. Verifique User-Agent y Rate Limits.', ['ua' => $this->userAgent]);
+            Log::critical('NotifyNearbyTeamsJob: Nominatim 403 Forbidden. Verificar User-Agent y Rate Limits', ['ua' => $this->userAgent]);
             throw new \Exception('Nominatim 403 Forbidden');
         }
 
         if (! $response->ok()) {
-            Log::warning('NotifyNearbyTeamsJob: nominatim structured request not ok', ['status' => $response->status(), 'params' => $params]);
+            Log::warning('NotifyNearbyTeamsJob: Nominatim structured request failed', ['status' => $response->status(), 'params' => $params]);
             return null;
         }
 
@@ -439,7 +534,16 @@ class NotifyNearbyTeamsJob implements ShouldQueue
     }
 
     /**
-     * Haversine distance in meters between two lat/lng points.
+     * Calcula la distancia Haversine entre dos puntos geográficos
+     *
+     * Utiliza la fórmula de Haversine para calcular la distancia en metros
+     * entre dos coordenadas lat/lng sobre la superficie terrestre.
+     *
+     * @param float $latFrom Latitud del punto de origen
+     * @param float $lngFrom Longitud del punto de origen
+     * @param float $latTo Latitud del punto de destino
+     * @param float $lngTo Longitud del punto de destino
+     * @return float Distancia en metros
      */
     protected function haversineDistanceMeters(float $latFrom, float $lngFrom, float $latTo, float $lngTo): float
     {

@@ -3,7 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ExternalOrderController;
- 
+use App\Http\Controllers\Whatsapp\WhatsAppWebhookController;
+
 Route::group([
     //'middleware' => 'api',
     'prefix' => 'auth'
@@ -24,3 +25,6 @@ Route::group([
     Route::post('/receive', [ExternalOrderController::class, 'receive'])->name('receive')
      ->middleware(['verify.external.signature','throttle:30,1']);
 });
+
+//Route::get('/webhook/whatsapp', [WhatsAppWebhookController::class, 'verify']);
+//Route::post('/webhook/whatsapp', [WhatsAppWebhookController::class, 'receive']);

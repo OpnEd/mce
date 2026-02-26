@@ -123,6 +123,7 @@ class ExternalOrderResource extends Resource
             'create' => Pages\CreateExternalOrder::route('/create'),
             'view' => Pages\ViewExternalOrder::route('/{record}'),
             'edit' => Pages\EditExternalOrder::route('/{record}/edit'),
+            'validate-otp' => Pages\ValidateOtp::route('/{record}/validate-otp'),
         ];
     }
 }

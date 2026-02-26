@@ -61,9 +61,29 @@ return [
         'description' => '',
         'status' => 1
     ],
+    //6
     [
         //'team_id' => 1,
         'order' => 6,
+        'slug' => 'filament.admin.pages.qms-nine-section',
+        'route' => 'filament.admin.pages.gestion-de-calidad',
+        'name' => 'Sistema de gestión de calidad',
+        'description' => 'Artículo 17 Resolución 1403 de 2007 / Artículo 2.5.3.10.12 Decreto 780 de 2016',
+        'status' => 1
+    ],
+    //7
+    [
+        //'team_id' => 1,
+        'order' => 7,
+        'slug' => 'procesos-procedimientos',
+        'route' => 'filament.admin.pages.procesos-procedimientos',
+        'name' => 'Procesos y procedimientos',
+        'description' => '',
+        'status' => 1
+    ],
+    [
+        //'team_id' => 1,
+        'order' => 8,
         'slug' => 'clasificacion-establecimiento',
         'route' => 'filament.admin.pages.clasificacion-del-establecimiento',
         'name' => 'Clasificación del Establecimiento',
@@ -72,30 +92,11 @@ return [
     ],
     [
         //'team_id' => 1,
-        'order' => 7,
-        'slug' => 'servicios-ofrecidos',
-        'route' => 'filament.admin.pages.servicios-ofrecidos',
-        'name' => 'Servicios Ofrecidos',
-        'description' => '',
-        'status' => 1
-    ],
-    [
-        //'team_id' => 1,
-        'order' => 8,
+        'order' => 9,
         'slug' => 'otros-aspectos',
         'route' => 'filament.admin.pages.otros-aspectos',
-        'name' => 'Otros aspectos',
-        'description' => '',
-        'status' => 1
-    ],
-    //5
-    [
-        //'team_id' => 1,
-        'order' => 9,
-        'slug' => 'filament.admin.pages.qms-nine-section',
-        'route' => 'filament.admin.pages.gestion-de-calidad',
-        'name' => 'Sistema de gestión de calidad',
-        'description' => '',
+        'name' => 'Revisión de otros aspectos',
+        'description' => 'Ley 1335 de 2009, Decreto 780 de 2016, Resolución 1403 de 2007, Acuerdo 570 de 2014, Artículo 12 Resolución 2674 de 2001, Resolución 1229 de 2013',
         'status' => 1
     ],
     //6

@@ -1,5 +1,5 @@
 <?php
-namespace App\Services;
+namespace App\Services\Quality;
 
 use App\Models\Quality\Training\Assessment;
 use App\Models\Quality\Training\AssessmentAttempt;
