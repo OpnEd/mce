@@ -6,30 +6,15 @@ return [
     |--------------------------------------------------------------------------
     | Minutes IVC Sections
     |--------------------------------------------------------------------------
-    |
-    | 
-    | 
-    | 
-    |
     */
-    //1
-    [
-        //'team_id' => 1,
-        'order' => 1,
-        'slug' => 'establecimiento',
-        'route' => 'filament.admin.pages.cedula-del-establecimiento',
-        'name' => 'Cédula del establecimiento',
-        'description' => '',
-        'status' => 1
-    ],
     //2
     [
         //'team_id' => 1,
         'order' => 2,
-        'slug' => 'recurso-humano',
-        'route' => 'filament.admin.pages.recurso-humano',
-        'name' => 'Recurso Humano',
-        'description' => '',
+        'slug' => 'talento-humano',
+        'route' => 'filament.admin.pages.talento-humano',
+        'name' => 'Talento Humano',
+        'description' => 'Artículo 2.5.3.10.11 Decreto 780 de 2016, Numerales I y II, Capítulo V, Título I, Manual de condicones esenciales y procedimientos del servicio farmacéutico - MCEPSF Resolución 1403 de 2007',
         'status' => 1
     ],
     //3
@@ -39,7 +24,7 @@ return [
         'slug' => 'infraestructura-fisica',
         'route' => 'filament.admin.pages.infraestructura-fisica',
         'name' => 'Infraestructura Física',
-        'description' => '',
+        'description' => 'Parágrafo 3 Artículo 2.5.3.10.11 Decreto 780 de 2016 / Numeral 1, Capítulo II. Título II. Manual de Condiciones Esenciales y procedimientos del servicio farmacéutico - MCEPSF Resolución 1403 de 2007',
         'status' => 1
     ],
     //4
@@ -49,7 +34,7 @@ return [
         'slug' => 'saneamiento-edificiones',
         'route' => 'filament.admin.pages.saneamiento-de-edificaciones',
         'name' => 'Saneamiento de edificaciones',
-        'description' => '',
+        'description' => 'Artículos 10, 12, 114, 116, 127, 165, 176, 177, 179 y 205 Ley 9 de 1979 Manual para la Gestión Integral de Residuos generados en la atención en salud y otras actividades. Resolución 591 de 2024. Resolución 2184 de 2019 / Artículo 1 Resolución 705 de 2007',
         'status' => 1
     ],
     [
@@ -58,7 +43,7 @@ return [
         'slug' => 'areas',
         'route' => 'filament.admin.pages.areas',
         'name' => 'Áreas',
-        'description' => '',
+        'description' => 'Capítulo V, Título I, Manual de Condicones Esenciales y procedimientos del servicio farmacéutico - MCEPSF Resolución 1403 de 2007 / Artículo 8 Decreto 3249 de 2006 / Artículo 41 Decreto 1156 de 2018',
         'status' => 1
     ],
     //6
@@ -78,16 +63,16 @@ return [
         'slug' => 'procesos-procedimientos',
         'route' => 'filament.admin.pages.procesos-procedimientos',
         'name' => 'Procesos y procedimientos',
-        'description' => '',
+        'description' => 'Numerales 1, 2, 3, 4 y 5, Capítulo II, Título II Manual de Condiciones Esenciales y Procedimientos del Servicio Farmacéutico -MCEPSF Resolución 1403 de 2007',
         'status' => 1
     ],
     [
         //'team_id' => 1,
         'order' => 8,
-        'slug' => 'clasificacion-establecimiento',
-        'route' => 'filament.admin.pages.clasificacion-del-establecimiento',
-        'name' => 'Clasificación del Establecimiento',
-        'description' => '',
+        'slug' => 'revision-productos',
+        'route' => 'filament.admin.pages.revision-productos',
+        'name' => 'Revisión de productos',
+        'description' => 'Decreto 677 de 1995 /Decreto 4725 de 2005 / Decreto 1156 2018 / Decreto 3249 de 2006 / Decisión 833 de 2018 / Decreto 3554 de 2004 / Resolucion 2674 de 2013',
         'status' => 1
     ],
     [
@@ -97,86 +82,6 @@ return [
         'route' => 'filament.admin.pages.otros-aspectos',
         'name' => 'Revisión de otros aspectos',
         'description' => 'Ley 1335 de 2009, Decreto 780 de 2016, Resolución 1403 de 2007, Acuerdo 570 de 2014, Artículo 12 Resolución 2674 de 2001, Resolución 1229 de 2013',
-        'status' => 1
-    ],
-    //6
-    [
-        //'team_id' => 1,
-        'order' => 10,
-        'slug' => 'seleccion',
-        'route' => 'filament.admin.pages.seleccion',
-        'name' => ' Proceso de Selección',
-        'description' => '',
-        'status' => 1
-    ],
-    //7
-    [
-        //'team_id' => 1,
-        'order' => 11,
-        'slug' => 'adquisicion',
-        'route' => 'filament.admin.pages.adquisicion',
-        'name' => ' Proceso de Adquisición',
-        'description' => '',
-        'status' => 1
-    ],
-    //8
-    [
-        //'team_id' => 1,
-        'order' => 12,
-        'slug' => 'recepcion',
-        'route' => 'filament.admin.pages.recepcion',
-        'name' => ' Proceso de Recepción',
-        'description' => '',
-        'status' => 1
-    ],
-    //9
-    [
-        //'team_id' => 1,
-        'order' => 13,
-        'slug' => 'almacenamiento',
-        'route' => 'filament.admin.pages.almacenamiento',
-        'name' => ' Proceso de Almacenamiento',
-        'description' => '',
-        'status' => 1
-    ],
-    //10
-    [
-        //'team_id' => 1,
-        'order' => 14,
-        'slug' => 'dispensacion',
-        'route' => 'filament.admin.pages.dispensacion',
-        'name' => ' Proceso de Dispensación',
-        'description' => '',
-        'status' => 1
-    ],
-    //11
-    [
-        //'team_id' => 1,
-        'order' => 15,
-        'slug' => 'devoluciones',
-        'route' => 'filament.admin.pages.devoluciones',
-        'name' => ' Proceso de Devoluciones',
-        'description' => '',
-        'status' => 1
-    ],
-    //12
-    [
-        //'team_id' => 1,
-        'order' => 16,
-        'slug' => 'cadena-frio',
-        'route' => 'filament.admin.pages.cadena-de-frio',
-        'name' => ' Proceso de Manejo de Medicamentos Cadena de Frío',
-        'description' => '',
-        'status' => 1
-    ],
-    //13
-    [
-        //'team_id' => 1,
-        'order' => 17,
-        'slug' => 'inyectologia',
-        'route' => 'filament.admin.pages.inyectologia',
-        'name' => 'Inyectología',
-        'description' => '',
         'status' => 1
     ],
 ];

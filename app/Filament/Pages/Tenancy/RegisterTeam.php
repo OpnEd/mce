@@ -44,7 +44,7 @@ class RegisterTeam extends RegisterTenant
 
             // 2. Asociar el usuario actual (propietario) al equipo
             $owner = Auth::user();
-            $team->users()->syncWithoutDetaching([$owner->id]);
+            $team->users()->syncWithoutDetaching([$owner->id => ['is_owner' => true]]);
 
             // 3. Despachar el job para la configuración asíncrona
             SetupTeamJob::dispatch($team, $owner);

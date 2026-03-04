@@ -115,48 +115,90 @@ class TeamSetupService
 
         foreach ($sections as $s) {
             MinutesIvcSection::updateOrCreate(
-                ['team_id' => $team->id, 'order' => $s['order'] ?? null, 'slug' => $s['slug'] ?? null],
-                ['name' => $s['name'] ?? null, 'description' => $s['description'] ?? null, 'status' => $s['status'] ?? null]
+                [
+                    'team_id' => $team->id,
+                    'slug' => $s['slug'] ?? null,
+                ],
+                [
+                    'order' => $s['order'] ?? null,
+                    'route' => $s['route'] ?? null,
+                    'name' => $s['name'] ?? null,
+                    'description' => $s['description'] ?? null,
+                    'status' => $s['status'] ?? null,
+                ]
             );
         }
 
-        $sectionConfigMap = [
-            'Cédula del establecimiento'        => 'minutes-ivc-first-section-entries',
-            'Recurso Humano' => 'minutes-ivc-second-section-entries',
-            'Infraestructura Física' => 'minutes-ivc-third-section-entries',
-            'Saneamiento de edificaciones' => 'minutes-ivc-fourth-section-entries',
-            'Áreas' => 'minutes-ivc-fifth-section-entries',
-            'Clasificación del Establecimiento' => 'minutes-ivc-sixth-section-entries',
-            'Servicios Ofrecidos' => 'minutes-ivc-seventh-section-entries',
-            'Otros aspectos' => 'minutes-ivc-eighth-section-entries',
-            'Sistema de gestión de calidad' => 'minutes-ivc-nine-section-entries',
-            ' Proceso de Selección' => 'minutes-ivc-tenth-section-entries',
-            ' Proceso de Adquisición' => 'minutes-ivc-eleventh-section-entries',
-            ' Proceso de Recepción' => 'minutes-ivc-twelveth-section-entries',
-            ' Proceso de Almacenamiento' => 'minutes-ivc-thirteenth-section-entries',
-            ' Proceso de Dispensación' => 'minutes-ivc-fourteenth-section-entries',
-            ' Proceso de Devoluciones' => 'minutes-ivc-fifteenth-section-entries',
-            ' Proceso de Manejo de Medicamentos Cadena de Frío' => 'minutes-ivc-sixteenth-section-entries',
-            'Inyectología' => 'minutes-ivc-inyectologia-section-entries',
+        $sectionConfigByOrder = [
+            2 => 'minutes-ivc-second-section-entries',
+            3 => 'minutes-ivc-third-section-entries',
+            4 => 'minutes-ivc-fourth-section-entries',
+            5 => 'minutes-ivc-fifth-section-entries',
+            6 => 'minutes-ivc-sixth-section-entries',
+            7 => 'minutes-ivc-seventh-section-entries',
+            8 => 'minutes-ivc-eighth-section-entries',
+            9 => 'minutes-ivc-nine-section-entries',
         ];
 
-        $teamSections = MinutesIvcSection::where('team_id', $team->id)->get()->keyBy('name');
+        $teamSections = MinutesIvcSection::where('team_id', $team->id)
+            ->get()
+            ->keyBy(fn (MinutesIvcSection $section): string => (string) $section->order);
 
-        foreach ($sectionConfigMap as $sectionName => $configKey) {
-            $section = $teamSections->get($sectionName);
+        foreach ($sectionConfigByOrder as $order => $configKey) {
+            $section = $teamSections->get((string) $order);
             if (!$section) {
-                Log::warning("Sección IVC no encontrada: {$sectionName} (team {$team->id})");
+                Log::warning("Sección IVC no encontrada para order={$order} (team {$team->id})");
                 continue;
             }
 
-            $entries = config($configKey, []);
+            $rawEntries = config($configKey, []);
+            $entries = $this->flattenMinutesIvcEntries(is_array($rawEntries) ? $rawEntries : []);
+
             foreach ($entries as $e) {
+                if (empty($e['entry_id'])) {
+                    Log::warning("Entrada IVC sin entry_id", ['config' => $configKey, 'entry' => $e]);
+                    continue;
+                }
+
                 MinutesIvcSectionEntry::updateOrCreate(
-                    ['minutes_ivc_section_id' => $section->id, 'question' => $e['question'] ?? null],
-                    ['apply' => $e['apply'] ?? true, 'criticality' => $e['criticality'] ?? null, 'answer' => $e['answer'] ?? null, 'entry_type' => $e['entry_type'] ?? null, 'links' => $e['links'] ?? null, 'compliance' => $e['compliance'] ?? null]
+                    ['minutes_ivc_section_id' => $section->id, 'entry_id' => $e['entry_id']],
+                    [
+                        'question' => $e['question'] ?? null,
+                        'apply' => $e['apply'] ?? true,
+                        'criticality' => $e['criticality'] ?? null,
+                        'answer' => $e['answer'] ?? null,
+                        'entry_type' => MinutesIvcSectionEntry::normalizeEntryType($e['entry_type'] ?? null),
+                        'links' => $e['links'] ?? null,
+                        'compliance' => $e['compliance'] ?? null,
+                    ]
                 );
             }
         }
+    }
+
+    private function flattenMinutesIvcEntries(array $node): array
+    {
+        $flat = [];
+
+        foreach ($node as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+
+            if ($this->isMinutesIvcLeafEntry($item)) {
+                $flat[] = $item;
+                continue;
+            }
+
+            $flat = array_merge($flat, $this->flattenMinutesIvcEntries($item));
+        }
+
+        return $flat;
+    }
+
+    private function isMinutesIvcLeafEntry(array $item): bool
+    {
+        return array_key_exists('entry_id', $item) && array_key_exists('question', $item);
     }
 
     public function createPermissionsAndSyncRole(Team $team, Role $roleAdmin): void

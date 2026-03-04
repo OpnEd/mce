@@ -19,7 +19,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -41,10 +40,25 @@ class Team extends Model
         'email',
         'phonenumber',
         'data',
+        'establishment_id',
+        'registration_number',
+        'team_name',
+        'location_1',
+        'location_2',
+        'town',
+        'upz',
+        'neighborhood',
+        'phone_number_1',
+        'phone_number_2',
+        'legal_representative_name',
+        'legal_representative_doc_type',
+        'legal_representative_doc_num',
+        'operating_hours',
         'is_active',
         'latitude',
         'longitude',
     ];
+
 
     protected $casts = [
         'data' => 'array',
@@ -159,9 +173,9 @@ class Team extends Model
             ->withTimestamps();
     }
 
-    public function minutesIvcSection(): HasOne
+    public function minutesIvcSections(): HasMany
     {
-        return $this->hasOne(MinutesIvcSection::class);
+        return $this->hasMany(MinutesIvcSection::class);
     }
 
     public function missing_products(): HasMany
@@ -279,9 +293,9 @@ class Team extends Model
      */
     public function users(): BelongsToMany
     {
-        return $this->belongsToMany(User::class);
+        return $this->belongsToMany(User::class, 'team_user', 'team_id', 'user_id')->withPivot('is_owner');
     }
-    
+
     public function reports(): HasMany
     {
         return $this->hasMany(WasteGenerationReport::class);

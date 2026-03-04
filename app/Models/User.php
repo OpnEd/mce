@@ -191,9 +191,9 @@ class User extends Authenticatable implements FilamentUser, HasTenants, HasAvata
         return $query->orderBy('created_at', 'desc');
     }
 
-    public function resiudos(): HasMany
+    public function wastes(): HasMany
     {
-        return $this->hasMany(Residuo::class);
+        return $this->hasMany(Waste::class);
     }
 
     /**
@@ -233,7 +233,7 @@ class User extends Authenticatable implements FilamentUser, HasTenants, HasAvata
 
     public function teams(): BelongsToMany
     {
-        return $this->belongsToMany(Team::class, 'team_user', 'user_id', 'team_id');
+        return $this->belongsToMany(Team::class, 'team_user', 'user_id', 'team_id')->withPivot('is_owner');
     }
 
     /**

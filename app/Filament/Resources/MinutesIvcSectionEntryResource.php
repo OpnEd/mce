@@ -9,6 +9,7 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Enums\ActionsPosition;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -33,7 +34,9 @@ class MinutesIvcSectionEntryResource extends Resource
                     ->required(),
                 Forms\Components\Toggle::make('apply')
                     ->required(),
-                Forms\Components\TextInput::make('entry_type')
+                Forms\Components\Select::make('entry_type')
+                    ->options(self::entryTypeOptions())
+                    ->native(false)
                     ->required(),
                 Forms\Components\TextInput::make('criticality')
                     ->required(),
@@ -42,7 +45,24 @@ class MinutesIvcSectionEntryResource extends Resource
                     ->columnSpanFull(),
                 Forms\Components\Textarea::make('answer')
                     ->columnSpanFull(),
-                Forms\Components\TextInput::make('links'),
+                Forms\Components\Repeater::make('links')
+                    ->schema([
+                        Forms\Components\TextInput::make('key')
+                            ->label('Clave')
+                            ->required(),
+                        Forms\Components\TextInput::make('value')
+                            ->label('Valor')
+                            ->required(),
+                    ])
+                    ->columns(2)
+                    ->default([])
+                    ->addActionLabel('Agregar enlace')
+                    ->reorderable(false)
+                    ->afterStateHydrated(function (Forms\Components\Repeater $component, mixed $state): void {
+                        $component->state(MinutesIvcSectionEntry::normalizeLinksForFormState($state));
+                    })
+                    ->dehydrateStateUsing(fn (mixed $state): array => MinutesIvcSectionEntry::normalizeLinksForStorage($state))
+                    ->columnSpanFull(),
                 Forms\Components\Toggle::make('compliance')
                     ->required(),
             ]);
@@ -76,8 +96,10 @@ class MinutesIvcSectionEntryResource extends Resource
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-            ])
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\EditAction::make(),
+                ])
+            ], position: ActionsPosition::BeforeColumns)
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
@@ -101,6 +123,13 @@ class MinutesIvcSectionEntryResource extends Resource
             'create' => Pages\CreateMinutesIvcSectionEntry::route('/create'),
             'edit' => Pages\EditMinutesIvcSectionEntry::route('/{record}/edit'),
         ];
+    }
+
+    protected static function entryTypeOptions(): array
+    {
+        return collect(MinutesIvcSectionEntry::values())
+            ->mapWithKeys(fn (string $value): array => [$value => strtoupper($value)])
+            ->all();
     }
 
     public static function getEloquentQuery(): Builder

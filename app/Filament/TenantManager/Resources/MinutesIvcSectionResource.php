@@ -98,4 +98,10 @@ class MinutesIvcSectionResource extends Resource
             'edit' => Pages\EditMinutesIvcSection::route('/{record}/edit'),
         ];
     }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->where('status', 1);
+    }
 }

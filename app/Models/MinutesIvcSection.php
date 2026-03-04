@@ -16,6 +16,7 @@ class MinutesIvcSection extends Model
         'name',
         'description',
         'slug',
+        'route',
         'order',
         'status',
     ];

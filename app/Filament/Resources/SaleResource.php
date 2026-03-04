@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Gate;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Tables\Enums\ActionsPosition;
 
 class SaleResource extends Resource
 {
@@ -126,7 +127,7 @@ class SaleResource extends Resource
                             return self::getUrl('invoice', ['record' => $record]);
                         })
                 ])
-            ])
+            ], position: ActionsPosition::BeforeColumns)
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),

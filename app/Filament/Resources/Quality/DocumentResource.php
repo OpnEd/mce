@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Set;
 use Illuminate\Support\Str;
 use Filament\Forms\Get;
+use Filament\Tables\Enums\ActionsPosition;
 
 class DocumentResource extends Resource
 {
@@ -181,10 +182,15 @@ class DocumentResource extends Resource
                     Tables\Actions\EditAction::make(),
                     Tables\Actions\Action::make('Pdf')
                         ->icon('phosphor-eye')
-                        ->url(fn(Document $record) => route('document.details', ['tenant' => Filament::getTenant()->id, 'document' =>$record]))
+                        ->url(function (Document $record) {
+                            $tenant = Filament::getTenant();
+                            $url = route('document.details', ['tenant' => $tenant?->id, 'document' => $record]);
+
+                            return $url;
+                        })
                         ->openUrlInNewTab(),
                 ])
-            ])
+            ], position: ActionsPosition::BeforeColumns)
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),

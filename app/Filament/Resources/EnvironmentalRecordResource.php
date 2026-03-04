@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\EnvironmentalRecordResource\Widgets\HumChart;
 use App\Filament\Resources\EnvironmentalRecordResource\Widgets\TempChart;
 use Filament\Resources\Resource;
+use Filament\Tables\Enums\ActionsPosition;
 
 class EnvironmentalRecordResource extends Resource
 {
@@ -78,8 +79,10 @@ class EnvironmentalRecordResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-            ])
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\EditAction::make(),
+                ])
+            ], position: ActionsPosition::BeforeColumns)
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),

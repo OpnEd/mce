@@ -2,96 +2,157 @@
 
 namespace App\Services;
 
-use App\Models\Document;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class LinkResolver
 {
     /**
-     * Resuelve un array de links para una entrada dada.
+     * Legacy -> canonical slugs for document links.
      *
-     * @param array $links  Array de links: [['key'=>'document.slug','value'=>'document.details','label'=>'Ver'], ...]
-     * @param array $entry  Array que representa la entrada (p.e. MinutesIvcSectionEntry->toArray())
-     * @param int   $teamId id del team/tenant
-     * @return array Array de items resueltos con estructura:
-     *               [
-     *                 ['type'=>'route', 'url'=>'...', 'label'=>'...', 'route'=>'document.details', 'params'=>[...] , 'raw'=>[...] ],
-     *                 ['type'=>'folder', 'text'=>'Archivo ubicado en ...', 'raw'=>[...] ],
-     *               ]
+     * @var array<string, string>
+     */
+    private const DOCUMENT_SLUG_ALIASES = [
+        'control-integral-de-plagas' => 'procedimiento-control-integral-plagas',
+        'plan-de-contingencia-para-el-suministro-de-agua-potable' => 'procedimiento-plan-contingencia-suministro-agua-potable',
+    ];
+
+    /**
+     * Resolve links for an entry.
+     *
+     * Supported input formats:
+     * 1) Associative: ['folder.section' => 'tag', 'record.name' => 'route.name']
+     * 2) Legacy list: [['key' => 'folder.section', 'value' => 'tag']]
      */
     public function resolve(array $links, array $entry, int $teamId): array
     {
         $out = [];
+        $entryType = (string) ($entry['entry_type'] ?? '');
 
         foreach ($links as $key => $value) {
-            // No necesitas comprobar isset($link['key'], $link['value'])
-            // $key es el 'document.slug', $value es la ruta
+            [$linkKey, $linkValue, $label] = $this->normalizeLinkPair($key, $value);
 
-            $label = 'Ver'; // O puedes construirlo a partir del key si lo deseas
-
-            // 1) document.* -> route($value, ['tenant' => $teamId, 'document' => $slug])
-            if (Str::startsWith($key, 'document.')) {
-                $slug = Str::after($key, 'document.');
-                if (!empty($slug)) {
-                    try {
-                        $params = ['tenant' => $teamId, 'document' => $slug];
-                        $url = route($value, $params);
-                        $out[] = [
-                            'type' => 'route',
-                            'url' => $url,
-                            'label' => $slug,
-                            'route' => $value,
-                            'params' => $params,
-                            'raw' => ['key' => $key, 'value' => $value],
-                        ];
-                    } catch (\Throwable $e) {
-                        Log::warning("No se pudo generar route '{$value}' para document (document.*)", [
-                            'error' => $e->getMessage(),
-                            'key' => $key,
-                            'team_id' => $teamId,
-                            'resolved_slug' => $slug,
-                        ]);
-                    }
-                } else {
-                    Log::warning('No se encontró slug para link tipo document', ['key' => $key]);
-                }
+            if ($linkKey === null || $linkKey === '') {
                 continue;
             }
 
-            // 2) record.* -> value es ruta de Filament; route($value, ['tenant' => $teamId])
-            if (Str::startsWith($key, 'record.')) {
-                $label = Str::after($key, 'record.');
-                try {
-                    $params = ['tenant' => $teamId]; // según tu instrucción para este caso
-                    $url = route($value, $params);
-                    $out[] = [
-                        'type' => 'route',
-                        'url' => $url,
-                        'label' => $label,
-                        'route' => $value,
-                        'params' => $params,
-                        'raw' => ['key' => $key, 'value' => $value],
-                    ];
-                } catch (\Throwable $e) {
-                    Log::warning("No se pudo generar route '{$value}' para record.*", [
-                        'error' => $e->getMessage(),
-                        'key' => $key,
-                        'team_id' => $teamId,
-                    ]);
+            if ($linkKey === 'document.slug') {
+                $slug = self::normalizeDocumentSlug(trim($linkValue));
+
+                if ($slug === '') {
+                    Log::warning('Missing slug for document.slug link', ['key' => $linkKey]);
+                    continue;
                 }
+
+                $resolved = $this->buildRouteLink(
+                    'document.details',
+                    ['tenant' => $teamId, 'document' => $slug],
+                    $this->normalizeLinkLabel($label, 'Ver documento'),
+                    $linkKey,
+                    $linkValue,
+                    $teamId
+                );
+
+                if ($resolved !== null) {
+                    $out[] = $resolved;
+                }
+
                 continue;
             }
 
-            // 3) folder.* -> value es texto -> mostrar párrafo "Archivo ubicado en $value"
-            if (Str::startsWith($key, 'folder.')) {
-                $section= Str::after($key, 'folder.');
-                $text = (string) $value;
+            if ($linkKey === 'page.route' || $linkKey === 'record.route') {
+                $routeName = trim($linkValue);
+
+                if ($routeName === '') {
+                    Log::warning("Missing route name for {$linkKey}", ['key' => $linkKey]);
+                    continue;
+                }
+
+                $defaultLabel = $linkKey === 'page.route' ? 'Ver pagina' : 'Ver registro';
+                $resolved = $this->buildRouteLink(
+                    $routeName,
+                    ['tenant' => $teamId],
+                    $this->normalizeLinkLabel($label, $defaultLabel),
+                    $linkKey,
+                    $linkValue,
+                    $teamId
+                );
+
+                if ($resolved !== null) {
+                    $out[] = $resolved;
+                }
+
+                continue;
+            }
+
+            if ($linkKey === 'schedule.route') {
+                $resolved = $this->buildScheduleLink(
+                    trim($linkValue),
+                    $this->normalizeLinkLabel($label, 'Ver cronograma'),
+                    $linkKey,
+                    $linkValue,
+                    $teamId
+                );
+
+                if ($resolved !== null) {
+                    $out[] = $resolved;
+                }
+
+                continue;
+            }
+
+            // Legacy format: document.{slug} => route.name
+            if (Str::startsWith($linkKey, 'document.') && $linkKey !== 'document.slug') {
+                $slug = self::normalizeDocumentSlug(Str::after($linkKey, 'document.'));
+                $routeName = trim($linkValue) !== '' ? trim($linkValue) : 'document.details';
+
+                if ($slug === '') {
+                    Log::warning('Missing slug for legacy document.* link', ['key' => $linkKey]);
+                    continue;
+                }
+
+                $resolved = $this->buildRouteLink(
+                    $routeName,
+                    ['tenant' => $teamId, 'document' => $slug],
+                    $this->normalizeLinkLabel($label, 'Ver documento'),
+                    $linkKey,
+                    $linkValue,
+                    $teamId
+                );
+
+                if ($resolved !== null) {
+                    $out[] = $resolved;
+                }
+
+                continue;
+            }
+
+            // Keep folder metadata available for the view message.
+            if ($entryType === 'folder' || Str::startsWith($linkKey, 'folder.')) {
+                $section = Str::startsWith($linkKey, 'folder.')
+                    ? Str::after($linkKey, 'folder.')
+                    : $this->inferSectionFromEntryId((string) ($entry['entry_id'] ?? ''));
+
                 $out[] = [
                     'type' => 'folder',
-                    'text' => "Archivo ubicado en la sección {$section}, {$text}",
-                    'raw' => ['key' => $key, 'value' => $value],
+                    'section' => $section,
+                    'key' => $linkKey,
+                    'value' => (string) $linkValue,
+                    'raw' => ['key' => $linkKey, 'value' => $linkValue],
                 ];
+
+                continue;
+            }
+
+            // Keep upload metadata available for URL building in the view.
+            if ($entryType === 'upload') {
+                $out[] = [
+                    'type' => 'upload',
+                    'key' => $linkKey,
+                    'value' => (string) $linkValue,
+                    'raw' => ['key' => $linkKey, 'value' => $linkValue],
+                ];
+
                 continue;
             }
         }
@@ -99,22 +160,153 @@ class LinkResolver
         return $out;
     }
 
+    private function normalizeLinkPair(mixed $key, mixed $value): array
+    {
+        $label = 'Ver';
+
+        // Legacy format: [['key' => 'folder.x', 'value' => '...']]
+        if (is_array($value) && array_key_exists('key', $value) && array_key_exists('value', $value)) {
+            $linkKey = is_scalar($value['key']) ? (string) $value['key'] : null;
+            $linkValue = is_scalar($value['value']) ? (string) $value['value'] : '';
+
+            if (isset($value['label']) && is_scalar($value['label'])) {
+                $label = (string) $value['label'];
+            }
+
+            return [$linkKey, $linkValue, $label];
+        }
+
+        // Associative format: ['folder.x' => '...']
+        if (is_string($key)) {
+            $linkKey = $key;
+            $linkValue = is_scalar($value) ? (string) $value : '';
+
+            return [$linkKey, $linkValue, $label];
+        }
+
+        return [null, '', $label];
+    }
+
+    public static function normalizeDocumentSlug(string $slug): string
+    {
+        $slug = trim($slug);
+
+        if ($slug === '') {
+            return '';
+        }
+
+        return self::DOCUMENT_SLUG_ALIASES[$slug] ?? $slug;
+    }
+
+    private function normalizeLinkLabel(string $label, string $fallback): string
+    {
+        $normalized = Str::lower(trim($label));
+
+        if ($normalized === '' || $normalized === 'ver') {
+            return $fallback;
+        }
+
+        return $label;
+    }
+
+    private function buildScheduleLink(
+        string $search,
+        string $label,
+        string $linkKey,
+        string $linkValue,
+        int $teamId
+    ): ?array {
+        $params = ['tenant' => $teamId];
+
+        try {
+            $url = route('filament.admin.resources.quality.schedules.index', $params);
+
+            if ($search !== '') {
+                $url .= '?' . http_build_query(['tableSearch' => $search]);
+            }
+
+            return [
+                'type' => 'route',
+                'url' => $url,
+                'label' => $label,
+                'route' => 'filament.admin.resources.quality.schedules.index',
+                'params' => $params,
+                'raw' => ['key' => $linkKey, 'value' => $linkValue],
+            ];
+        } catch (\Throwable $e) {
+            Log::warning('Cannot generate schedule route', [
+                'error' => $e->getMessage(),
+                'key' => $linkKey,
+                'value' => $linkValue,
+                'team_id' => $teamId,
+                'params' => $params,
+            ]);
+        }
+
+        return null;
+    }
+
+    private function buildRouteLink(
+        string $routeName,
+        array $params,
+        string $label,
+        string $linkKey,
+        string $linkValue,
+        int $teamId
+    ): ?array {
+        try {
+            $url = route($routeName, $params);
+
+            return [
+                'type' => 'route',
+                'url' => $url,
+                'label' => $label !== '' ? $label : 'Ver',
+                'route' => $routeName,
+                'params' => $params,
+                'raw' => ['key' => $linkKey, 'value' => $linkValue],
+            ];
+        } catch (\Throwable $e) {
+            Log::warning("Cannot generate route '{$routeName}'", [
+                'error' => $e->getMessage(),
+                'key' => $linkKey,
+                'value' => $linkValue,
+                'team_id' => $teamId,
+                'params' => $params,
+            ]);
+        }
+
+        return null;
+    }
+
+    private function inferSectionFromEntryId(string $entryId): string
+    {
+        if ($entryId === '') {
+            return '';
+        }
+
+        return Str::before($entryId, '.');
+    }
+
     /**
-     * Extrae un campo del array $entry soportando dot-notation (p.e. 'minutes_ivc_section.slug').
-     * Retorna string|null
+     * Kept for compatibility with previous calls.
      */
     protected function getFieldFromEntry(array $entry, string $field): ?string
     {
-        if ($field === '') return null;
+        if ($field === '') {
+            return null;
+        }
+
         $parts = explode('.', $field);
         $current = $entry;
-        foreach ($parts as $p) {
-            if (is_array($current) && array_key_exists($p, $current)) {
-                $current = $current[$p];
-            } else {
+
+        foreach ($parts as $part) {
+            if (! is_array($current) || ! array_key_exists($part, $current)) {
                 return null;
             }
+
+            $current = $current[$part];
         }
+
         return is_scalar($current) ? (string) $current : null;
     }
 }

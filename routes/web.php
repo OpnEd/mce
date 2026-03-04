@@ -3,7 +3,7 @@
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\ManufacturerController;
 use App\Http\Controllers\Quality\DocumentController;
-use App\Http\Controllers\Quality\Records\WasteGenerationReportController;
+use App\Http\Controllers\Quality\WasteGenerationReportController;
 use App\Livewire\LandingPage;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
@@ -70,16 +70,19 @@ Route::middleware([
 ])->group(function () {
     //Route::get('/process/{id}', [ProcessController::class, 'generateCharacterization'])->name('generate.characterization');
     Route::get('admin/{tenant}/documents/{document:slug}.pdf', [DocumentController::class, 'documentDetails'])->name('document.details')->scopeBindings();
+    /* Route::get('admin/{tenant}/documents/{document:slug}.pdf', function ($tenant, $document) {
+         dd('Parámetros crudos recibidos:', $tenant, $document);
+     })->name('document.details'); */
     //Route::get('/orders/{id}', [OrdenController::class, 'orderDetails'])->name('order.details');
     //Route::get('/environmental-records', EnvironmentalRecordComponent::class)->name('environmental.records');
     //Route::get('admin/{tenant}/informes/residuos/{report:numero_informe}.pdf', [WasteGenerationReportController::class, 'downloadLastYear'])->name('informe.residuos')->scopeBindings();
     
     // DEBUG: Ruta temporal para interceptar parámetros si tienes problemas de 404 (Descomentar para probar)
-     Route::get('admin/{tenant}/informes/residuos/{report}.pdf', function ($tenant, $report) {
+     /* Route::get('admin/{tenant}/informes/residuos/{report}.pdf', function ($tenant, $report) {
          dd('Parámetros crudos recibidos:', $tenant, $report);
-     })->name('informe.residuos');
+     })->name('informe.residuos'); */
 
-    //Route::get('admin/{tenant}/informes/residuos/{report:numero_informe}.pdf', [WasteGenerationReportController::class, 'downloadLastYear'])->name('informe.residuos');
+    Route::get('admin/{tenant}/informes/residuos/{report:numero_informe}.pdf', [WasteGenerationReportController::class, 'downloadLastYear'])->name('informe.residuos');
 
 });
 

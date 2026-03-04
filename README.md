@@ -90,3 +90,67 @@ Se pone la tabla de contenido en el dashboard ActaDashboard
 ## Recepción técnica
 
 Para hacer la recepción técnica se requiere una purchase, no se puede crear desde cero, ajustar
+
+
+## Refactor Tenancy Pages (BaseSectionPage)
+
+Se simplificaron las paginas de `app/Filament/Pages/Tenancy` que heredan de `BaseSectionPage` para reducir repeticion.
+
+### Cambios aplicados
+
+- `BaseSectionPage` ahora centraliza configuracion por constantes de clase:
+  - `NAVIGATION_LABEL`
+  - `NAVIGATION_GROUP`
+  - `NAVIGATION_SORT`
+  - `SLUG`
+  - `VIEW`
+  - `SECTION`
+  - `TITLE` (opcional)
+- Se agregaron/ajustaron los metodos para leer esa configuracion:
+  - `getNavigationLabel()`
+  - `getNavigationGroup()`
+  - `getNavigationSort()`
+  - `getSlug()`
+  - `getTitle()` (usa `TITLE` o `NAVIGATION_LABEL`)
+  - `getView()`
+- En `mount()` se asigna `section` desde `static::SECTION`.
+- Las paginas de tenancy simples se migraron para definir solo constantes y se eliminaron `use` no utilizados.
+
+### Correccion posterior
+
+- Se corrigio la firma de `getView()` en `BaseSectionPage` para que sea no estatica:
+  - de `public static function getView(): string`
+  - a `public function getView(): string`
+- Motivo: compatibilidad con la firma base de Filament (`BasePage::getView()`), evitando el error:
+  - `Cannot make non static method Filament\Pages\BasePage::getView() static in class App\Filament\Pages\BaseSectionPage`
+
+
+## Redireccionamiento a document.details en la vista field-row
+
+Funciona en dos capas: resolución previa (backend) y fallback en la vista.
+
+1. El `entry` llega a `field-row` con `resolved_links` desde la página.
+En [quality-management.blade.php](C:\Users\PAOLA\Herd\d-origin2.0.0\resources\views\filament\pages\tenancy\quality-management.blade.php:27) se pasa:
+`'links' => $entry['resolved_links'] ?? []`.
+
+2. `resolved_links` se construye en backend con `LinkResolver`.
+En [BaseSectionPage.php](C:\Users\PAOLA\Herd\d-origin2.0.0\app\Filament\Pages\BaseSectionPage.php:98) se ejecuta `resolve(...)`.
+
+3. Si `key = document.slug`, el resolvedor genera la URL con `document.details`.
+En [LinkResolver.php](C:\Users\PAOLA\Herd\d-origin2.0.0\app\Services\LinkResolver.php:29) detecta `document.slug` y en [LinkResolver.php](C:\Users\PAOLA\Herd\d-origin2.0.0\app\Services\LinkResolver.php:38) usa:
+`route('document.details', ['tenant' => $teamId, 'document' => $slug])`.
+Con tu ejemplo (`value=procedimiento-de-recepcion-tecnica`), el slug usado es ese valor.
+
+4. Si por alguna razón no vino URL resuelta, `field-row` la reconstruye.
+En [field-row.blade.php](C:\Users\PAOLA\Herd\d-origin2.0.0\resources\views\components\settings\field-row.blade.php:115) vuelve a hacer:
+`route('document.details', ['tenant' => $tenantId, 'document' => $routeValue])`.
+
+5. Luego renderiza el enlace en la rama `ROUTE`.
+En [field-row.blade.php](C:\Users\PAOLA\Herd\d-origin2.0.0\resources\views\components\settings\field-row.blade.php:280) imprime `<a href="...">...</a>`.
+
+6. Esa ruta `document.details` apunta al PDF con binding por slug.
+En [web.php](C:\Users\PAOLA\Herd\d-origin2.0.0\routes\web.php:72):
+`admin/{tenant}/documents/{document:slug}.pdf`.
+Al abrirla, entra a [DocumentController.php](C:\Users\PAOLA\Herd\d-origin2.0.0\app\Http\Controllers\Quality\DocumentController.php:17) y termina haciendo `stream(...)` del PDF en [DocumentController.php](C:\Users\PAOLA\Herd\d-origin2.0.0\app\Http\Controllers\Quality\DocumentController.php:161).
+
+Si el slug `procedimiento-de-recepcion-tecnica` no existe en `documents`, Laravel responde 404 por el route model binding `{document:slug}`.

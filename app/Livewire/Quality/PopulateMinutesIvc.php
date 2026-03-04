@@ -15,35 +15,26 @@ class PopulateMinutesIvc extends Component
         foreach ($sections as $s) {
             MinutesIvcSection::updateOrCreate(
                 [
-                    'team_id' => $teamId,
-                    'order' => $s['order'],
-                    'slug' => $s['slug'],
-                    'name' => $s['name'],
-                    'description' => $s['description'],
-                    'status' => $s['status']
+                    'team_id' => $teamId, 
+                    'order' => $s['order'] ?? null, 
+                    'slug' => $s['slug'] ?? null,
+                    'name' => $s['name'] ?? null, 
+                    'description' => $s['description'] ?? null, 
+                    'status' => $s['status'] ?? null
                 ]
             );
         }
 
         // 2. Obtener IDs de las secciones
         $sectionNames = [
-            'Cédula del establecimiento' => 'minutes_ivc_section_ced_est_id',
-            'Recurso Humano' => 'minutes_ivc_section_rec_hum_id',
-            'Infraestructura Física' => 'minutes_ivc_section_infr_fis_id',
-            'Saneamiento de edificaciones' => 'minutes_ivc_section_san_edif_id',
-            'Áreas' => 'minutes_ivc_section_areas_id',
-            'Clasificación del Establecimiento' => 'minutes_ivc_section_clasif_estab_id',
-            'Servicios Ofrecidos' => 'minutes_ivc_section_serv_ofr_id',
-            'Otros aspectos' => 'minutes_ivc_section_otr_asp_id',
-            'Sistema de gestión de calidad' => 'minutes_ivc_section_gest_cal_id',
-            'Selección' => 'minutes_ivc_section_selec_id',
-            'Adquisición' => 'minutes_ivc_section_adq_id',
-            'Recepción' => 'minutes_ivc_section_recep_id',
-            'Almacenamiento' => 'minutes_ivc_section_almac_id',
-            'Dispensación' => 'minutes_ivc_section_dispe_id',
-            'Devoluciones' => 'minutes_ivc_section_devol_id',
-            'Manejo de Medicamentos Cadena de Frío' => 'minutes_ivc_section_cad_fri_id',
-            'Inyectología' => 'minutes_ivc_section_inyect_id',
+            'Talento Humano'                    => 'minutes_ivc_section_rec_hum_id',
+            'Infraestructura Física'            => 'minutes_ivc_section_infr_fis_id',
+            'Saneamiento de edificaciones'      => 'minutes_ivc_section_san_edif_id',
+            'Áreas'                             => 'minutes_ivc_section_areas_id',
+            'Sistema de gestión de calidad'     => 'minutes_ivc_section_gest_cal_id',
+            'Procesos y procedimientos'         => 'minutes_ivc_section_proc_proce_id',
+            'Revisión de productos'             => 'minutes_ivc_section_rev_prod_id',
+            'Revisión de Otros aspectos'        => 'minutes_ivc_section_rev_otros_asp_id',
         ];
         $sectionIds = [];
         foreach ($sectionNames as $sectionName => $varName) {
@@ -55,21 +46,35 @@ class PopulateMinutesIvc extends Component
 
         // 3. Poblar entries de cada sección
         $sectionConfigMap = [
-            'minutes_ivc_section_ced_est_id' => 'minutes-ivc-first-section-entries',
-            // ... (agrega los demás como en tu código)
+            'minutes_ivc_section_rec_hum_id'        => 'minutes-ivc-second-section-entries',
+            'minutes_ivc_section_infr_fis_id'       => 'minutes-ivc-third-section-entries',
+            'minutes_ivc_section_san_edif_id'       => 'minutes-ivc-fourth-section-entries',
+            'minutes_ivc_section_areas_id'          => 'minutes-ivc-fifth-section-entries',
+            'minutes_ivc_section_gest_cal_id'       => 'minutes-ivc-sixth-section-entries',
+            'minutes_ivc_section_proc_proce_id'     => 'minutes-ivc-seventh-section-entries',
+            'minutes_ivc_section_rev_prod_id'       => 'minutes-ivc-eighth-section-entries',
+            'minutes_ivc_section_rev_otros_asp_id'  => 'minutes-ivc-ninth-section-entries',
         ];
         foreach ($sectionConfigMap as $sectionVar => $configName) {
             $sectionId = $sectionIds[$sectionVar] ?? null;
-            $entries = config($configName, []);
-            if ($sectionId && is_array($entries)) {
+            $rawEntries = config($configName, []);
+            $entries = $this->flattenMinutesIvcEntries(is_array($rawEntries) ? $rawEntries : []);
+
+            if ($sectionId && !empty($entries)) {
                 foreach ($entries as $e) {
+                    if (empty($e['entry_id'])) {
+                        continue;
+                    }
+
                     MinutesIvcSectionEntry::updateOrCreate(
                         [
                             'minutes_ivc_section_id' => $sectionId,
-                            'apply' => $e['apply'] ?? true,
-                            'entry_id' => $e['entry_id'] ?? null,
-                            'criticality' => $e['criticality'] ?? null,
+                            'entry_id' => $e['entry_id'],
+                        ],
+                        [
                             'question' => $e['question'] ?? null,
+                            'apply' => $e['apply'] ?? true,
+                            'criticality' => $e['criticality'] ?? null,
                             'answer' => $e['answer'] ?? null,
                             'entry_type' => $e['entry_type'] ?? null,
                             'links' => $e['links'] ?? null,
@@ -79,6 +84,31 @@ class PopulateMinutesIvc extends Component
                 }
             }
         }
+    }
+
+    private function flattenMinutesIvcEntries(array $node): array
+    {
+        $flat = [];
+
+        foreach ($node as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+
+            if ($this->isMinutesIvcLeafEntry($item)) {
+                $flat[] = $item;
+                continue;
+            }
+
+            $flat = array_merge($flat, $this->flattenMinutesIvcEntries($item));
+        }
+
+        return $flat;
+    }
+
+    private function isMinutesIvcLeafEntry(array $item): bool
+    {
+        return array_key_exists('entry_id', $item) && array_key_exists('question', $item);
     }
 
     public function render()

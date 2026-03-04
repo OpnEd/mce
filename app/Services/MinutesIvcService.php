@@ -13,6 +13,7 @@ class MinutesIvcService
     public function getSectionsByTeam(int $teamId)
     {
         return MinutesIvcSection::where('team_id', $teamId)
+            ->where('status', true)
             ->orderBy('order')
             ->get();
     }

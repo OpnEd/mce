@@ -10,6 +10,7 @@ use Filament\Forms\Components\Section;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Enums\ActionsPosition;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -61,6 +62,7 @@ class MinutesIvcSectionResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
+                    ->label('Nombre')
                     ->searchable(),
 /*                 Tables\Columns\TextColumn::make('slug')
                     ->searchable(),
@@ -85,8 +87,9 @@ class MinutesIvcSectionResource extends Resource
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-            ])
+                    Tables\Actions\EditAction::make()
+                        ->label('Responder'),
+            ], position: ActionsPosition::BeforeColumns)
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
@@ -117,6 +120,7 @@ class MinutesIvcSectionResource extends Resource
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
-            ]);
+            ])
+            ->where('status', 1);
     }
 }

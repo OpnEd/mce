@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\MinutesIvcSectionEntry as EntryType;
 
 return [
     [
@@ -8,7 +9,7 @@ return [
         'criticality' => 'Crítico',
         'question' => 'Se cuenta con un área definida, independiente y separada, para la prestación del servicii de inyectalo-gin? ¿Los materiales que la separan, son uniformes, impermeabies, resistentes, que permiten la impieza y santización?',
         'answer' => '',
-        'entry_type' => 'boolean',
+        'entry_type' => EntryType::TEXT,
         'links' => null,
         'compliance' => true,
     ],
@@ -18,7 +19,7 @@ return [
         'criticality' => 'Crítico',
         'question' => '1.2 - El área es suficiente para ofrecer comodidad al usuario y administrador? ¿El área ofrece privacidad al usuario?',
         'answer' => '',
-        'entry_type' => 'boolean',
+        'entry_type' => EntryType::TEXT,
         'links' => null,
         'compliance' => true,
     ],
@@ -28,7 +29,7 @@ return [
         'criticality' => 'Crítico',
         'question' => 'Se cuenta con lavamanos en el área o cerca de ella?',
         'answer' => '',
-        'entry_type' => 'boolean',
+        'entry_type' => EntryType::TEXT,
         'links' => null,
         'compliance' => true,
     ],
@@ -38,7 +39,7 @@ return [
         'criticality' => 'Mayor',
         'question' => 'Se cuenta con camilla, escalerilla y mesa auxiliar en buen estado de mantenimiento y limpieza?',
         'answer' => '',
-        'entry_type' => 'boolean',
+        'entry_type' => EntryType::TEXT,
         'links' => null,
         'compliance' => true,
     ],
@@ -48,7 +49,7 @@ return [
         'criticality' => 'Crítico',
         'question' => 'Se cuenta con jeringas desechables, recipierite algodonero y cubeta, para la aplicación?',
         'answer' => '',
-        'entry_type' => 'boolean',
+        'entry_type' => EntryType::TEXT,
         'links' => null,
         'compliance' => true,
     ],
@@ -58,7 +59,7 @@ return [
         'criticality' => 'Crítico',
         'question' => 'Se cuenta con jabón liquido y toallas desechables para el lavado y secado de manos?',
         'answer' => '',
-        'entry_type' => 'boolean',
+        'entry_type' => EntryType::TEXT,
         'links' => null,
         'compliance' => true,
     ],
@@ -68,7 +69,7 @@ return [
         'criticality' => 'Crítico',
         'question' => 'Se cuenta con los demás materiales y dotación necesaria para el procedimiento de inyectologia? ¿Sábana para la camilla? ¿Recipientes para el manejo de residuos?',
         'answer' => '',
-        'entry_type' => 'boolean',
+        'entry_type' => EntryType::TEXT,
         'links' => null,
         'compliance' => true,
     ],
@@ -78,7 +79,7 @@ return [
         'criticality' => 'Mayor',
         'question' => 'El manual de funciones del personal, establece quiénes son las personas responsables de la aplicación de inyecciones?',
         'answer' => '',
-        'entry_type' => 'boolean',
+        'entry_type' => EntryType::TEXT,
         'links' => [
             'document.manual-de-funciones' => 'document.details',
         ],
@@ -90,7 +91,7 @@ return [
         'criticality' => 'Crítico',
         'question' => 'El personal que administra el medicamento, cuenta con formación académica y entrenamiento que lo autoriza?',
         'answer' => '',
-        'entry_type' => 'boolean',
+        'entry_type' => EntryType::TEXT,
         'links' => null,
         'compliance' => true,
     ],
@@ -100,7 +101,7 @@ return [
         'criticality' => 'Mayor',
         'question' => 'El procedimiento de limpieza de la drogueria, incluye la limpieza y sanitización del area de inyectologia? ¿Se realiza con elementos de limpieza exclusivos para esta área?',
         'answer' => '',
-        'entry_type' => 'boolean',
+        'entry_type' => EntryType::TEXT,
         'links' => [
             'document.limpieza-y-sanitizacion' => 'document.details',
         ],
@@ -112,7 +113,7 @@ return [
         'criticality' => 'Mayor',
         'question' => 'Se cuenta con procedimiento para la aplicación de inyecciones? ¿Se incluye las normas de boseguridad para el usuario y el administrador de la inyección?',
         'answer' => '',
-        'entry_type' => 'boolean',
+        'entry_type' => EntryType::TEXT,
         'links' => [
             'document.inyectologia' => 'document.details',
             'record.matriculas' => 'filament.admin.resources.quality.training.enrollments.index'
@@ -125,7 +126,7 @@ return [
         'criticality' => 'Crítico',
         'question' => 'Se verifica frente a la fórmula médica, que el medicamento, la vía, la dosis, la frecuencia y el paciente son los correctos? Únicamente via intramuscular',
         'answer' => '',
-        'entry_type' => 'boolean',
+        'entry_type' => EntryType::TEXT,
         'links' => [
             'record.inyectologia' => 'por.definir',
         ],
@@ -137,7 +138,7 @@ return [
         'criticality' => 'Crítico',
         'question' => 'Se garantiza la disposición final adecuada de los residuos peligrosos generados por medio de documento formalizado con un gestor de residuos autorizado? -Contrato de ruta sanitaria-',
         'answer' => '',
-        'entry_type' => 'boolean',
+        'entry_type' => EntryType::TEXT,
         'links' => [
             'folder.inyectologia' => 'etiqueta 4.1',
         ],
@@ -149,7 +150,7 @@ return [
         'criticality' => 'Crítico',
         'question' => 'Cuenta con los soportes de recolección de los residuos peligrosos por parte del gestor de residuos? -en ningún caso dicha recolección podrá ser superior a un mes-.',
         'answer' => '',
-        'entry_type' => 'boolean',
+        'entry_type' => EntryType::TEXT,
         'links' => [
             'folder.inyectologia' => 'etiqueta 4.2',
         ],
@@ -161,7 +162,7 @@ return [
         'criticality' => 'Mayor',
         'question' => 'Conserva las certificaciones de disposición final que emitan los respectivos gestores de residuos peligrosos hasta por un término de cinco años?',
         'answer' => '',
-        'entry_type' => 'boolean',
+        'entry_type' => EntryType::TEXT,
         'links' => [
             'folder.inyectologia' => 'etiqueta 4.3',
         ],
@@ -173,7 +174,7 @@ return [
         'criticality' => 'menor',
         'question' => 'Se lleva registro de generación de residuos en el formato RH1?',
         'answer' => '',
-        'entry_type' => 'boolean',
+        'entry_type' => EntryType::TEXT,
         'links' => [
             'record.residuos' => 'por.definir',
         ],
@@ -185,7 +186,7 @@ return [
         'criticality' => 'Mayor',
         'question' => 'Se inutilizan los empaques y envases de medicamentos una vez se ha agotado su contenido, antes de desecharlos?',
         'answer' => '',
-        'entry_type' => 'boolean',
+        'entry_type' => EntryType::TEXT,
         'links' => null,
         'compliance' => true,
     ],
@@ -195,10 +196,12 @@ return [
         'criticality' => 'Mayor',
         'question' => 'Se radicó ante Secretaria de Salud, el informe anual como generador de residuos?',
         'answer' => '',
-        'entry_type' => 'boolean',
+        'entry_type' => EntryType::TEXT,
         'links' => [
             'folder.inyectologia' => 'etiqueta 4.6',
         ],
         'compliance' => true,
     ],
 ];
+
+
