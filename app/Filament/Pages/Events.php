@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\Event;
+use App\Models\Schedule;
 use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Actions\Contracts\HasActions;
@@ -28,6 +29,8 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Filament\Resources\Components\Tab;
+use Filament\Resources\Concerns\HasTabs;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
@@ -39,7 +42,9 @@ use Illuminate\Database\Eloquent\Builder;
 
 class Events extends Page implements HasTable, HasActions, HasForms
 {
-    use InteractsWithTable, InteractsWithForms, InteractsWithForms;
+    use HasTabs;
+    use InteractsWithTable;
+    use InteractsWithForms;
 
     protected static ?string $navigationIcon = 'phosphor-calendar-check';
     protected static ?string $navigationLabel = 'Calendario';
@@ -47,6 +52,52 @@ class Events extends Page implements HasTable, HasActions, HasForms
     protected static string $view = 'filament.pages.events';
 
     public $events;
+
+    public function mount(): void
+    {
+        $this->loadDefaultActiveTab();
+    }
+
+    public function getTabs(): array
+    {
+        $tenantId = $this->currentTenantId();
+
+        if (! $tenantId) {
+            return [
+                'all' => Tab::make('Todos')->badge(0),
+            ];
+        }
+
+        $tabs = [
+            'all' => Tab::make('Todos')->badge($this->tenantEventsQuery()->count()),
+        ];
+
+        $schedules = Schedule::query()
+            ->where('team_id', $tenantId)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        $scheduleCounts = Event::query()
+            ->where('team_id', $tenantId)
+            ->whereNotNull('schedule_id')
+            ->selectRaw('schedule_id, COUNT(*) as total')
+            ->groupBy('schedule_id')
+            ->pluck('total', 'schedule_id');
+
+        foreach ($schedules as $schedule) {
+            $scheduleId = (int) $schedule->id;
+            $tabKey = 'schedule_' . $scheduleId;
+            $tabLabel = trim((string) $schedule->name) !== ''
+                ? (string) $schedule->name
+                : ('Schedule ' . $scheduleId);
+
+            $tabs[$tabKey] = Tab::make($tabLabel)
+                ->badge((int) ($scheduleCounts[$scheduleId] ?? 0))
+                ->modifyQueryUsing(fn(Builder $query) => $query->where('schedule_id', $scheduleId));
+        }
+
+        return $tabs;
+    }
 
     public function createAction(): Action
     {
@@ -167,7 +218,9 @@ class Events extends Page implements HasTable, HasActions, HasForms
     {
         return EditAction::make('edit')
             ->record(function (array $arguments) {
-                return Event::query()->where('id', $arguments['id'])->first();
+                return $this->tenantEventsQuery()
+                    ->whereKey((int) ($arguments['id'] ?? 0))
+                    ->first();
             })
             ->form(function (Form $form, array $arguments) {
                 return $form
@@ -282,7 +335,9 @@ class Events extends Page implements HasTable, HasActions, HasForms
     {
         return DeleteAction::make('delete')
             ->record(function (array $arguments) {
-                return Event::query()->where('id', $arguments['id'])->first();
+                return $this->tenantEventsQuery()
+                    ->whereKey((int) ($arguments['id'] ?? 0))
+                    ->first();
             })
             ->after(function () {
                 $this->dispatch('refresh-calendar')->self();
@@ -293,7 +348,9 @@ class Events extends Page implements HasTable, HasActions, HasForms
     {
         return ViewAction::make('view')
             ->record(function (array $arguments) {
-                return Event::query()->where('id', $arguments['id'])->first();
+                return $this->tenantEventsQuery()
+                    ->whereKey((int) ($arguments['id'] ?? 0))
+                    ->first();
             })
             ->infolist(function (Infolist $infolist) {
                 return $infolist
@@ -351,7 +408,17 @@ class Events extends Page implements HasTable, HasActions, HasForms
             ->action(function (array $arguments) {
 
                 $id = $arguments['id'];
-                $event = Event::query()->where('id', $id)->first();
+                $event = $this->tenantEventsQuery()->whereKey((int) $id)->first();
+
+                if (! $event) {
+                    Notification::make()
+                        ->title(__('Error'))
+                        ->body(__('Event not found for current tenant.'))
+                        ->danger()
+                        ->send();
+                    $this->dispatch('refresh-calendar')->self();
+                    return;
+                }
 
                 // No permitir si el evento está marcado como hecho
                 if ($event->done) {
@@ -412,7 +479,7 @@ class Events extends Page implements HasTable, HasActions, HasForms
     public function table(Table $table): Table
     {
         return $table
-            ->query(Event::query())
+            ->query($this->applyActiveTab($this->tenantEventsQuery()))
             ->columns([
                 TextColumn::make('title')
                     ->label(__('Event Title'))
@@ -448,9 +515,7 @@ class Events extends Page implements HasTable, HasActions, HasForms
 
     public function render(): View
     {
-        $events = Event::query()
-            ->where('team_id', Filament::getTenant()->id)
-            ->get();
+        $events = $this->applyActiveTab($this->tenantEventsQuery())->get();
 
         $arr = [];
 
@@ -488,5 +553,34 @@ class Events extends Page implements HasTable, HasActions, HasForms
         }
 
         return parent::render();
+    }
+
+    private function tenantEventsQuery(): Builder
+    {
+        $tenantId = $this->currentTenantId();
+
+        if (! $tenantId) {
+            return Event::query()->whereRaw('1 = 0');
+        }
+
+        return Event::query()->where('team_id', $tenantId);
+    }
+
+    private function applyActiveTab(Builder $query): Builder
+    {
+        return $this->modifyQueryWithActiveTab($query);
+    }
+
+    private function currentTenantId(): ?int
+    {
+        $tenant = Filament::getTenant();
+
+        if (is_object($tenant) && method_exists($tenant, 'getKey')) {
+            $key = $tenant->getKey();
+
+            return is_numeric($key) ? (int) $key : null;
+        }
+
+        return is_numeric($tenant) ? (int) $tenant : null;
     }
 }

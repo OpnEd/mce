@@ -15,6 +15,28 @@ return function ($baseDate = null) {
 
     // Definición de datos fijos por sesión
     $sessions = [
+        [
+            'name' => 'Clasificación de procesos',
+            'description' => 'Diferenciar procesos estratégicos, misionales y de soporte.',
+            'objective' => 'Elaborar el mapa general del servicio farmacéutico.',
+            'color' => '#4CAF50',
+            'icon' => 'phosphor-tree-structure',
+        ],
+        [
+            'name' => 'Auditoría interna o Autoinspección',
+            'description' => 'Realizar auditoría simulada del servicio farmacéutico.',
+            'objective' => 'Evaluar cumplimiento y detectar oportunidades de mejora.',
+            'color' => '#388E3C',
+            'icon' => 'phosphor-magnifying-glass',
+        ],
+        // Semana 7
+        [
+            'name' => 'Indicadores',
+            'description' => 'Definir indicadores clave de desempeño del servicio farmacéutico.',
+            'objective' => 'Medir eficacia, eficiencia y calidad.',
+            'color' => '#795548',
+            'icon' => 'phosphor-chart-donut',
+        ],
         // Semana 1
         [
             'name' => 'Misión, visión y política',
@@ -23,38 +45,23 @@ return function ($baseDate = null) {
             'color' => '#4CAF50',
             'icon' => 'phosphor-strategy',
         ],
-        [
-            'name' => 'Clasificación de procesos',
-            'description' => 'Diferenciar procesos estratégicos, misionales y de soporte.',
-            'objective' => 'Elaborar el mapa general del servicio farmacéutico.',
-            'color' => '#4CAF50',
-            'icon' => 'phosphor-tree-structure',
-        ],
         // Semana 2
         [
-            'name' => 'Proveedores y compras',
+            'name' => 'Selección y adquisición -Proveedores y compras- ',
             'description' => 'Identificar criterios de selección y homologación de proveedores.',
             'objective' => 'Optimizar la adquisición de medicamentos e insumos.',
             'color' => '#2196F3',
             'icon' => 'phosphor-truck',
         ],
         [
-            'name' => 'Registros y riesgos en compras',
-            'description' => 'Registrar correctamente entradas y gestionar riesgos de abastecimiento.',
-            'objective' => 'Garantizar trazabilidad y seguridad del inventario entrante.',
+            'name' => 'Recepción y control -Registros y riesgos en compras-',
+            'description' => 'Registrar correctamente entradas y gestionar riesgos de abastecimiento. Aplicar protocolos de recepción y verificación documental.',
+            'objective' => 'Garantizar trazabilidad y seguridad del inventario entrante. Asegurar calidad y conformidad de productos recibidos.',
             'color' => '#2196F3',
             'icon' => 'phosphor-shopping-cart',
         ],
-        // Semana 3
         [
-            'name' => 'Recepción y control',
-            'description' => 'Aplicar protocolos de recepción y verificación documental.',
-            'objective' => 'Asegurar calidad y conformidad de productos recibidos.',
-            'color' => '#FFC107',
-            'icon' => 'phosphor-list-magnifying-glass',
-        ],
-        [
-            'name' => 'Almacenamiento y riesgos',
+            'name' => 'Almacenamiento -aliado de Dispensación-',
             'description' => 'Organizar productos según FEFO, FIFO, temperatura y humedad.',
             'objective' => 'Prevenir deterioros y pérdidas de inventario.',
             'color' => '#FFC107',
@@ -62,14 +69,14 @@ return function ($baseDate = null) {
         ],
         // Semana 4
         [
-            'name' => 'Dispensación básica',
+            'name' => 'Dispensación básica -riesgos-',
             'description' => 'Definir tipos de dispensación y requisitos normativos.',
             'objective' => 'Garantizar entrega segura y correcta de medicamentos.',
             'color' => '#9C27B0',
             'icon' => 'phosphor-hand-coins',
         ],
         [
-            'name' => 'Atención y satisfacción',
+            'name' => 'Atención y satisfacción -Promoción del uso racional de medicamentos-',
             'description' => 'Ofrecer orientación al paciente y medir satisfacción.',
             'objective' => 'Fomentar uso racional de medicamentos y fidelizar clientes.',
             'color' => '#9C27B0',
@@ -105,16 +112,8 @@ return function ($baseDate = null) {
             'color' => '#3F51B5',
             'icon' => 'phosphor-syringe',
         ],
-        // Semana 7
         [
-            'name' => 'Indicadores',
-            'description' => 'Definir indicadores clave de desempeño del servicio farmacéutico.',
-            'objective' => 'Medir eficacia, eficiencia y calidad.',
-            'color' => '#795548',
-            'icon' => 'phosphor-chart-donut',
-        ],
-        [
-            'name' => 'Seguimiento y mejora',
+            'name' => 'Seguimiento y mejora -Auditoría Interna o Autoinspección-',
             'description' => 'Analizar resultados y aplicar acciones correctivas.',
             'objective' => 'Lograr mejora continua del servicio.',
             'color' => '#795548',
@@ -127,13 +126,6 @@ return function ($baseDate = null) {
             'objective' => 'Integrar conocimientos adquiridos en un proyecto aplicado.',
             'color' => '#388E3C',
             'icon' => 'phosphor-user-focus',
-        ],
-        [
-            'name' => 'Auditoría interna',
-            'description' => 'Realizar auditoría simulada del servicio farmacéutico.',
-            'objective' => 'Evaluar cumplimiento y detectar oportunidades de mejora.',
-            'color' => '#388E3C',
-            'icon' => 'phosphor-magnifying-glass',
         ],
     ];
 

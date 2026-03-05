@@ -17,6 +17,8 @@ use App\Models\Setting;
 use App\Models\Team;
 use App\Models\TenantSetting;
 use App\Models\User;
+use Carbon\Carbon;
+use DateTimeInterface;
 use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -48,7 +50,7 @@ class TeamSetupService
         $this->populateIvcSectionsAndEntries($team);
         $this->createTenantSettingsFromConfig($team);
         $this->populateDocumentsFromConfig($team, $consultant);
-        $this->populateTrainingSchedule($team, $owner, $roleAdmin);
+        $this->populateSchedules($team, $owner, $roleAdmin);
         $this->enrollInitialCourse($team, $owner);
     }
 
@@ -288,36 +290,345 @@ class TeamSetupService
         }
     }
 
-    public function populateTrainingSchedule(Team $team, User $owner, Role $roleAdmin): void
+    public function populateSchedules(Team $team, User $owner, Role $roleAdmin): void
     {
-        $callable = config('training_schedule');
-        if (!is_callable($callable)) {
-            Log::warning("training_schedule config no es callable");
+        $this->populateTrainingSchedule($team, $owner, $roleAdmin);
+        $this->populateInternalAuditSchedule($team, $owner, $roleAdmin);
+        $this->populateCleaningSchedule($team, $owner, $roleAdmin);
+        $this->populateEquipmentCalibrationSchedule($team, $owner, $roleAdmin);
+    }
+
+    public function populateInternalAuditSchedule(Team $team, User $owner, Role $roleAdmin): void
+    {
+        $payload = $this->resolveSchedulePayload('internal_audit_schedule', [
+            'sections' => config('minutes-ivc-sections', []),
+        ]);
+
+        if ($payload === null) {
             return;
         }
 
-        $items = $callable(now());
-        foreach ($items as $item) {
-            $schedule = Schedule::create(array_merge($item, [
-                'team_id' => $team->id,
-                'user_id' => $owner->id,
-            ]));
+        $this->persistSchedulePayload($team, $owner, $roleAdmin, $payload, 'internal_audit_schedule');
+    }
 
-            Event::create([
-                'team_id' => $team->id,
-                'user_id' => $owner->id,
-                'role_id' => $roleAdmin->id,
-                'schedule_id' => $schedule->id,
-                'title' => $schedule->name,
-                'description' => $schedule->description,
-                'type' => 'task',
-                'start_date' => $schedule->starts_at,
-                'end_date' => $schedule->ends_at,
-                'has_time' => false,
-                'start_time' => null,
-                'end_time' => null,
-            ]);
+    public function populateCleaningSchedule(Team $team, User $owner, Role $roleAdmin): void
+    {
+        $payload = $this->resolveSchedulePayload('cleaning_schedule');
+
+        if ($payload === null) {
+            return;
         }
+
+        $this->persistSchedulePayload($team, $owner, $roleAdmin, $payload, 'cleaning_schedule');
+    }
+
+    public function populateEquipmentCalibrationSchedule(Team $team, User $owner, Role $roleAdmin): void
+    {
+        $payload = $this->resolveSchedulePayload('equipment_calibration_schedule');
+
+        if ($payload === null) {
+            return;
+        }
+
+        $this->persistSchedulePayload($team, $owner, $roleAdmin, $payload, 'equipment_calibration_schedule');
+    }
+
+    public function populateTrainingSchedule(Team $team, User $owner, Role $roleAdmin): void
+    {
+        $payload = $this->resolveSchedulePayload('training_schedule');
+
+        if ($payload === null) {
+            return;
+        }
+
+        $this->persistSchedulePayload($team, $owner, $roleAdmin, $payload, 'training_schedule');
+    }
+
+    private function resolveSchedulePayload(string $configKey, array $context = []): ?array
+    {
+        $builder = config($configKey);
+
+        if (! is_callable($builder)) {
+            Log::warning("{$configKey} config no es callable");
+            return null;
+        }
+
+        $payload = $builder(now(), $context);
+        if (! is_array($payload)) {
+            Log::warning("{$configKey} config debe retornar array");
+            return null;
+        }
+
+        // Compatibilidad con training_schedule legado (lista de sesiones).
+        if (
+            $configKey === 'training_schedule'
+            && ! array_key_exists('schedule', $payload)
+            && ! array_key_exists('events', $payload)
+        ) {
+            $payload = $this->buildTrainingPayloadFromLegacyItems($payload);
+        }
+
+        $schedule = $payload['schedule'] ?? null;
+        $events = $payload['events'] ?? null;
+
+        if (! is_array($schedule) || ! is_array($events)) {
+            Log::warning("{$configKey} config debe retornar ['schedule' => [], 'events' => []]");
+            return null;
+        }
+
+        return [
+            'schedule' => $schedule,
+            'events' => $events,
+        ];
+    }
+
+    private function buildTrainingPayloadFromLegacyItems(array $items): array
+    {
+        $events = [];
+        $minStart = null;
+        $maxEnd = null;
+        $scheduleColor = '#4CAF50';
+        $scheduleIcon = 'phosphor-graduation-cap';
+
+        foreach ($items as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+
+            $title = trim((string) ($item['name'] ?? ''));
+            $startAt = $this->parseDateTime($item['starts_at'] ?? null);
+            $endAt = $this->parseDateTime($item['ends_at'] ?? null);
+
+            if ($title === '' || $startAt === null || $endAt === null) {
+                continue;
+            }
+
+            $scheduleColor = $this->normalizeColor($item['color'] ?? $scheduleColor);
+            $scheduleIcon = is_string($item['icon'] ?? null) && trim((string) $item['icon']) !== ''
+                ? trim((string) $item['icon'])
+                : $scheduleIcon;
+
+            $minStart = $minStart === null || $startAt->lt($minStart) ? $startAt->copy() : $minStart;
+            $maxEnd = $maxEnd === null || $endAt->gt($maxEnd) ? $endAt->copy() : $maxEnd;
+
+            $descriptionParts = [];
+            if (is_string($item['description'] ?? null) && trim((string) $item['description']) !== '') {
+                $descriptionParts[] = trim((string) $item['description']);
+            }
+            if (is_string($item['objective'] ?? null) && trim((string) $item['objective']) !== '') {
+                $descriptionParts[] = 'Objetivo: ' . trim((string) $item['objective']);
+            }
+
+            $events[] = [
+                'title' => $title,
+                'description' => implode(' ', $descriptionParts),
+                'type' => 'task',
+                'start_date' => $startAt->toDateString(),
+                'end_date' => $endAt->toDateString(),
+                'has_time' => true,
+                'start_time' => $startAt->format('H:i:s'),
+                'end_time' => $endAt->format('H:i:s'),
+            ];
+        }
+
+        return [
+            'schedule' => [
+                'name' => 'Cronograma de capacitacion',
+                'description' => 'Cronograma de capacitaciones generado desde config.training_schedule.',
+                'objective' => 'Fortalecer competencias del equipo mediante sesiones programadas.',
+                'starts_at' => $minStart?->toDateTimeString(),
+                'ends_at' => $maxEnd?->toDateTimeString(),
+                'color' => $scheduleColor,
+                'icon' => $scheduleIcon,
+            ],
+            'events' => $events,
+        ];
+    }
+
+    private function persistSchedulePayload(
+        Team $team,
+        User $owner,
+        Role $roleAdmin,
+        array $payload,
+        string $configKey
+    ): void {
+        $scheduleData = is_array($payload['schedule'] ?? null) ? $payload['schedule'] : [];
+        $eventsData = is_array($payload['events'] ?? null) ? $payload['events'] : [];
+
+        $name = trim((string) ($scheduleData['name'] ?? ''));
+        if ($name === '') {
+            Log::warning("{$configKey}: schedule.name vacio, no se puede poblar");
+            return;
+        }
+
+        [$derivedStart, $derivedEnd] = $this->deriveScheduleRangeFromEvents($eventsData);
+        $startsAt = $this->parseDateTime($scheduleData['starts_at'] ?? null) ?? $derivedStart;
+        $endsAt = $this->parseDateTime($scheduleData['ends_at'] ?? null) ?? $derivedEnd;
+
+        $schedule = Schedule::updateOrCreate(
+            [
+                'team_id' => $team->id,
+                'name' => $name,
+            ],
+            [
+                'user_id' => $owner->id,
+                'description' => $scheduleData['description'] ?? null,
+                'objective' => $scheduleData['objective'] ?? null,
+                'starts_at' => $startsAt,
+                'ends_at' => $endsAt,
+                'color' => $this->normalizeColor($scheduleData['color'] ?? null),
+                'icon' => is_string($scheduleData['icon'] ?? null) ? trim((string) $scheduleData['icon']) : null,
+            ]
+        );
+
+        $keptEventIds = [];
+
+        foreach ($eventsData as $eventData) {
+            if (! is_array($eventData)) {
+                continue;
+            }
+
+            $title = trim((string) ($eventData['title'] ?? ''));
+            if ($title === '') {
+                continue;
+            }
+
+            $startDate = $this->parseDate($eventData['start_date'] ?? null);
+            if ($startDate === null) {
+                Log::warning("{$configKey}: evento omitido por start_date invalido", [
+                    'title' => $title,
+                    'raw_start_date' => $eventData['start_date'] ?? null,
+                ]);
+                continue;
+            }
+
+            $endDate = $this->parseDate($eventData['end_date'] ?? null) ?? $startDate;
+            $type = in_array(($eventData['type'] ?? 'task'), ['event', 'task', 'milestone'], true)
+                ? (string) $eventData['type']
+                : 'task';
+
+            $hasTime = filter_var($eventData['has_time'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            $startTime = $hasTime ? $this->parseTime($eventData['start_time'] ?? null) : null;
+            $endTime = $hasTime ? $this->parseTime($eventData['end_time'] ?? null) : null;
+
+            $event = Event::updateOrCreate(
+                [
+                    'team_id' => $team->id,
+                    'schedule_id' => $schedule->id,
+                    'title' => $title,
+                    'start_date' => $startDate,
+                    'end_date' => $endDate,
+                ],
+                [
+                    'user_id' => $owner->id,
+                    'role_id' => $roleAdmin->id,
+                    'description' => $eventData['description'] ?? ($scheduleData['description'] ?? null),
+                    'type' => $type,
+                    'has_time' => $hasTime,
+                    'start_time' => $startTime,
+                    'end_time' => $endTime,
+                ]
+            );
+
+            $keptEventIds[] = $event->id;
+        }
+
+        if (empty($keptEventIds)) {
+            $schedule->events()->where('team_id', $team->id)->delete();
+            return;
+        }
+
+        $schedule->events()
+            ->where('team_id', $team->id)
+            ->whereNotIn('id', $keptEventIds)
+            ->delete();
+    }
+
+    private function deriveScheduleRangeFromEvents(array $eventsData): array
+    {
+        $minDate = null;
+        $maxDate = null;
+
+        foreach ($eventsData as $eventData) {
+            if (! is_array($eventData)) {
+                continue;
+            }
+
+            $startDate = $this->parseDate($eventData['start_date'] ?? null);
+            $endDate = $this->parseDate($eventData['end_date'] ?? null) ?? $startDate;
+
+            if ($startDate === null || $endDate === null) {
+                continue;
+            }
+
+            $start = Carbon::parse($startDate)->startOfDay();
+            $end = Carbon::parse($endDate)->endOfDay();
+
+            $minDate = $minDate === null || $start->lt($minDate) ? $start : $minDate;
+            $maxDate = $maxDate === null || $end->gt($maxDate) ? $end : $maxDate;
+        }
+
+        return [$minDate, $maxDate];
+    }
+
+    private function parseDate(mixed $value): ?string
+    {
+        if ($value instanceof DateTimeInterface) {
+            return Carbon::instance($value)->toDateString();
+        }
+
+        if (is_string($value) && trim($value) !== '') {
+            try {
+                return Carbon::parse($value)->toDateString();
+            } catch (\Throwable) {
+                return null;
+            }
+        }
+
+        return null;
+    }
+
+    private function parseDateTime(mixed $value): ?Carbon
+    {
+        if ($value instanceof DateTimeInterface) {
+            return Carbon::instance($value);
+        }
+
+        if (is_string($value) && trim($value) !== '') {
+            try {
+                return Carbon::parse($value);
+            } catch (\Throwable) {
+                return null;
+            }
+        }
+
+        return null;
+    }
+
+    private function parseTime(mixed $value): ?string
+    {
+        if ($value instanceof DateTimeInterface) {
+            return Carbon::instance($value)->format('H:i:s');
+        }
+
+        if (is_string($value) && trim($value) !== '') {
+            try {
+                return Carbon::parse($value)->format('H:i:s');
+            } catch (\Throwable) {
+                return null;
+            }
+        }
+
+        return null;
+    }
+
+    private function normalizeColor(mixed $color): string
+    {
+        if (is_string($color) && preg_match('/^#[0-9A-Fa-f]{6}$/', $color) === 1) {
+            return strtoupper($color);
+        }
+
+        return '#0F766E';
     }
 
     public function enrollInitialCourse(Team $team, User $owner): void

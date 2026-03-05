@@ -54,7 +54,7 @@ class DocumentController extends Controller
                 })
                 ->first();
 
-            $preparerRoleName = $preparerRole->name;
+            $preparerRoleName = $preparerRole?->name ?? 'Consultor';
         }
 
         // 2) Si no hay reviewer, defines un texto y saltas la parte de roles
@@ -76,7 +76,7 @@ class DocumentController extends Controller
                 })
                 ->first();
 
-            $reviewerRoleName = $reviewerRole->name;
+            $reviewerRoleName = $reviewerRole?->name ?? '-';
         }
 
         // 2) Si no hay reviewer, defines un texto y saltas la parte de roles
@@ -98,7 +98,7 @@ class DocumentController extends Controller
                 })
                 ->first();
 
-            $preparerRoleName = $approverRole->name;
+            $approverRoleName = $approverRole?->name ?? '-';
         }
 
         // (4) Entregar al usuario
