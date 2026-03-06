@@ -11,12 +11,17 @@ use App\Models\Process;
 use App\Models\ProcessType;
 use App\Models\Quality\DocumentVersion;
 use Filament\Facades\Filament;
+use Illuminate\Support\Facades\Auth;
 
 class DocumentController extends Controller
 {
     public function documentDetails(Request $request, \App\Models\Team $tenant, Document $document)
     {
         //dd($tenant, $document);
+
+        if ((int) $document->team_id !== (int) $tenant->id) {
+            abort(404);
+        }
 
         // (1) Asegurar contexto tenant
         Filament::setTenant($tenant);
@@ -25,6 +30,13 @@ class DocumentController extends Controller
         // (2) Fijar también el contexto para Spatie Permissions
         app(\Spatie\Permission\PermissionRegistrar::class)
             ->setPermissionsTeamId($tenantId);
+
+        $user = Auth::user();
+        $canSeeUnapproved = $user?->can('edit-document') ?? false;
+
+        if (! $document->isApproved() && ! $canSeeUnapproved) {
+            abort(403, 'Documento no aprobado para uso operativo.');
+        }
 
         $versions = DocumentVersion::with('user')             // para acceder a quien hizo el cambio
             ->where('document_id', $document->id)             // filtra solo las de este documento

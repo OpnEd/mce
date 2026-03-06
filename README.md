@@ -154,3 +154,53 @@ En [web.php](C:\Users\PAOLA\Herd\d-origin2.0.0\routes\web.php:72):
 Al abrirla, entra a [DocumentController.php](C:\Users\PAOLA\Herd\d-origin2.0.0\app\Http\Controllers\Quality\DocumentController.php:17) y termina haciendo `stream(...)` del PDF en [DocumentController.php](C:\Users\PAOLA\Herd\d-origin2.0.0\app\Http\Controllers\Quality\DocumentController.php:161).
 
 Si el slug `procedimiento-de-recepcion-tecnica` no existe en `documents`, Laravel responde 404 por el route model binding `{document:slug}`.
+
+## Flujo documental implementado (Preparación -> Revisión -> Aprobación)
+
+Se implementó un flujo de control documental usando la estructura existente (`prepared_by`, `reviewed_by`, `approved_by`) para impedir el uso operativo de documentos no aprobados/obsoletos.
+
+### 1) Estado del documento (derivado)
+
+En el modelo `Document` se agregaron estados derivados:
+- `preparation`: cuando no tiene `reviewed_by` ni `approved_by`.
+- `review`: cuando tiene `reviewed_by` y no `approved_by`.
+- `approved`: cuando tiene `approved_by`.
+
+También se agregaron helpers:
+- `isInPreparation()`
+- `isInReview()`
+- `isApproved()`
+
+### 2) Transiciones en Filament (DocumentResource)
+
+En la tabla de documentos se agregó columna de estado y acciones:
+- `Enviar a revisión`
+- `Marcar revisión`
+- `Aprobar`
+- `Regresar a preparación`
+
+Reglas de separación de funciones aplicadas:
+- Revisor distinto del elaborador.
+- Aprobador distinto del elaborador y del revisor.
+- No se permite aprobar si falta elaboración o revisión.
+
+### 3) Reaprobación obligatoria ante cambios
+
+En `EditDocument`, si un documento ya aprobado cambia en campos de contenido (título, proceso, categoría, objetivo, alcance, referencias, términos, responsabilidades, registros, procedimiento, anexos, data, etc.), se reinicia automáticamente el ciclo:
+- `prepared_by = usuario actual`
+- `reviewed_by = null`
+- `approved_by = null`
+
+Esto evita que una versión modificada siga apareciendo como aprobada.
+
+### 4) Bloqueo de uso operativo de no aprobados
+
+En `DocumentController@documentDetails`:
+- Se valida que el documento pertenezca al tenant de la ruta.
+- Si el documento no está aprobado, se bloquea su visualización para operación (`403`), excepto usuarios con permiso `edit-document`.
+
+Con esto, los enlaces operativos (como `document.details`) solo exponen documentos aprobados para uso general.
+
+### 5) Auditoría de cambios
+
+`DocumentObserver` sigue registrando cambios en `document_versions`. Se corrigió un detalle para evitar uso de variable no definida en `comment`.

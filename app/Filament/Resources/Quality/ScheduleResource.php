@@ -6,7 +6,9 @@ use App\Filament\Resources\Quality\ScheduleResource\Pages;
 use App\Filament\Resources\Quality\ScheduleResource\RelationManagers;
 use App\Models\Schedule;
 use Filament\Forms;
+use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Form;
+use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Enums\ActionsPosition;
@@ -27,40 +29,53 @@ class ScheduleResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')
-                    ->label('Nombre')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('description')
-                    ->label('Descripción')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('objective')
-                    ->label('Objetivo')
-                    ->required(),
-                Forms\Components\DatePicker::make('starts_at')
-                    ->label('Fecha de inicio')
-                    ->required(),
-                Forms\Components\DatePicker::make('ends_at')
-                    ->label('Fecha de finalización')
-                    ->required(),
-                Forms\Components\ColorPicker::make('color')
-                    ->default('#000000')
-                    ->required(),
-                Forms\Components\TextInput::make('icon')
-                    ->label('Icono'),
-                Forms\Components\Checkbox::make('is_cancelled')
-                    ->label('Cancelado')
-                    ->default(false),
-                Forms\Components\Checkbox::make('is_rescheduled')
-                    ->label('Reprogramado')
-                    ->default(false),
-                Forms\Components\Checkbox::make('is_completed')
-                    ->label('Completado')
-                    ->default(false),
-                Forms\Components\Checkbox::make('is_in_progress')
-                    ->label('En progreso')
-                    ->default(true),
+                Fieldset::make('')
+                    ->schema([
+                        Forms\Components\TextInput::make('name')
+                            ->label('Nombre')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('objective')
+                            ->label('Objetivo')
+                            ->required(),
+                        Forms\Components\Textarea::make('description')
+                            ->label('Descripción')
+                            ->required()
+                            ->maxLength(255)
+                            ->columnSpanFull(),
+                    ]),
+                Fieldset::make('Fechas')
+                    ->schema([
+                        Forms\Components\DatePicker::make('starts_at')
+                            ->label('Fecha de inicio')
+                            ->required(),
+                        Forms\Components\DatePicker::make('ends_at')
+                            ->label('Fecha de finalización')
+                            ->required(),
+                    ]),
+                Fieldset::make('')
+                    ->schema([
+                        Forms\Components\ColorPicker::make('color')
+                            ->default('#000000')
+                            ->required(),
+                        Forms\Components\TextInput::make('icon')
+                            ->label('Icono'),
+                    ]),
+                Fieldset::make('Estado del cronograma')
+                    ->schema([
+                        Forms\Components\Checkbox::make('is_cancelled')
+                            ->label('Cancelado')
+                            ->default(false),
+                        Forms\Components\Checkbox::make('is_rescheduled')
+                            ->label('Reprogramado')
+                            ->default(false),
+                        Forms\Components\Checkbox::make('is_completed')
+                            ->label('Completado')
+                            ->default(false),
+                        Forms\Components\Checkbox::make('is_in_progress')
+                            ->label('En progreso')
+                            ->default(true),
+                    ]),
             ])->columns(2);
     }
 
@@ -112,7 +127,7 @@ class ScheduleResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\EventsRelationManager::class,
         ];
     }
 

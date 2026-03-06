@@ -9,10 +9,18 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Symfony\Component\HtmlSanitizer\HtmlSanitizer;
+use Symfony\Component\HtmlSanitizer\HtmlSanitizerConfig;
 
 class Document extends Model
 {
     use HasFactory, SoftDeletes;
+
+    public const STATUS_PREPARATION = 'preparation';
+    public const STATUS_REVIEW = 'review';
+    public const STATUS_APPROVED = 'approved';
+
+    protected static ?HtmlSanitizer $richTextSanitizer = null;
 
     protected $fillable = [
         'team_id',
@@ -123,5 +131,64 @@ class Document extends Model
     public function team(): BelongsTo
     {
         return $this->belongsTo(Team::class);
+    }
+
+    public function setScopeAttribute(?string $value): void
+    {
+        $this->attributes['scope'] = self::sanitizeRichText($value);
+    }
+
+    public static function sanitizeRichText(?string $value): string
+    {
+        if (! is_string($value) || trim($value) === '') {
+            return '';
+        }
+
+        return self::getRichTextSanitizer()->sanitize($value);
+    }
+
+    protected static function getRichTextSanitizer(): HtmlSanitizer
+    {
+        if (self::$richTextSanitizer !== null) {
+            return self::$richTextSanitizer;
+        }
+
+        $config = (new HtmlSanitizerConfig())
+            ->allowSafeElements()
+            ->allowRelativeLinks();
+
+        self::$richTextSanitizer = new HtmlSanitizer($config);
+
+        return self::$richTextSanitizer;
+    }
+
+    public function getWorkflowStatusAttribute(): string
+    {
+        $submittedForReviewAt = data_get($this->data ?? [], 'submitted_for_review_at');
+
+        if (! empty($this->approved_by)) {
+            return self::STATUS_APPROVED;
+        }
+
+        if (! empty($this->reviewed_by) || ! empty($submittedForReviewAt)) {
+            return self::STATUS_REVIEW;
+        }
+
+        return self::STATUS_PREPARATION;
+    }
+
+    public function isInPreparation(): bool
+    {
+        return $this->workflow_status === self::STATUS_PREPARATION;
+    }
+
+    public function isInReview(): bool
+    {
+        return $this->workflow_status === self::STATUS_REVIEW;
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->workflow_status === self::STATUS_APPROVED;
     }
 }

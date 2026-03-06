@@ -32,7 +32,7 @@ class DocumentObserver
                 'document_id' => $doc->id,
                 'user_id'     => Auth::id(),
                 'changes'     => $changes,
-                'comment'     => $comment ?? null,
+                'comment'     => null,
             ]);
         }
     }

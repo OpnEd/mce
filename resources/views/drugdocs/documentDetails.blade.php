@@ -141,7 +141,7 @@
             <h2>1. Objetivo</h2>
             <p>{{ $document->objective }}</p>
             <h2>2. Alcance</h2>
-            <p>{{ $document->scope }}</p>
+            {!! $document->scope !!}
             <h2>3. Rererencias Normativas</h2>
             <ul>
                 @foreach ($document->references as $ref)
