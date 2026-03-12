@@ -24,12 +24,6 @@ class ManagementIndicatorTeam extends Pivot
         'indicator_goal' => 'decimal:2',
     ];
 
-    public function managementIndicator(): BelongsTo
-    {
-        return $this->belongsTo(ManagementIndicator::class);
-    }
-
-
     /**
      * Relación al Role desde el pivote.
      */
@@ -37,11 +31,4 @@ class ManagementIndicatorTeam extends Pivot
     {
         return $this->belongsTo(Role::class);
     }
-
-    public function team(): BelongsTo
-    {
-        return $this->belongsTo(Team::class);
-    }
-
-
 }

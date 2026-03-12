@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\QualityGoal;
+use App\Models\Quality\QualityGoal;
 use App\Models\Role;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;

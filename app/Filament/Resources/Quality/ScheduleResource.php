@@ -20,10 +20,11 @@ class ScheduleResource extends Resource
 {
     protected static ?string $model = Schedule::class;
 
-    protected static ?string $navigationGroup = 'Universidad';
+    protected static ?string $navigationGroup = 'Plataforma Estratégica';
     protected static ?string $pluralModelLabel = 'Cronogramas';
-    protected static ?string $modelLabel = "Cronograma";
-
+    protected static ?string $modelLabel = 'Cronograma';
+    protected static ?string $slug = 'cronogramas';
+    protected static ?string $recordTitleAttribute = 'name';
 
     public static function form(Form $form): Form
     {

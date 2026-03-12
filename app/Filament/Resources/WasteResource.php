@@ -35,6 +35,8 @@ class WasteResource extends Resource
     protected static ?string $recordTitleAttribute = 'reciclable';
     protected static ?string $tenantOwnershipRelationshipName = 'team';
     protected static ?string $tenantRelationshipName = 'wastes';
+    protected static ?string $pluralModelLabel = 'Residuos';
+    protected static ?string $modelLabel = 'Residuos';
 
     public static function form(Form $form): Form
     {

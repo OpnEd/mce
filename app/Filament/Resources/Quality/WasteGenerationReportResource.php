@@ -21,12 +21,12 @@ use Illuminate\Database\Eloquent\Model;
 class WasteGenerationReportResource extends Resource
 {
     protected static ?string $model = WasteGenerationReport::class;
-
-    protected static ?string $navigationLabel = 'Informes de Residuos';
-    protected static ?string $modelLabel = 'Informe';
-    protected static ?string $pluralModelLabel = 'Informes';
-    //protected static ?int $navigationSort = 3;
-    protected static ?string $navigationGroup = 'Informes';
+    
+    protected static ?string $modelLabel = 'Informe de residuos';
+    protected static ?string $pluralModelLabel = 'Informes de Residuos';
+    protected static ?int $navigationSort = 3;
+    protected static ?string $navigationGroup = 'Plataforma Estratégica';
+    protected static ?string $slug = 'informe-generacion-residuos';
 
     public static function form(Form $form): Form
     {

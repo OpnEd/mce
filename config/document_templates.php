@@ -281,7 +281,7 @@ return [
     //Procedimiento de Gestion Documental
     [
       'title'         => 'Procedimiento de Gestion Documental',
-      'process_id'    => 'D-PG',
+      'process_id'    => 'A-GC',
       'document_category_id' => 'PR',
       'objective'     => 'Establecer los controles para elaborar, revisar, aprobar, publicar, actualizar y retirar documentos del Sistema de Gestion de la Calidad, evitando el uso de versiones obsoletas o no aprobadas.',
       'scope'         => 'Aplica a todos los documentos internos y externos que soportan los procesos del establecimiento farmaceutico: procedimientos, formatos, instructivos, guias, listados maestros y anexos.',
@@ -810,7 +810,7 @@ return [
     //Procedimiento para Planes de Mejora
     [
       'title'         => 'Procedimiento para Planes de Mejora',
-      'process_id'    => 'D-PG',
+      'process_id'    => 'E-RS',
       'document_category_id' => 'PR',
       'objective'     => 'Definir la metodologia para formular, ejecutar y verificar planes de mejora derivados de auditorias internas, visitas de la autoridad sanitaria, quejas, indicadores y analisis de riesgos.',
       'scope'         => 'Aplica a todos los hallazgos y oportunidades de mejora identificados en procesos asistenciales, administrativos y de soporte del establecimiento.',

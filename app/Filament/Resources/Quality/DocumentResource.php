@@ -29,10 +29,12 @@ class DocumentResource extends Resource
     protected static ?string $model = Document::class;
 
     protected static ?int $navigationSort = 15;
-    protected static ?string $navigationGroup = 'Configuración de plataforma';
-    protected static ?string $navigationLabel = 'Gestión de Documental';
+    protected static ?string $navigationGroup = 'Plataforma Estratégica';
+    protected static ?string $navigationLabel = 'Procesos y procedimientos';
     protected static ?string $pluralModelLabel = 'Documentos';
     protected static ?string $modelLabel = 'Documento';
+    protected static ?string $recordTitleAttribute = 'title';
+    protected static ?string $slug = 'documentacion-sistema-de-gestion';
 
     public static function form(Form $form): Form
     {

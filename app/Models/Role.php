@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Quality\ManagementIndicatorTeam;
 use App\Models\Scopes\TeamScope;
 use App\Traits\FilterByTeam;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -28,8 +29,8 @@ class Role extends SpatieRole
         return $this->belongsTo(Team::class);
     }
 
-    public function managementIndicators(): HasMany
+    public function managementIndicatorTeams(): HasMany
     {
-        return $this->hasMany(ManagementIndicator::class);
+        return $this->hasMany(ManagementIndicatorTeam::class);
     }
 }

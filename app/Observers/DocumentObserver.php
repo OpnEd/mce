@@ -6,20 +6,42 @@ namespace App\Observers;
 use App\Models\Document;
 use App\Models\Quality\DocumentVersion;
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 
 class DocumentObserver
 {
     public function updating(Document $doc)
     {
-        $dirty = $doc->getDirty();           // campos modificados
-        $original = $doc->getOriginal();     // valores antiguos
+        $dirty    = $doc->getDirty();
+        $original = $doc->getOriginal(); // valores antes del cambio [web:8]
 
         $changes = [];
+
+        $userFields = ['prepared_by', 'reviewed_by', 'approved_by'];
+
         foreach ($dirty as $field => $new) {
-            // opcional: omitir campos irrelevantes como timestamps
+            // omitir campos irrelevantes
             if (in_array($field, ['updated_at'])) {
                 continue;
             }
+
+            // Si es uno de los campos de usuario, mapeamos ID -> nombre
+            if (in_array($field, $userFields)) {
+                $oldId = $original[$field] ?? null;
+                $newId = $new;
+
+                $oldUserName = $oldId ? optional(User::find($oldId))->name : null;
+                $newUserName = $newId ? optional(User::find($newId))->name : null;
+
+                $changes[$field] = [
+                    'old' => $oldUserName,
+                    'new' => $newUserName,
+                ];
+
+                continue;
+            }
+
+            // Resto de campos se guardan tal cual
             $changes[$field] = [
                 'old' => $original[$field] ?? null,
                 'new' => $new,

@@ -5,9 +5,12 @@ namespace App\Models\Quality;
 use App\Models\Document;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class DocumentVersion extends Model
 {
+    use SoftDeletes;
+    
     protected $fillable = [
         'team_id',
         'document_id',

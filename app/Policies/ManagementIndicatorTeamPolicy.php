@@ -16,7 +16,8 @@ class ManagementIndicatorTeamPolicy
      */
     public function viewAny(User $user): bool
     {
-        return CanViewAnyHelper::canViewAny($user, 'view-management-indicator-teams');
+        //return true;
+        return CanViewAnyHelper::canViewAny($user, 'view-management-indicator-team');
     }
 
     /**
@@ -24,7 +25,8 @@ class ManagementIndicatorTeamPolicy
      */
     public function view(User $user, ManagementIndicatorTeam $model): bool
     {
-        return CanViewHelper::canView($user, $model, 'view-management-indicator-teams');
+        //return true;
+        return CanViewHelper::canView($user, $model, 'view-management-indicator-team');
     }
 
     /**
@@ -40,7 +42,8 @@ class ManagementIndicatorTeamPolicy
      */
     public function update(User $user, ManagementIndicatorTeam $model): bool
     {
-        return CanUpdateHelper::canUpdate($user, $model, 'update-management-indicator-teams');
+        //return false;
+        return CanUpdateHelper::canUpdate($user, $model, 'edit-management-indicator-team');
     }
 
     /**

@@ -7,6 +7,9 @@ use App\Models\Api\ExternalOrderTeamCandidate;
 use App\Models\Residuo;
 use App\Models\Quality\WasteGenerationReport;
 use App\Models\Quality\ManagementIndicatorTeam;
+use App\Models\Quality\ProcessTeam;
+use App\Models\Quality\QualityGoal;
+use App\Models\Quality\QualityGoalTeam;
 use App\Models\Quality\Records\Cleaning\StablishmentArea;
 use App\Models\Quality\Records\Cleaning\CleaningImplement;
 use App\Models\Quality\Records\Cleaning\CleaningRecord;
@@ -192,7 +195,7 @@ class Team extends Model
     {
         return $this->hasMany(Permission::class);
     }
-
+    
     public function processes(): HasMany
     {
         return $this->hasMany(Process::class);
@@ -212,6 +215,12 @@ class Team extends Model
     {
         return $this->hasMany(Purchase::class);
     }
+    
+    public function qualityGoals(): HasMany
+    {
+        return $this->hasMany(QualityGoal::class);
+    }
+
 
     public function questions(): HasMany
     {

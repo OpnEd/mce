@@ -107,7 +107,7 @@ class AdminPanelProvider extends PanelProvider
                     ->label('Registros Diarios')
                     ->icon('phosphor-thermometer-hot'),
                 NavigationGroup::make()
-                    ->label('Informes')
+                    ->label('Plataforma Estratégica')
                     ->icon('heroicon-o-document-chart-bar'),
                 NavigationGroup::make()
                     ->label('Universidad')

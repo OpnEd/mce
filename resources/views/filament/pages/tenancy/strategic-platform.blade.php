@@ -48,14 +48,9 @@
                     <dl class="mt-3 space-y-3">
                         @foreach($quality_objectives as $key => $obj)
                             <div class="p-3 bg-white border rounded shadow-sm">
-                                <dt class="text-sm font-medium">{{ $key }}</dt>
-                                <dd>
-                                    <div class="font-medium text-gray-700">
-                                        {{ is_array($obj) ? ($obj['title'] ?? json_encode($obj)) : $obj }}
-                                    </div>
-                                    @if(is_array($obj) && isset($obj['target']))
-                                        <div class="text-xs text-gray-500">Meta: {{ $obj['target'] }}</div>
-                                    @endif
+                                <dt class="text-sm font-medium text-gray-700">{{ $key }}</dt>
+                                <dd class="text-sm text-gray-600">
+                                        {{ is_array($obj) ? ($obj['description'] ?? json_encode($obj)) : $obj }}
                                 </dd>
                             </div>
                         @endforeach
@@ -75,9 +70,6 @@
                                 <dd>
                                     <div class="flex items-center justify-between">
                                         <div>
-                                            <div class="text-sm font-medium">
-                                                {{ is_array($ind) ? ($ind['name'] ?? json_encode($ind)) : $ind }}
-                                            </div>
                                             @if(is_array($ind) && isset($ind['definition']))
                                                 <div class="text-xs text-gray-500">{{ $ind['definition'] }}</div>
                                             @endif

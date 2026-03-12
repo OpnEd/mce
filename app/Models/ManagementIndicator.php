@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Quality\ManagementIndicatorTeam;
+use App\Models\Quality\QualityGoal;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Model;
@@ -15,13 +16,11 @@ class ManagementIndicator extends Model
         'name',
         'objective',
         'type',
-        'periodicity',
         'description',
         'information_source',
         'numerator',
         'denominator',
         'denominator_description',
-        'indicator_goal'
     ];
 
     public function qualityGoal(): BelongsTo

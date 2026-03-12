@@ -20,6 +20,7 @@ use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Collection;
 use Filament\Forms\Components\KeyValue;
+use Filament\Forms\Components\Textarea;
 
 class Setting extends Page implements HasForms
 {
@@ -28,6 +29,8 @@ class Setting extends Page implements HasForms
     protected static ?string $navigationGroup = 'Configuración de plataforma';
     //protected static ?string $navigationIcon = 'phosphor-faders';
     protected static ?string $navigationLabel = 'Plataforma Estratégica';
+    protected static ?string $title = 'Plataforma Estratégica';
+    protected static ?string $slug = 'plataforma-estrategica';
 
     public ?array $data = [];
 
@@ -115,11 +118,18 @@ class Setting extends Page implements HasForms
                     return $setting->attributes['options'];
                 }),
 
-            "file" => FileUpload::make($name)
+            'file' => FileUpload::make($name)
                 ->label($label)
                 ->multiple(),
 
-            "repeater" => Repeater::make($name)
+            'repeater' => Repeater::make($name)
+                ->label($label)
+                ->schema([
+                    TextInput::make(''),
+                ])
+                ->columns(1),
+
+            'textarea' => Textarea::make($name)
                 ->label($label)
                 ->schema([
                     TextInput::make(''),
@@ -127,7 +137,7 @@ class Setting extends Page implements HasForms
                 ->columns(1),
 
 
-            "key-value" => KeyValue::make($name)
+            'key-value' => KeyValue::make($name)
                 ->label($label)
                 ->columnSpanFull(),
 

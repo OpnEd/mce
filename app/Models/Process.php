@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Quality\ProcessTeam;
+use App\Models\Quality\QualityGoal;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,13 +16,12 @@ class Process extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'team_id', //FK opcional para procesos específicos del inquilino (nullable si es un proceso general)
+        'team_id',
         'process_type_id',
         'records',
         'code',
         'name',
         'description',
-        //'role_id',
         'suppliers',
         'inputs',
         'procedures',
@@ -56,14 +57,14 @@ class Process extends Model
     {
         return $this->belongsToMany(Record::class);
     }
-
-    /* public function role(): BelongsTo
-    {
-        return $this->belongsTo(Role::class);
-    } */
-
-    public function team(): BelongsTo
+    
+    public function teams(): BelongsTo
     {
         return $this->belongsTo(Team::class);
+    }
+
+    public function qualityGoals(): HasMany
+    {
+        return $this->hasMany(QualityGoal::class);
     }
 }

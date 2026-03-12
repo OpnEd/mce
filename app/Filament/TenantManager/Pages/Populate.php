@@ -14,8 +14,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Arr;
 use DateTimeInterface;
 use Carbon\Carbon;
-
+use App\Models\Setting;
 use App\Models\Team;
+use App\Models\TenantSetting;
 use App\Models\ManagementIndicator;
 use App\Models\MinutesIvcSection;
 use App\Models\MinutesIvcSectionEntry;
@@ -71,6 +72,8 @@ class Populate extends Page implements HasForms
             'cleaning_schedule'                     => 'Cronograma de limpieza',
             'equipment_calibration_schedule'        => 'Cronograma de calibración de equipos',
             'internal_audit_schedule'               => 'Cronograma de Auditorías internas',
+            'ethical_values'                        => 'Valores',
+            'tenant_settings'                       => 'Misión, Visión, Política de Calidad',
             // agrega más según tus configs
         ];
     }
@@ -186,7 +189,7 @@ class Populate extends Page implements HasForms
             case 'minutes-ivc-sections':
                 $this->populateIvcSections($team);
                 break;
-                
+
             case 'minutes-ivc-second-section-entries':
             case 'minutes-ivc-third-section-entries':
             case 'minutes-ivc-fourth-section-entries':
@@ -201,6 +204,14 @@ class Populate extends Page implements HasForms
 
             case 'document_templates.default_docs':
                 $this->populateDocumentTemplates($team, $consultant);
+                break;
+
+            case 'ethical_values':
+                $this->populateValuesSetting($team);
+                break;
+
+            case 'tenant_settings':
+                $this->createTenantSettingsFromConfig($team);
                 break;
 
             case 'training_schedule':
@@ -225,7 +236,75 @@ class Populate extends Page implements HasForms
      * Implementaciones de poblamiento (ejemplos idempotentes).
      * Ajusta los campos según tus modelos reales.
      */
+    public function createTenantSettingsFromConfig(Team $team): void
+    {
+        $cfg = config('tenant_settings', []);
+        $mission = $cfg['mission'] ?? null;
+        $vision  = $cfg['vision'] ?? null;
+        $policy  = $cfg['quality_policy'] ?? [];
 
+        $policyText = $policy['statement'] ?? null;
+        $policyData = [
+            'objectives' => $policy['objectives'] ?? [],
+            'commitments' => $policy['commitments'] ?? [],
+        ];
+
+        $settingsByKey = Setting::pluck('id', 'key');
+
+        foreach ($settingsByKey as $settingKey => $settingId) {
+            switch ($settingKey) {
+                case 'Misión':
+                    $value = $mission;
+                    $data = null;
+                    break;
+                case 'Visión':
+                    $value = $vision;
+                    $data = null;
+                    break;
+                case 'Política de Calidad':
+                    $value = $policyText;
+                    $data = $policyData;
+                    break;
+                default:
+                    $value = null;
+                    $data = null;
+            }
+            TenantSetting::updateOrCreate(
+                ['team_id' => $team->id, 'setting_id' => $settingId],
+                ['value' => $value, 'data'  => $data, 'updated_at' => now()]
+            );
+        }
+    }
+    public function populateValuesSetting(Team $team): void
+    {
+        // Config con los valores tipo ["Transparencia" => "Llevamos...", ...]
+        $values = config('ethical_values', []);
+        if (!is_array($values) || empty($values)) {
+            return;
+        }
+
+        // Setting global para "Valores" en grupo "Plataforma Estratégica"
+        $setting = Setting::where('key', 'Valores')
+            ->where('group', 'Plataforma Estratégica')
+            ->first();
+
+        if (!$setting) {
+            Log::warning('Setting "Valores" no encontrado para Plataforma Estratégica');
+            return;
+        }
+
+        TenantSetting::updateOrCreate(
+            [
+                'team_id'    => $team->id,
+                'setting_id' => $setting->id,
+            ],
+            [
+                // se guarda como JSON y se castea a array en el modelo
+                'value' => $values,
+                'data'  => null,
+            ]
+        );
+    }
     protected function populateManagementIndicators(Team $team): void
     {
         $names = config('management-indicators', []);
@@ -288,7 +367,7 @@ class Populate extends Page implements HasForms
         $rawEntries = config($configKey, []);
         if (! is_array($rawEntries) || empty($rawEntries)) return;
         //dd($this->flattenMinutesIvcEntries($rawEntries));
-        
+
         $entries = $this->flattenMinutesIvcEntries($rawEntries);
         if (empty($entries)) return;
 
@@ -473,9 +552,9 @@ class Populate extends Page implements HasForms
         $existingSlugs = empty($templateSlugs)
             ? []
             : Document::where('team_id', $team->id)
-                ->whereIn('slug', $templateSlugs)
-                ->pluck('slug')
-                ->all();
+            ->whereIn('slug', $templateSlugs)
+            ->pluck('slug')
+            ->all();
         $existing = count($existingSlugs);
         $missingSlugs = array_values(array_diff($templateSlugs, $existingSlugs));
 

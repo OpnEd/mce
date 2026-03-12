@@ -39,11 +39,11 @@ class TeamSetupService
         app(PermissionRegistrar::class)->setPermissionsTeamId($team->id);
 
         $this->assignRoles(
-            $owner, 
+            $owner,
             //$consultant, 
-            $roleAdmin, 
+            $roleAdmin,
             //$roleConsultant
-            );
+        );
 
         $this->createPermissionsAndSyncRole($team, $roleAdmin);
         $this->populateManagementIndicators($team, $roleAdmin);
@@ -74,12 +74,11 @@ class TeamSetupService
     }
 
     private function assignRoles(
-        User $user, 
+        User $user,
         //?User $consultant, 
-        Role $adminRole, 
+        Role $adminRole,
         //?Role $consultantRole
-        ): void
-    {
+    ): void {
         $user->assignRole($adminRole);
         /* if ($consultant && $consultantRole) {
             $consultant->assignRole($consultantRole);
@@ -144,7 +143,7 @@ class TeamSetupService
 
         $teamSections = MinutesIvcSection::where('team_id', $team->id)
             ->get()
-            ->keyBy(fn (MinutesIvcSection $section): string => (string) $section->order);
+            ->keyBy(fn(MinutesIvcSection $section): string => (string) $section->order);
 
         foreach ($sectionConfigByOrder as $order => $configKey) {
             $section = $teamSections->get((string) $order);
@@ -235,14 +234,25 @@ class TeamSetupService
             'commitments' => $policy['commitments'] ?? [],
         ];
 
-        $allSettingIds = Setting::pluck('id');
+        $settingsByKey = Setting::pluck('id', 'key');
 
-        foreach ($allSettingIds as $settingId) {
-            switch ($settingId) {
-                case 1: $value = $mission; $data = null; break;
-                case 2: $value = $vision; $data = null; break;
-                case 3: $value = $policyText; $data = $policyData; break;
-                default: $value = null; $data = null;
+        foreach ($settingsByKey as $settingKey => $settingId) {
+            switch ($settingKey) {
+                case 'Misión':
+                    $value = $mission;
+                    $data = null;
+                    break;
+                case 'Visión':
+                    $value = $vision;
+                    $data = null;
+                    break;
+                case 'Política de Calidad':
+                    $value = $policyText;
+                    $data = $policyData;
+                    break;
+                default:
+                    $value = null;
+                    $data = null;
             }
             TenantSetting::updateOrCreate(
                 ['team_id' => $team->id, 'setting_id' => $settingId],
@@ -251,7 +261,39 @@ class TeamSetupService
         }
     }
 
-    public function populateDocumentsFromConfig(Team $team, ?User $consultant): void
+    public function populateValuesSetting(Team $team): void
+    {
+        // Config con los valores tipo ["Transparencia" => "Llevamos...", ...]
+        $values = config('ethical_values', []);
+        if (!is_array($values) || empty($values)) {
+            return;
+        }
+
+        // Setting global para "Valores" en grupo "Plataforma Estratégica"
+        $setting = Setting::where('key', 'Valores')
+            ->where('group', 'Plataforma Estratégica')
+            ->first();
+
+        if (!$setting) {
+            Log::warning('Setting "Valores" no encontrado para Plataforma Estratégica');
+            return;
+        }
+
+        TenantSetting::updateOrCreate(
+            [
+                'team_id'    => $team->id,
+                'setting_id' => $setting->id,
+            ],
+            [
+                // se guarda como JSON y se castea a array en el modelo
+                'value' => $values,
+                'data'  => null,
+            ]
+        );
+    }
+
+
+    /* public function populateDocumentsFromConfig(Team $team, ?User $consultant): void
     {
         $templates = config('document_templates.default_docs', []);
         if (!is_array($templates) || empty($templates)) return;
@@ -288,7 +330,60 @@ class TeamSetupService
                 ]
             );
         }
+    } */
+
+
+    public function populateDocumentsFromConfig(Team $team, ?User $consultant): void
+    {
+        $templates = config('document_templates.default_docs', []);
+        if (!is_array($templates) || empty($templates)) {
+            return;
+        }
+
+        // Mapear códigos -> ids para evitar N+1
+        $processMap  = Process::pluck('id', 'code');
+        $categoryMap = DocumentCategory::pluck('id', 'code');
+
+        foreach ($templates as $tpl) {
+            $processCode  = $tpl['process_id'] ?? null;              // idealmente process_code
+            $categoryCode = $tpl['document_category_id'] ?? null;    // idealmente document_category_code
+
+            $processId  = $processCode  ? ($processMap[$processCode]  ?? null) : null;
+            $categoryId = $categoryCode ? ($categoryMap[$categoryCode] ?? null) : null;
+
+            if (!$processId || !$categoryId) {
+                Log::warning('Plantilla de documento: tipo o proceso no hallado', $tpl);
+                continue;
+            }
+
+            Document::updateOrCreate(
+                [
+                    'team_id' => $team->id,
+                    'slug'    => $tpl['slug'],
+                ],
+                [
+                    'title'                => $tpl['title'] ?? null,
+                    'sequence'             => 0, // o calcula siguiente secuencia
+                    'process_id'           => $processId,
+                    'document_category_id' => $categoryId,
+                    'objective'            => $tpl['objective'] ?? null,
+                    'scope'                => $tpl['scope'] ?? null,
+                    'references'           => $tpl['references'] ?? [],
+                    'terms'                => $tpl['terms'] ?? [],
+                    'responsibilities'     => $tpl['responsibilities'] ?? [],
+                    'procedure'            => $tpl['procedure'] ?? [],
+                    'records'              => $tpl['records'] ?? [],
+                    'annexes'              => $tpl['annexes'] ?? [],
+                    'data'                 => $tpl['data'] ?? [],
+                    'prepared_by'          => $consultant?->id,
+                    // mejor dejar estos en null o resolverlos por otro mecanismo
+                    'reviewed_by'          => null,
+                    'approved_by'          => null,
+                ]
+            );
+        }
     }
+
 
     public function populateSchedules(Team $team, User $owner, Role $roleAdmin): void
     {

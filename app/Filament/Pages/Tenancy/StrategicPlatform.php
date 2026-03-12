@@ -13,11 +13,14 @@ class StrategicPlatform extends Page
 {
 
     protected static string $view = 'filament.pages.tenancy.strategic-platform';
-    protected static ?string $slug = 'plataforma-estrategica';
+    protected static ?string $slug = 'planeacion-estrategica';
+    protected static ?int $navigationSort = 1;
+    protected static ?string $navigationGroup = 'Plataforma Estratégica';
+    protected static ?string $navigationLabel = 'Misión, Visión...';
 
     public static function shouldRegisterNavigation(): bool
     {
-        return false;
+        return true;
     }
 
     public $tenant = null; // Team model (current tenant)
@@ -47,9 +50,12 @@ class StrategicPlatform extends Page
             'Misión',
             'Visión',
             'Política de Calidad',
+            'Logo',
+            'Código postal',
             'Valores',
-            'Objetivos de Calidad',
-            'Indicadores de gestión',
+            'Mapa de Procesos',
+            'Organigrama',
+            'Ventas a domicilio'
         ];
 
         // Cargar settings globales que definen las keys
@@ -106,13 +112,42 @@ class StrategicPlatform extends Page
                 case 'Valores':
                     $this->values = is_array($final) ? $final : ($final ? preg_split('/\r?\n|\,/', (string) $final) : []);
                     break;
-                case 'Objetivos de Calidad':
-                    $this->quality_objectives = is_array($final) ? $final : ($final ? preg_split('/\r?\n|\,/', (string) $final) : []);
-                    break;
-                case 'Indicadores de gestión':
-                    $this->management_indicators = is_array($final) ? $final : ($final ? preg_split('/\r?\n|\,/', (string) $final) : []);
-                    break;
             }
+        }
+
+        if ($this->tenant) {
+            $qualityGoals = $this->tenant->qualityGoals()->orderBy('name')->get();
+            $this->quality_objectives = $qualityGoals
+                ->mapWithKeys(function ($goal) {
+                    $name = is_string($goal->name) && trim($goal->name) !== ''
+                        ? trim($goal->name)
+                        : 'Objetivo ' . $goal->id;
+
+                    return [
+                        $name => [
+                            'title' => $goal->name ?? $name,
+                            'description' => $goal->description ?? null,
+                        ],
+                    ];
+                })
+                ->toArray();
+
+            $indicators = $this->tenant->managementIndicators()->orderBy('name')->get();
+            $this->management_indicators = $indicators
+                ->mapWithKeys(function ($indicator) {
+                    $name = is_string($indicator->name) && trim($indicator->name) !== ''
+                        ? trim($indicator->name)
+                        : 'Indicador ' . $indicator->id;
+
+                    return [
+                        $name => [
+                            'name' => $indicator->name ?? $name,
+                            'definition' => $indicator->description ?? null,
+                            'value' => $indicator->pivot?->indicator_goal,
+                        ],
+                    ];
+                })
+                ->toArray();
         }
     }
 
