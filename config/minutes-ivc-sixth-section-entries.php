@@ -36,7 +36,7 @@ return [
         'links' => [
             [
                 'key' => 'document.slug',
-                'value' => 'procedimiento-de-gestion-documental'
+                'value' => 'gestion-documental'
             ],
         ],
         'compliance' => true,
@@ -118,7 +118,7 @@ return [
         'links' => [
             [
                 'key' => 'document.slug',
-                'value' => 'procedimiento-induccion-capacitacion'
+                'value' => 'induccion-capacitacion'
             ],
             [
                 'key' => 'record.route',
@@ -137,7 +137,7 @@ return [
         'links' => [
             [
                 'key' => 'document.slug',
-                'value' => 'procedimiento-medicion-satisfaccion-usuario'
+                'value' => 'medicion-satisfaccion-usuario'
             ]
         ],
         'compliance' => true,
@@ -152,11 +152,11 @@ return [
         'links' => [
             [
                 'key' => 'document.slug',
-                'value' => 'procedimiento-quejas'
+                'value' => 'atencion-pqrs'
             ],
             [
                 'key' => 'record.route',
-                'value' => 'por.definir'
+                'value' => 'filament.admin.resources.pqrs.create'
             ],
         ],
         'compliance' => true,
@@ -171,7 +171,7 @@ return [
           'links' => [
             [
                 'key' => 'document.slug',
-                'value' => 'procedimiento-auditoria-interna'
+                'value' => 'auditoria-interna'
             ],
             [
                 'key' => 'schedule.route',
@@ -190,7 +190,7 @@ return [
         'links' => [
             [
                 'key' => 'document.slug',
-                'value' => 'procedimiento-planes-de-mejora'
+                'value' => 'planes-mejora'
             ],
             [
                 'key' => 'schedule.route',
@@ -209,11 +209,11 @@ return [
         'links' => [
             [
                 'key' => 'document.slug',
-                'value' => 'evaluacion-y-gestion-de-riesgos'
+                'value' => 'evaluacion-gestion-riesgos'
             ],
             [
                 'key' => 'document.slug',
-                'value' => 'matriz-de-riesgos'
+                'value' => 'matriz-riesgos'
             ],
         ],
         'compliance' => true,

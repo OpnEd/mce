@@ -170,7 +170,7 @@ return [
         'links' => [
             [
                 'key' => 'document.slug',
-                'value' => ''
+                'value' => 'almacenamiento-de-medicamentos-y-dispositivos-medicos'
             ]
         ],
         'compliance' => true,
@@ -212,7 +212,12 @@ return [
         'question' => '¿Los sitios donde se almacenan medicamentos cuentan con condiciones que garanticen la temperatura y humedad relativa recomendadas por el fabricante?',
         'answer' => '',
         'entry_type' => EntryType::TEXT,
-        'links' => null,
+        'links' => [
+            [
+                'key' => 'record.route',
+                'value' => 'filament.admin.resources.variables-ambientales.index'
+            ]
+        ],
         'compliance' => true,
     ],
     [
@@ -354,7 +359,7 @@ return [
         'links' => [
             [
                 'key' => 'record.route',
-                'value' => 'por.definir'
+                'value' => 'filament.admin.resources.indicadores-de-gestion.create'
             ]
         ],
         'compliance' => true,

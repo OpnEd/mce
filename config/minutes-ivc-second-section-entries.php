@@ -618,7 +618,7 @@ return [
             'links' => [
                 [
                     'key' => 'document.slug',
-                    'value' => 'manual-funciones'
+                    'value' => 'manual-funciones-dt'
                 ],
             ],
             'compliance' => true,

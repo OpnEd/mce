@@ -10,6 +10,8 @@ use App\Models\Quality\ManagementIndicatorTeam;
 use App\Models\Quality\ProcessTeam;
 use App\Models\Quality\QualityGoal;
 use App\Models\Quality\QualityGoalTeam;
+use App\Models\Quality\Records\Clients\ClientPqrsRecord;
+use App\Models\Quality\Records\Clients\ClientSatisfactionEvaluation;
 use App\Models\Quality\Records\Cleaning\StablishmentArea;
 use App\Models\Quality\Records\Cleaning\CleaningImplement;
 use App\Models\Quality\Records\Cleaning\CleaningRecord;
@@ -103,6 +105,16 @@ class Team extends Model
     public function cleaningRecords(): HasMany
     {
         return $this->hasMany(CleaningRecord::class);
+    }
+
+    public function clientSatisfactionEvaluations(): HasMany
+    {
+        return $this->hasMany(ClientSatisfactionEvaluation::class);
+    }
+
+    public function clientPqrsRecords(): HasMany
+    {
+        return $this->hasMany(ClientPqrsRecord::class);
     }
 
     public function desinfectants(): HasMany

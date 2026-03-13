@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Enums\RoleType;
+use App\Models\Quality\Records\Clients\ClientPqrsRecord;
+use App\Models\Quality\Records\Clients\ClientSatisfactionEvaluation;
 use App\Models\Quality\Records\Cleaning\CleaningRecord;
 use App\Models\Quality\Residuo;
 use App\Models\Quality\Training\Enrollment;
@@ -130,6 +132,16 @@ class User extends Authenticatable implements FilamentUser, HasTenants, HasAvata
     public function cleaningRecords(): HasMany
     {
         return $this->hasMany(CleaningRecord::class);
+    }
+
+    public function clientSatisfactionEvaluations(): HasMany
+    {
+        return $this->hasMany(ClientSatisfactionEvaluation::class);
+    }
+
+    public function clientPqrsRecords(): HasMany
+    {
+        return $this->hasMany(ClientPqrsRecord::class);
     }
 
     public function currentTeam()

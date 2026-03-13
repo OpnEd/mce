@@ -128,7 +128,7 @@ return [
       ),
 
       // Slug y registros
-      'slug'                  => 'procedimiento-induccion-capacitacion',
+      'slug'                  => 'induccion-capacitacion',
       'records' => array_map(
         fn($item) => ['record' => $item],
         [
@@ -282,7 +282,7 @@ return [
     [
       'title'         => 'Procedimiento de Gestion Documental',
       'process_id'    => 'A-GC',
-      'document_category_id' => 'PR',
+      'document_category_id' => 'MN',
       'objective'     => 'Establecer los controles para elaborar, revisar, aprobar, publicar, actualizar y retirar documentos del Sistema de Gestion de la Calidad, evitando el uso de versiones obsoletas o no aprobadas.',
       'scope'         => 'Aplica a todos los documentos internos y externos que soportan los procesos del establecimiento farmaceutico: procedimientos, formatos, instructivos, guias, listados maestros y anexos.',
       'references' => array_map(
@@ -363,7 +363,7 @@ return [
           ],
         ]
       ),
-      'slug' => 'procedimiento-de-gestion-documental',
+      'slug' => 'gestion-documental',
       'records' => array_map(
         fn($item) => ['record' => $item],
         [
@@ -468,7 +468,7 @@ return [
           ],
         ]
       ),
-      'slug' => 'procedimiento-de-limpieza',
+      'slug' => 'limpieza-sanitazacion-areas',
       'records' => array_map(
         fn($item) => ['record' => $item],
         [
@@ -494,7 +494,7 @@ return [
       'reviewed_by' => '',
       'approved_by' => '',
     ],
-    //Procedimiento de Medicion de Satisfaccion del Usuario
+    //Procedimiento de Atencion de Peticiones, Quejas, Reclamos y Sugerencias
     [
       'title'         => 'Procedimiento de Medicion de Satisfaccion del Usuario',
       'process_id'    => 'E-RS',
@@ -572,7 +572,7 @@ return [
           ],
         ]
       ),
-      'slug' => 'procedimiento-medicion-satisfaccion-usuario',
+      'slug' => 'medicion-satisfaccion-usuario',
       'records' => array_map(
         fn($item) => ['record' => $item],
         [
@@ -600,34 +600,37 @@ return [
     ],
     //Procedimiento de Medicion de Satisfaccion del Usuario
     [
-      'title'         => 'Procedimiento de Gestion de Quejas',
+      'title'         => 'Procedimiento de Atencion de Peticiones, Quejas, Reclamos y Sugerencias',
       'process_id'    => 'E-RS',
       'document_category_id' => 'PR',
-      'objective'     => 'Definir el proceso para recepcion, clasificacion, evaluacion, respuesta y cierre de quejas de usuarios, con trazabilidad y enfoque de mejora.',
-      'scope'         => 'Aplica a todas las quejas recibidas por canales presenciales, telefonicos, escritos o digitales relacionadas con el servicio farmaceutico.',
+      'objective'     => 'Definir el proceso integral para recepcion, clasificacion, analisis, respuesta y cierre de PQRS, garantizando trazabilidad, tiempos de respuesta y enfoque de mejora continua.',
+      'scope'         => 'Aplica a todas las peticiones, quejas, reclamos y sugerencias recibidas por canales presenciales, telefonicos, escritos o digitales, relacionadas con el servicio farmaceutico.',
       'references' => array_map(
         fn($item) => ['title' => $item],
         [
           'Resolucion 1403 de 2007 - servicio farmaceutico.',
           'Decreto 780 de 2016 - calidad y atencion al usuario.',
+          'Ley 1755 de 2015 - derecho de peticion.',
           'Lineamientos internos de atencion al usuario y gestion de PQRS.',
         ]
       ),
       'terms' => array_map(
         fn($item) => ['definition' => $item],
         [
+          'Peticion: solicitud de informacion, servicio o tramite.',
           'Queja: expresion de inconformidad frente al servicio recibido.',
+          'Reclamo: solicitud de correccion por incumplimiento o no conformidad.',
+          'Sugerencia: propuesta de mejora del servicio.',
           'PQRS: peticiones, quejas, reclamos y sugerencias.',
-          'Cierre efectivo: respuesta emitida, accion ejecutada y evidencia verificada.',
         ]
       ),
       'responsibilities' => array_map(
         fn($item) => ['responsibility' => $item],
         [
-          'Responsable de atencion al usuario: recibir y registrar quejas.',
-          'Direccion tecnica: evaluar casos criticos y aprobar respuesta final cuando aplique.',
-          'Lideres de proceso: implementar acciones correctivas derivadas.',
-          'Responsable de calidad: verificar tiempos de respuesta y cierre.',
+          'Responsable de atencion al usuario: recibir, registrar y dar acuse de recibo.',
+          'Direccion tecnica: evaluar casos criticos y aprobar respuestas cuando aplique.',
+          'Lideres de proceso: analizar causas y ejecutar acciones correctivas o preventivas.',
+          'Responsable de calidad: verificar tiempos de respuesta y cierre efectivo.',
         ]
       ),
       'procedure' => array_map(
@@ -639,59 +642,75 @@ return [
         ],
         [
           [
-            'activity' => '7.1 Recepcion',
-            'description' => 'Se recibe la queja por el canal disponible y se confirma recepcion al usuario.',
+            'activity' => '7.1 Recepcion y registro',
+            'description' => 'Se recibe la PQRS por el canal disponible, se asigna consecutivo y se confirma recepcion al usuario.',
             'responsible' => 'Responsable de atencion al usuario',
-            'records' => 'Formato de recepcion de quejas',
+            'records' => 'Formato de recepcion de PQRS',
           ],
           [
-            'activity' => '7.2 Clasificacion',
-            'description' => 'Se clasifica la queja por tipo, severidad y proceso involucrado.',
+            'activity' => '7.2 Acuse y tiempos',
+            'description' => 'Se informa al usuario el tiempo estimado de respuesta segun el tipo de solicitud y normatividad vigente.',
             'responsible' => 'Responsable de atencion al usuario',
-            'records' => 'Matriz de clasificacion de quejas',
+            'records' => 'Comunicacion de acuse de recibo',
           ],
           [
-            'activity' => '7.3 Analisis y evaluacion',
-            'description' => 'Se investigan causas, evidencias y responsabilidades para definir tratamiento.',
+            'activity' => '7.3 Clasificacion y priorizacion',
+            'description' => 'Se clasifica la PQRS por tipo, severidad y proceso involucrado para asignar responsables.',
+            'responsible' => 'Responsable de atencion al usuario',
+            'records' => 'Matriz de clasificacion de PQRS',
+          ],
+          [
+            'activity' => '7.4 Analisis e investigacion',
+            'description' => 'Se revisan evidencias, se identifican causas y se define el tratamiento adecuado.',
             'responsible' => 'Lider de proceso y direccion tecnica',
             'records' => 'Informe de analisis de causa',
           ],
           [
-            'activity' => '7.4 Respuesta al usuario',
-            'description' => 'Se emite respuesta clara, oportuna y documentada con acciones adoptadas.',
+            'activity' => '7.5 Respuesta al usuario',
+            'description' => 'Se emite respuesta clara, oportuna y documentada con las acciones adoptadas.',
             'responsible' => 'Direccion tecnica',
             'records' => 'Comunicacion de respuesta',
           ],
           [
-            'activity' => '7.5 Accion correctiva',
-            'description' => 'Se implementan acciones para eliminar causa y prevenir recurrencia.',
+            'activity' => '7.6 Accion correctiva o preventiva',
+            'description' => 'Se ejecutan acciones para eliminar la causa y prevenir recurrencia cuando aplique.',
             'responsible' => 'Lider de proceso',
-            'records' => 'Plan de accion por queja',
+            'records' => 'Plan de accion por PQRS',
           ],
           [
-            'activity' => '7.6 Cierre y seguimiento',
-            'description' => 'Se valida cierre efectivo, tiempos de gestion e indicadores de reincidencia.',
+            'activity' => '7.7 Cierre y seguimiento',
+            'description' => 'Se valida cierre efectivo, se actualizan indicadores y se verifican tiempos de gestion.',
             'responsible' => 'Responsable de calidad',
-            'records' => 'Registro de cierre de quejas',
+            'records' => 'Registro de cierre de PQRS',
+          ],
+          [
+            'activity' => '7.8 Analisis de tendencias',
+            'description' => 'Se consolidan tendencias y oportunidades de mejora para revision por la direccion.',
+            'responsible' => 'Responsable de calidad',
+            'records' => 'Informe de tendencias de PQRS',
           ],
         ]
       ),
-      'slug' => 'procedimiento-quejas',
+      'slug' => 'atencion-pqrs',
       'records' => array_map(
         fn($item) => ['record' => $item],
         [
-          'formato_recepcion_quejas',
-          'matriz_control_quejas',
-          'respuestas_usuarios',
-          'registro_cierre_quejas',
+          'formato_recepcion_pqrs',
+          'matriz_clasificacion_pqrs',
+          'informe_analisis_pqrs',
+          'respuesta_pqrs',
+          'plan_accion_pqrs',
+          'registro_cierre_pqrs',
+          'informe_tendencias_pqrs',
         ]
       ),
       'annexes' => array_map(
         fn($item) => ['annexe' => $item],
         [
-          'Formato unico de recepcion de quejas',
-          'Matriz de trazabilidad y tiempos de respuesta',
+          'Formato unico de recepcion de PQRS',
+          'Matriz de clasificacion y tiempos de respuesta',
           'Plantilla de respuesta al usuario',
+          'Guia de trato al usuario',
         ]
       ),
       'data' => [
@@ -781,7 +800,7 @@ return [
           ],
         ]
       ),
-      'slug' => 'procedimiento-auditoria-interna',
+      'slug' => 'auditoria-interna',
       'records' => array_map(
         fn($item) => ['record' => $item],
         [
@@ -886,7 +905,7 @@ return [
           ],
         ]
       ),
-      'slug' => 'procedimiento-planes-de-mejora',
+      'slug' => 'planes-mejora',
       'records' => array_map(
         fn($item) => ['record' => $item],
         [
@@ -914,7 +933,7 @@ return [
     ],
     //Procedimiento de Control Integral de Plagas
     [
-      'title'         => 'Procedimiento de Control Integral de Plagas',
+      'title'         => 'Control Integral de Plagas',
       'process_id'    => 'A-SM',
       'document_category_id' => 'PR',
       'objective'     => 'Establecer las actividades para prevenir, monitorear y controlar plagas en el establecimiento farmaceutico, garantizando condiciones sanitarias seguras y cumplimiento normativo.',
@@ -984,7 +1003,7 @@ return [
           ],
         ]
       ),
-      'slug' => 'procedimiento-control-integral-plagas',
+      'slug' => 'control-integral-plagas',
       'records' => array_map(
         fn($item) => ['record' => $item],
         [
@@ -1011,7 +1030,7 @@ return [
     ],
     //Procedimiento Plan de Contingencia para Suministro de Agua Potable
     [
-      'title'         => 'Procedimiento Plan de Contingencia para Suministro de Agua Potable',
+      'title'         => 'Plan de Contingencia para Suministro de Agua Potable',
       'process_id'    => 'A-SM',
       'document_category_id' => 'PR',
       'objective'     => 'Definir las acciones de contingencia para garantizar continuidad operativa y condiciones higienico-sanitarias ante suspension o falla del suministro de agua potable.',
@@ -1081,7 +1100,7 @@ return [
           ],
         ]
       ),
-      'slug' => 'procedimiento-plan-contingencia-suministro-agua-potable',
+      'slug' => 'plan-contingencia-suministro-agua-potable',
       'records' => array_map(
         fn($item) => ['record' => $item],
         [
@@ -1097,6 +1116,1727 @@ return [
           'Formato de activacion de contingencia por agua',
           'Checklist de medidas sanitarias temporales',
           'Formato de cierre y lecciones aprendidas',
+        ]
+      ),
+      'data' => [
+        'version' => '1.0',
+        'vigencia' => '04-03-2026',
+      ],
+      'prepared_by' => '',
+      'reviewed_by' => '',
+      'approved_by' => '',
+    ],
+    //Planeacion Estrategica
+    [
+      'title'         => 'Planeacion Estrategica del Establecimiento',
+      'process_id'    => 'D-PG',
+      'document_category_id' => 'MN',
+      'objective'     => 'Definir la plataforma estrategica (mision, vision, politica y objetivos de calidad) y los lineamientos para el direccionamiento de la drogueria.',
+      'scope'         => 'Aplica a toda la organizacion y orienta la gestion de todos los procesos del servicio farmaceutico.',
+      'references' => array_map(
+        fn($item) => ['title' => $item],
+        [
+          'ISO 9001:2015, numerales 4, 5 y 6.',
+          'Resolucion 1403 de 2007 - Modelo de Gestion del Servicio Farmaceutico.',
+        ]
+      ),
+      'terms' => array_map(
+        fn($item) => ['definition' => $item],
+        [
+          'Mision: proposito fundamental de la organizacion.',
+          'Vision: estado deseado a mediano y largo plazo.',
+          'Politica de calidad: lineamiento marco para el sistema de gestion.',
+        ]
+      ),
+      'responsibilities' => array_map(
+        fn($item) => ['responsibility' => $item],
+        [
+          'Direccion tecnica: liderar la definicion y revision de la plataforma estrategica.',
+          'Gerencia/propietario: aprobar objetivos y recursos para su cumplimiento.',
+        ]
+      ),
+      'procedure' => array_map(
+        fn(array $step) => [
+          'activity' => $step['activity'],
+          'description' => $step['description'],
+          'responsible' => $step['responsible'],
+          'records' => $step['records'],
+        ],
+        [
+          [
+            'activity' => '7.1 Analisis de contexto',
+            'description' => 'Identificar necesidades del entorno, partes interesadas y riesgos estrategicos.',
+            'responsible' => 'Direccion tecnica',
+            'records' => 'Analisis de contexto',
+          ],
+          [
+            'activity' => '7.2 Definicion y aprobacion',
+            'description' => 'Establecer mision, vision, politica y objetivos con sus metas e indicadores.',
+            'responsible' => 'Direccion tecnica y gerencia',
+            'records' => 'Plan estrategico aprobado',
+          ],
+          [
+            'activity' => '7.3 Revision periodica',
+            'description' => 'Revisar anualmente el cumplimiento y ajustar la plataforma estrategica.',
+            'responsible' => 'Direccion tecnica',
+            'records' => 'Acta de revision estrategica',
+          ],
+        ]
+      ),
+      'slug' => 'planeacion-estrategica',
+      'records' => array_map(
+        fn($item) => ['record' => $item],
+        [
+          'plan_estrategico',
+          'objetivos_calidad',
+          'actas_revision_estrategica',
+        ]
+      ),
+      'annexes' => array_map(
+        fn($item) => ['annexe' => $item],
+        [
+          'Matriz DOFA',
+          'Mapa de interesados',
+        ]
+      ),
+      'data' => [
+        'version' => '1.0',
+        'vigencia' => '04-03-2026',
+      ],
+      'prepared_by' => '',
+      'reviewed_by' => '',
+      'approved_by' => '',
+    ],
+    //Manual de Funciones del Personal
+    [
+      'title'         => 'Manual de Funciones del Personal',
+      'process_id'    => 'A-RH',
+      'document_category_id' => 'MN',
+      'objective'     => 'Establecer funciones, responsabilidades y competencias requeridas para cada cargo del establecimiento.',
+      'scope'         => 'Aplica a todo el personal que labora en la drogueria.',
+      'references' => array_map(
+        fn($item) => ['title' => $item],
+        [
+          'Resolucion 1403 de 2007 - Servicio Farmaceutico.',
+          'Decreto 2200 de 2005 - Servicios farmaceuticos.',
+        ]
+      ),
+      'terms' => array_map(
+        fn($item) => ['definition' => $item],
+        [
+          'Perfil de cargo: requisitos y competencias para el puesto.',
+          'Responsabilidad: deber asignado a un cargo.',
+        ]
+      ),
+      'responsibilities' => array_map(
+        fn($item) => ['responsibility' => $item],
+        [
+          'Direccion tecnica: aprobar el manual y sus actualizaciones.',
+          'Gestion de talento humano: elaborar, socializar y custodiar el manual.',
+        ]
+      ),
+      'procedure' => array_map(
+        fn(array $step) => [
+          'activity' => $step['activity'],
+          'description' => $step['description'],
+          'responsible' => $step['responsible'],
+          'records' => $step['records'],
+        ],
+        [
+          [
+            'activity' => '7.1 Elaboracion y actualizacion',
+            'description' => 'Definir perfiles, funciones y competencias por cargo.',
+            'responsible' => 'Gestion de talento humano',
+            'records' => 'Manual de funciones actualizado',
+          ],
+          [
+            'activity' => '7.2 Socializacion',
+            'description' => 'Socializar el manual con el personal y conservar evidencias.',
+            'responsible' => 'Gestion de talento humano',
+            'records' => 'Acta de socializacion',
+          ],
+        ]
+      ),
+      'slug' => 'manual-de-funciones',
+      'records' => array_map(
+        fn($item) => ['record' => $item],
+        [
+          'manual_funciones_personal',
+          'acta_socializacion_manual',
+        ]
+      ),
+      'annexes' => array_map(
+        fn($item) => ['annexe' => $item],
+        [
+          'Perfiles de cargo',
+        ]
+      ),
+      'data' => [
+        'version' => '1.0',
+        'vigencia' => '04-03-2026',
+      ],
+      'prepared_by' => '',
+      'reviewed_by' => '',
+      'approved_by' => '',
+    ],
+    //Manual de Funciones del Director Tecnico
+    [
+      'title'         => 'Manual de funciones del Director Tecnico',
+      'process_id'    => 'A-RH',
+      'document_category_id' => 'MN',
+      'objective'     => 'Definir las funciones, obligaciones y responsabilidades del Director Tecnico del establecimiento.',
+      'scope'         => 'Aplica al Director Tecnico y a su relacion con los demas procesos.',
+      'references' => array_map(
+        fn($item) => ['title' => $item],
+        [
+          'Resolucion 1403 de 2007 - Servicio Farmaceutico.',
+          'Decreto 2200 de 2005 - Director tecnico.',
+        ]
+      ),
+      'terms' => array_map(
+        fn($item) => ['definition' => $item],
+        [
+          'Director tecnico: profesional responsable del servicio farmaceutico.',
+          'Delegacion: asignacion temporal de funciones en ausencia.',
+        ]
+      ),
+      'responsibilities' => array_map(
+        fn($item) => ['responsibility' => $item],
+        [
+          'Director tecnico: cumplir y evidenciar el ejercicio de sus funciones.',
+          'Gerencia/propietario: garantizar recursos y condiciones para el cargo.',
+        ]
+      ),
+      'procedure' => array_map(
+        fn(array $step) => [
+          'activity' => $step['activity'],
+          'description' => $step['description'],
+          'responsible' => $step['responsible'],
+          'records' => $step['records'],
+        ],
+        [
+          [
+            'activity' => '7.1 Definicion del cargo',
+            'description' => 'Documentar funciones y requisitos del Director Tecnico.',
+            'responsible' => 'Direccion tecnica',
+            'records' => 'Manual de funciones DT',
+          ],
+          [
+            'activity' => '7.2 Revision y actualizacion',
+            'description' => 'Revisar y actualizar el manual cuando cambie la normatividad o el proceso.',
+            'responsible' => 'Direccion tecnica',
+            'records' => 'Registro de revision del manual',
+          ],
+        ]
+      ),
+      'slug' => 'manual-funciones-dt',
+      'records' => array_map(
+        fn($item) => ['record' => $item],
+        [
+          'manual_funciones_dt',
+          'revision_manual_dt',
+        ]
+      ),
+      'annexes' => array_map(
+        fn($item) => ['annexe' => $item],
+        [
+          'Listado de funciones criticas del DT',
+        ]
+      ),
+      'data' => [
+        'version' => '1.0',
+        'vigencia' => '04-03-2026',
+      ],
+      'prepared_by' => '',
+      'reviewed_by' => '',
+      'approved_by' => '',
+    ],
+    //Delegacion de Funciones del Director Tecnico
+    [
+      'title'         => 'Procedimiento para la delegacion de funciones del Director Tecnico',
+      'process_id'    => 'A-RH',
+      'document_category_id' => 'PR',
+      'objective'     => 'Formalizar la suplencia temporal del Director Tecnico y dejar evidencia del encargo.',
+      'scope'         => 'Aplica a ausencias temporales del Director Tecnico.',
+      'references' => array_map(
+        fn($item) => ['title' => $item],
+        [
+          'Resolucion 1403 de 2007 - Servicio Farmaceutico.',
+          'Decreto 2200 de 2005 - Director tecnico.',
+        ]
+      ),
+      'terms' => array_map(
+        fn($item) => ['definition' => $item],
+        [
+          'Delegacion: asignacion temporal de funciones a un responsable.',
+          'Suplencia: reemplazo temporal del Director Tecnico.',
+        ]
+      ),
+      'responsibilities' => array_map(
+        fn($item) => ['responsibility' => $item],
+        [
+          'Director tecnico: diligenciar y firmar la delegacion.',
+          'Gerencia/propietario: aprobar y archivar el documento.',
+        ]
+      ),
+      'procedure' => array_map(
+        fn(array $step) => [
+          'activity' => $step['activity'],
+          'description' => $step['description'],
+          'responsible' => $step['responsible'],
+          'records' => $step['records'],
+        ],
+        [
+          [
+            'activity' => '7.1 Diligenciamiento',
+            'description' => 'Registrar fechas, responsable designado y alcance de la suplencia.',
+            'responsible' => 'Director tecnico',
+            'records' => 'Formato de delegacion diligenciado',
+          ],
+          [
+            'activity' => '7.2 Aprobacion y archivo',
+            'description' => 'Validar el encargo y conservar el soporte en el archivo de talento humano.',
+            'responsible' => 'Gerencia/propietario',
+            'records' => 'Registro de delegacion',
+          ],
+        ]
+      ),
+      'slug' => 'delegacion-funciones-dt',
+      'records' => array_map(
+        fn($item) => ['record' => $item],
+        [
+          'formato_delegacion_funciones_dt',
+        ]
+      ),
+      'annexes' => array_map(
+        fn($item) => ['annexe' => $item],
+        [
+          'Formato de delegacion de funciones del DT',
+        ]
+      ),
+      'data' => [
+        'version' => '1.0',
+        'vigencia' => '04-03-2026',
+      ],
+      'prepared_by' => '',
+      'reviewed_by' => '',
+      'approved_by' => '',
+    ],
+    //Mapa de Procesos
+    [
+      'title'         => 'Mapa de Procesos del Establecimiento',
+      'process_id'    => 'A-GC',
+      'document_category_id' => 'GF',
+      'objective'     => 'Representar graficamente la interaccion entre procesos estrategicos, misionales y de apoyo.',
+      'scope'         => 'Aplica a todo el sistema de gestion de la calidad del establecimiento.',
+      'references' => array_map(
+        fn($item) => ['title' => $item],
+        [
+          'ISO 9001:2015, numeral 4.4.',
+          'Lineamientos internos de gestion de calidad.',
+        ]
+      ),
+      'terms' => array_map(
+        fn($item) => ['definition' => $item],
+        [
+          'Proceso: conjunto de actividades que transforma entradas en salidas.',
+          'Interaccion: relacion entre procesos para cumplir objetivos.',
+        ]
+      ),
+      'responsibilities' => array_map(
+        fn($item) => ['responsibility' => $item],
+        [
+          'Responsable de calidad: elaborar y mantener vigente el mapa.',
+          'Direccion tecnica: aprobar la version vigente.',
+        ]
+      ),
+      'procedure' => array_map(
+        fn(array $step) => [
+          'activity' => $step['activity'],
+          'description' => $step['description'],
+          'responsible' => $step['responsible'],
+          'records' => $step['records'],
+        ],
+        [
+          [
+            'activity' => '7.1 Diseno del mapa',
+            'description' => 'Identificar procesos y definir su secuencia e interacciones.',
+            'responsible' => 'Responsable de calidad',
+            'records' => 'Mapa de procesos',
+          ],
+          [
+            'activity' => '7.2 Actualizacion',
+            'description' => 'Revisar cambios organizacionales y actualizar el diagrama.',
+            'responsible' => 'Responsable de calidad',
+            'records' => 'Version actualizada del mapa',
+          ],
+        ]
+      ),
+      'slug' => 'mapa-de-procesos',
+      'records' => array_map(
+        fn($item) => ['record' => $item],
+        [
+          'mapa_de_procesos',
+        ]
+      ),
+      'annexes' => array_map(
+        fn($item) => ['annexe' => $item],
+        [
+          'Diagrama del mapa de procesos',
+        ]
+      ),
+      'data' => [
+        'version' => '1.0',
+        'vigencia' => '04-03-2026',
+      ],
+      'prepared_by' => '',
+      'reviewed_by' => '',
+      'approved_by' => '',
+    ],
+    //Evaluacion y Gestion de Riesgos
+    [
+      'title'         => 'Procedimiento de Evaluacion y Gestion de Riesgos',
+      'process_id'    => 'D-PG',
+      'document_category_id' => 'PR',
+      'objective'     => 'Identificar, valorar y controlar los riesgos que puedan afectar el cumplimiento de objetivos del sistema de gestion.',
+      'scope'         => 'Aplica a todos los procesos del establecimiento y a sus riesgos operativos y sanitarios.',
+      'references' => array_map(
+        fn($item) => ['title' => $item],
+        [
+          'ISO 9001:2015, numeral 6.1.',
+          'Lineamientos internos de gestion del riesgo.',
+        ]
+      ),
+      'terms' => array_map(
+        fn($item) => ['definition' => $item],
+        [
+          'Riesgo: efecto de la incertidumbre sobre los objetivos.',
+          'Control: accion que reduce la probabilidad o el impacto.',
+        ]
+      ),
+      'responsibilities' => array_map(
+        fn($item) => ['responsibility' => $item],
+        [
+          'Direccion tecnica: aprobar la metodologia de gestion de riesgos.',
+          'Lideres de proceso: identificar, valorar y ejecutar controles.',
+        ]
+      ),
+      'procedure' => array_map(
+        fn(array $step) => [
+          'activity' => $step['activity'],
+          'description' => $step['description'],
+          'responsible' => $step['responsible'],
+          'records' => $step['records'],
+        ],
+        [
+          [
+            'activity' => '7.1 Identificacion',
+            'description' => 'Detectar riesgos por proceso y describir sus causas y efectos.',
+            'responsible' => 'Lideres de proceso',
+            'records' => 'Listado de riesgos',
+          ],
+          [
+            'activity' => '7.2 Valoracion',
+            'description' => 'Asignar probabilidad e impacto para priorizar riesgos.',
+            'responsible' => 'Responsable de calidad',
+            'records' => 'Matriz de riesgos',
+          ],
+          [
+            'activity' => '7.3 Plan de tratamiento',
+            'description' => 'Definir controles, responsables y fechas de seguimiento.',
+            'responsible' => 'Direccion tecnica y lideres de proceso',
+            'records' => 'Plan de tratamiento de riesgos',
+          ],
+        ]
+      ),
+      'slug' => 'evaluacion-gestion-riesgos',
+      'records' => array_map(
+        fn($item) => ['record' => $item],
+        [
+          'matriz_de_riesgos',
+          'plan_tratamiento_riesgos',
+        ]
+      ),
+      'annexes' => array_map(
+        fn($item) => ['annexe' => $item],
+        [
+          'Metodologia de valoracion de riesgos',
+        ]
+      ),
+      'data' => [
+        'version' => '1.0',
+        'vigencia' => '04-03-2026',
+      ],
+      'prepared_by' => '',
+      'reviewed_by' => '',
+      'approved_by' => '',
+    ],
+    //Matriz de Riesgos
+    [
+      'title'         => 'Matriz de Riesgos',
+      'process_id'    => 'D-PG',
+      'document_category_id' => 'TM',
+      'objective'     => 'Consolidar los riesgos identificados y su nivel de priorizacion para el sistema de gestion.',
+      'scope'         => 'Aplica a todos los procesos del establecimiento.',
+      'references' => array_map(
+        fn($item) => ['title' => $item],
+        [
+          'ISO 9001:2015, numeral 6.1.',
+        ]
+      ),
+      'terms' => array_map(
+        fn($item) => ['definition' => $item],
+        [
+          'Probabilidad: posibilidad de ocurrencia del riesgo.',
+          'Impacto: consecuencia del riesgo en el proceso.',
+        ]
+      ),
+      'responsibilities' => array_map(
+        fn($item) => ['responsibility' => $item],
+        [
+          'Responsable de calidad: consolidar y actualizar la matriz.',
+          'Lideres de proceso: reportar cambios y acciones.',
+        ]
+      ),
+      'procedure' => array_map(
+        fn(array $step) => [
+          'activity' => $step['activity'],
+          'description' => $step['description'],
+          'responsible' => $step['responsible'],
+          'records' => $step['records'],
+        ],
+        [
+          [
+            'activity' => '7.1 Diligenciamiento',
+            'description' => 'Registrar riesgos, controles y nivel de prioridad.',
+            'responsible' => 'Lideres de proceso',
+            'records' => 'Matriz de riesgos',
+          ],
+          [
+            'activity' => '7.2 Actualizacion',
+            'description' => 'Actualizar la matriz cuando haya cambios relevantes.',
+            'responsible' => 'Responsable de calidad',
+            'records' => 'Matriz de riesgos actualizada',
+          ],
+        ]
+      ),
+      'slug' => 'matriz-riesgos',
+      'records' => array_map(
+        fn($item) => ['record' => $item],
+        [
+          'matriz_de_riesgos',
+        ]
+      ),
+      'annexes' => array_map(
+        fn($item) => ['annexe' => $item],
+        [
+          'Plantilla de matriz de riesgos',
+        ]
+      ),
+      'data' => [
+        'version' => '1.0',
+        'vigencia' => '04-03-2026',
+      ],
+      'prepared_by' => '',
+      'reviewed_by' => '',
+      'approved_by' => '',
+    ],
+    //Caracterizacion de Seleccion
+    [
+      'title'         => 'Caracterizacion del Proceso de Seleccion',
+      'process_id'    => 'M-SL',
+      'document_category_id' => 'CT',
+      'objective'     => 'Describir el proceso de seleccion, sus entradas, salidas, responsables e indicadores.',
+      'scope'         => 'Aplica a la definicion del portafolio de medicamentos y dispositivos medicos.',
+      'references' => array_map(
+        fn($item) => ['title' => $item],
+        [
+          'Resolucion 1403 de 2007 - Servicio Farmaceutico.',
+          'Lineamientos internos de seleccion.',
+        ]
+      ),
+      'terms' => array_map(
+        fn($item) => ['definition' => $item],
+        [
+          'Entrada: informacion necesaria para iniciar el proceso.',
+          'Salida: resultado del proceso de seleccion.',
+        ]
+      ),
+      'responsibilities' => array_map(
+        fn($item) => ['responsibility' => $item],
+        [
+          'Director tecnico: validar la caracterizacion.',
+          'Responsable de calidad: custodiar el documento.',
+        ]
+      ),
+      'procedure' => array_map(
+        fn(array $step) => [
+          'activity' => $step['activity'],
+          'description' => $step['description'],
+          'responsible' => $step['responsible'],
+          'records' => $step['records'],
+        ],
+        [
+          [
+            'activity' => '7.1 Definir entradas y salidas',
+            'description' => 'Documentar proveedores, insumos y resultados del proceso.',
+            'responsible' => 'Director tecnico',
+            'records' => 'Ficha de caracterizacion',
+          ],
+          [
+            'activity' => '7.2 Establecer indicadores',
+            'description' => 'Definir indicadores de gestion y control del proceso.',
+            'responsible' => 'Responsable de calidad',
+            'records' => 'Indicadores del proceso',
+          ],
+        ]
+      ),
+      'slug' => 'caracterizacion-de-seleccion',
+      'records' => array_map(
+        fn($item) => ['record' => $item],
+        [
+          'caracterizacion_seleccion',
+        ]
+      ),
+      'annexes' => array_map(
+        fn($item) => ['annexe' => $item],
+        [
+          'Ficha de caracterizacion de seleccion',
+        ]
+      ),
+      'data' => [
+        'version' => '1.0',
+        'vigencia' => '04-03-2026',
+      ],
+      'prepared_by' => '',
+      'reviewed_by' => '',
+      'approved_by' => '',
+    ],
+    //Caracterizacion de Adquisicion
+    [
+      'title'         => 'Caracterizacion del Proceso de Adquisicion',
+      'process_id'    => 'M-AQ',
+      'document_category_id' => 'CT',
+      'objective'     => 'Describir el proceso de adquisicion, sus entradas, salidas, responsables e indicadores.',
+      'scope'         => 'Aplica a la compra de medicamentos y dispositivos medicos.',
+      'references' => array_map(
+        fn($item) => ['title' => $item],
+        [
+          'Resolucion 1403 de 2007 - Servicio Farmaceutico.',
+          'Politicas internas de compras.',
+        ]
+      ),
+      'terms' => array_map(
+        fn($item) => ['definition' => $item],
+        [
+          'Proveedor aprobado: proveedor evaluado y aceptado.',
+          'Orden de compra: documento que formaliza la adquisicion.',
+        ]
+      ),
+      'responsibilities' => array_map(
+        fn($item) => ['responsibility' => $item],
+        [
+          'Responsable de compras: ejecutar el proceso.',
+          'Direccion tecnica: aprobar decisiones tecnicas.',
+        ]
+      ),
+      'procedure' => array_map(
+        fn(array $step) => [
+          'activity' => $step['activity'],
+          'description' => $step['description'],
+          'responsible' => $step['responsible'],
+          'records' => $step['records'],
+        ],
+        [
+          [
+            'activity' => '7.1 Definir entradas y salidas',
+            'description' => 'Documentar insumos y resultados del proceso de adquisicion.',
+            'responsible' => 'Responsable de compras',
+            'records' => 'Ficha de caracterizacion',
+          ],
+          [
+            'activity' => '7.2 Establecer indicadores',
+            'description' => 'Definir indicadores de oportunidad y cumplimiento.',
+            'responsible' => 'Responsable de calidad',
+            'records' => 'Indicadores del proceso',
+          ],
+        ]
+      ),
+      'slug' => 'caracterizacion-de-adquisicion',
+      'records' => array_map(
+        fn($item) => ['record' => $item],
+        [
+          'caracterizacion_adquisicion',
+        ]
+      ),
+      'annexes' => array_map(
+        fn($item) => ['annexe' => $item],
+        [
+          'Ficha de caracterizacion de adquisicion',
+        ]
+      ),
+      'data' => [
+        'version' => '1.0',
+        'vigencia' => '04-03-2026',
+      ],
+      'prepared_by' => '',
+      'reviewed_by' => '',
+      'approved_by' => '',
+    ],
+    //Caracterizacion de Recepcion
+    [
+      'title'         => 'Caracterizacion del Proceso de Recepcion Tecnica',
+      'process_id'    => 'M-RT',
+      'document_category_id' => 'CT',
+      'objective'     => 'Describir el proceso de recepcion tecnica, sus entradas, salidas, responsables e indicadores.',
+      'scope'         => 'Aplica al ingreso de medicamentos y dispositivos medicos al establecimiento.',
+      'references' => array_map(
+        fn($item) => ['title' => $item],
+        [
+          'Resolucion 1403 de 2007 - Servicio Farmaceutico.',
+          'Lineamientos de recepcion tecnica.',
+        ]
+      ),
+      'terms' => array_map(
+        fn($item) => ['definition' => $item],
+        [
+          'Recepcion tecnica: verificacion de calidad y condiciones del producto.',
+          'No conformidad: incumplimiento de un requisito.',
+        ]
+      ),
+      'responsibilities' => array_map(
+        fn($item) => ['responsibility' => $item],
+        [
+          'Responsable de recepcion: ejecutar inspecciones.',
+          'Direccion tecnica: autorizar decisiones tecnicas.',
+        ]
+      ),
+      'procedure' => array_map(
+        fn(array $step) => [
+          'activity' => $step['activity'],
+          'description' => $step['description'],
+          'responsible' => $step['responsible'],
+          'records' => $step['records'],
+        ],
+        [
+          [
+            'activity' => '7.1 Definir entradas y salidas',
+            'description' => 'Documentar requisitos de ingreso y resultados de la recepcion.',
+            'responsible' => 'Responsable de recepcion',
+            'records' => 'Ficha de caracterizacion',
+          ],
+          [
+            'activity' => '7.2 Establecer indicadores',
+            'description' => 'Definir indicadores de cumplimiento y rechazo.',
+            'responsible' => 'Responsable de calidad',
+            'records' => 'Indicadores del proceso',
+          ],
+        ]
+      ),
+      'slug' => 'caracterizacion-de-recepcion',
+      'records' => array_map(
+        fn($item) => ['record' => $item],
+        [
+          'caracterizacion_recepcion',
+        ]
+      ),
+      'annexes' => array_map(
+        fn($item) => ['annexe' => $item],
+        [
+          'Ficha de caracterizacion de recepcion',
+        ]
+      ),
+      'data' => [
+        'version' => '1.0',
+        'vigencia' => '04-03-2026',
+      ],
+      'prepared_by' => '',
+      'reviewed_by' => '',
+      'approved_by' => '',
+    ],
+    //Caracterizacion de Almacenamiento
+    [
+      'title'         => 'Caracterizacion del Proceso de Almacenamiento',
+      'process_id'    => 'M-AT',
+      'document_category_id' => 'CT',
+      'objective'     => 'Describir el proceso de almacenamiento, sus entradas, salidas, responsables e indicadores.',
+      'scope'         => 'Aplica al manejo y conservacion de medicamentos y dispositivos medicos.',
+      'references' => array_map(
+        fn($item) => ['title' => $item],
+        [
+          'Resolucion 1403 de 2007 - Servicio Farmaceutico.',
+          'Buenas practicas de almacenamiento.',
+        ]
+      ),
+      'terms' => array_map(
+        fn($item) => ['definition' => $item],
+        [
+          'FEFO: primero en vencer, primero en salir.',
+          'Condiciones ambientales: temperatura y humedad controladas.',
+        ]
+      ),
+      'responsibilities' => array_map(
+        fn($item) => ['responsibility' => $item],
+        [
+          'Responsable de almacenamiento: asegurar condiciones de conservacion.',
+          'Direccion tecnica: verificar el cumplimiento.',
+        ]
+      ),
+      'procedure' => array_map(
+        fn(array $step) => [
+          'activity' => $step['activity'],
+          'description' => $step['description'],
+          'responsible' => $step['responsible'],
+          'records' => $step['records'],
+        ],
+        [
+          [
+            'activity' => '7.1 Definir entradas y salidas',
+            'description' => 'Documentar insumos y resultados del proceso.',
+            'responsible' => 'Responsable de almacenamiento',
+            'records' => 'Ficha de caracterizacion',
+          ],
+          [
+            'activity' => '7.2 Establecer indicadores',
+            'description' => 'Definir indicadores de vencimientos y rotacion.',
+            'responsible' => 'Responsable de calidad',
+            'records' => 'Indicadores del proceso',
+          ],
+        ]
+      ),
+      'slug' => 'caracterizacion-de-almacenamiento',
+      'records' => array_map(
+        fn($item) => ['record' => $item],
+        [
+          'caracterizacion_almacenamiento',
+        ]
+      ),
+      'annexes' => array_map(
+        fn($item) => ['annexe' => $item],
+        [
+          'Ficha de caracterizacion de almacenamiento',
+        ]
+      ),
+      'data' => [
+        'version' => '1.0',
+        'vigencia' => '04-03-2026',
+      ],
+      'prepared_by' => '',
+      'reviewed_by' => '',
+      'approved_by' => '',
+    ],
+    //Caracterizacion de Dispensacion
+    [
+      'title'         => 'Caracterizacion del Proceso de Dispensacion',
+      'process_id'    => 'M-DP',
+      'document_category_id' => 'CT',
+      'objective'     => 'Describir el proceso de dispensacion, sus entradas, salidas, responsables e indicadores.',
+      'scope'         => 'Aplica a la entrega de medicamentos y dispositivos medicos al usuario.',
+      'references' => array_map(
+        fn($item) => ['title' => $item],
+        [
+          'Resolucion 1403 de 2007 - Servicio Farmaceutico.',
+          'Lineamientos de dispensacion.',
+        ]
+      ),
+      'terms' => array_map(
+        fn($item) => ['definition' => $item],
+        [
+          'Dispensacion: entrega de medicamentos al usuario con informacion.',
+          'Uso racional: uso seguro y efectivo de medicamentos.',
+        ]
+      ),
+      'responsibilities' => array_map(
+        fn($item) => ['responsibility' => $item],
+        [
+          'Dispensador: ejecutar el proceso de dispensacion.',
+          'Direccion tecnica: supervisar y evaluar el proceso.',
+        ]
+      ),
+      'procedure' => array_map(
+        fn(array $step) => [
+          'activity' => $step['activity'],
+          'description' => $step['description'],
+          'responsible' => $step['responsible'],
+          'records' => $step['records'],
+        ],
+        [
+          [
+            'activity' => '7.1 Definir entradas y salidas',
+            'description' => 'Documentar insumos y resultados de la dispensacion.',
+            'responsible' => 'Dispensador',
+            'records' => 'Ficha de caracterizacion',
+          ],
+          [
+            'activity' => '7.2 Establecer indicadores',
+            'description' => 'Definir indicadores de oportunidad y calidad.',
+            'responsible' => 'Responsable de calidad',
+            'records' => 'Indicadores del proceso',
+          ],
+        ]
+      ),
+      'slug' => 'caracterizacion-de-dispensacion',
+      'records' => array_map(
+        fn($item) => ['record' => $item],
+        [
+          'caracterizacion_dispensacion',
+        ]
+      ),
+      'annexes' => array_map(
+        fn($item) => ['annexe' => $item],
+        [
+          'Ficha de caracterizacion de dispensacion',
+        ]
+      ),
+      'data' => [
+        'version' => '1.0',
+        'vigencia' => '04-03-2026',
+      ],
+      'prepared_by' => '',
+      'reviewed_by' => '',
+      'approved_by' => '',
+    ],
+    //Caracterizacion de Devolucion
+    [
+      'title'         => 'Caracterizacion del Proceso de Devolucion y Disposicion Final',
+      'process_id'    => 'M-DV',
+      'document_category_id' => 'CT',
+      'objective'     => 'Describir el proceso de devolucion y disposicion final, sus entradas, salidas, responsables e indicadores.',
+      'scope'         => 'Aplica a devoluciones, cuarentenas y disposicion final de productos.',
+      'references' => array_map(
+        fn($item) => ['title' => $item],
+        [
+          'Resolucion 1403 de 2007 - Servicio Farmaceutico.',
+          'Lineamientos de manejo de residuos.',
+        ]
+      ),
+      'terms' => array_map(
+        fn($item) => ['definition' => $item],
+        [
+          'Devolucion: retorno de productos por retiro, vencimiento o no conformidad.',
+          'Disposicion final: eliminacion segura de productos no aptos.',
+        ]
+      ),
+      'responsibilities' => array_map(
+        fn($item) => ['responsibility' => $item],
+        [
+          'Responsable de devoluciones: ejecutar el proceso.',
+          'Direccion tecnica: verificar cumplimiento normativo.',
+        ]
+      ),
+      'procedure' => array_map(
+        fn(array $step) => [
+          'activity' => $step['activity'],
+          'description' => $step['description'],
+          'responsible' => $step['responsible'],
+          'records' => $step['records'],
+        ],
+        [
+          [
+            'activity' => '7.1 Definir entradas y salidas',
+            'description' => 'Documentar insumos y resultados del proceso.',
+            'responsible' => 'Responsable de devoluciones',
+            'records' => 'Ficha de caracterizacion',
+          ],
+          [
+            'activity' => '7.2 Establecer indicadores',
+            'description' => 'Definir indicadores de devolucion y disposicion.',
+            'responsible' => 'Responsable de calidad',
+            'records' => 'Indicadores del proceso',
+          ],
+        ]
+      ),
+      'slug' => 'caracterizacion-de-devolucion',
+      'records' => array_map(
+        fn($item) => ['record' => $item],
+        [
+          'caracterizacion_devolucion',
+        ]
+      ),
+      'annexes' => array_map(
+        fn($item) => ['annexe' => $item],
+        [
+          'Ficha de caracterizacion de devolucion',
+        ]
+      ),
+      'data' => [
+        'version' => '1.0',
+        'vigencia' => '04-03-2026',
+      ],
+      'prepared_by' => '',
+      'reviewed_by' => '',
+      'approved_by' => '',
+    ],
+    //Procedimiento de Seleccion de Medicamentos y Dispositivos Medicos
+    [
+      'title'         => 'Procedimiento de Seleccion de Medicamentos y Dispositivos Medicos',
+      'process_id'    => 'M-SL',
+      'document_category_id' => 'PR',
+      'objective'     => 'Establecer criterios y actividades para definir el portafolio de medicamentos y dispositivos medicos.',
+      'scope'         => 'Aplica a la seleccion y actualizacion del listado basico de productos.',
+      'references' => array_map(
+        fn($item) => ['title' => $item],
+        [
+          'Resolucion 1403 de 2007 - Servicio Farmaceutico.',
+          'PBS y listados oficiales vigentes.',
+        ]
+      ),
+      'terms' => array_map(
+        fn($item) => ['definition' => $item],
+        [
+          'Listado basico: relacion de productos aprobados.',
+          'Criterio tecnico: seguridad, eficacia y calidad.',
+        ]
+      ),
+      'responsibilities' => array_map(
+        fn($item) => ['responsibility' => $item],
+        [
+          'Director tecnico: liderar la seleccion.',
+          'Comite tecnico o responsable designado: evaluar y documentar.',
+        ]
+      ),
+      'procedure' => array_map(
+        fn(array $step) => [
+          'activity' => $step['activity'],
+          'description' => $step['description'],
+          'responsible' => $step['responsible'],
+          'records' => $step['records'],
+        ],
+        [
+          [
+            'activity' => '7.1 Analisis de necesidades',
+            'description' => 'Revisar consumos, demandas y prioridades sanitarias.',
+            'responsible' => 'Director tecnico',
+            'records' => 'Analisis de necesidades',
+          ],
+          [
+            'activity' => '7.2 Evaluacion tecnica',
+            'description' => 'Evaluar eficacia, seguridad, calidad y costo.',
+            'responsible' => 'Comite tecnico',
+            'records' => 'Formato de evaluacion tecnica',
+          ],
+          [
+            'activity' => '7.3 Aprobacion del listado',
+            'description' => 'Aprobar y comunicar el listado basico vigente.',
+            'responsible' => 'Direccion tecnica',
+            'records' => 'Listado basico aprobado',
+          ],
+        ]
+      ),
+      'slug' => 'seleccion-de-medicamentos-y-dispositivos-medicos',
+      'records' => array_map(
+        fn($item) => ['record' => $item],
+        [
+          'listado_basico_medicamentos',
+          'evaluacion_proveedores',
+        ]
+      ),
+      'annexes' => array_map(
+        fn($item) => ['annexe' => $item],
+        [
+          'Formato de evaluacion de seleccion',
+        ]
+      ),
+      'data' => [
+        'version' => '1.0',
+        'vigencia' => '04-03-2026',
+      ],
+      'prepared_by' => '',
+      'reviewed_by' => '',
+      'approved_by' => '',
+    ],
+    //Procedimiento de Adquisicion de Medicamentos y Dispositivos Medicos
+    [
+      'title'         => 'Procedimiento de Adquisicion de Medicamentos y Dispositivos Medicos',
+      'process_id'    => 'M-AQ',
+      'document_category_id' => 'PR',
+      'objective'     => 'Garantizar la adquisicion oportuna y conforme a requisitos tecnicos y legales.',
+      'scope'         => 'Aplica a la compra de medicamentos y dispositivos medicos.',
+      'references' => array_map(
+        fn($item) => ['title' => $item],
+        [
+          'Resolucion 1403 de 2007 - Servicio Farmaceutico.',
+          'Politicas internas de compras.',
+        ]
+      ),
+      'terms' => array_map(
+        fn($item) => ['definition' => $item],
+        [
+          'Orden de compra: documento que formaliza la adquisicion.',
+          'Proveedor aprobado: proveedor evaluado y aceptado.',
+        ]
+      ),
+      'responsibilities' => array_map(
+        fn($item) => ['responsibility' => $item],
+        [
+          'Responsable de compras: ejecutar la adquisicion.',
+          'Direccion tecnica: validar especificaciones tecnicas.',
+        ]
+      ),
+      'procedure' => array_map(
+        fn(array $step) => [
+          'activity' => $step['activity'],
+          'description' => $step['description'],
+          'responsible' => $step['responsible'],
+          'records' => $step['records'],
+        ],
+        [
+          [
+            'activity' => '7.1 Programacion de necesidades',
+            'description' => 'Revisar inventarios y definir cantidades a comprar.',
+            'responsible' => 'Responsable de compras',
+            'records' => 'Programacion de compras',
+          ],
+          [
+            'activity' => '7.2 Cotizacion y seleccion',
+            'description' => 'Solicitar y evaluar cotizaciones a proveedores.',
+            'responsible' => 'Responsable de compras',
+            'records' => 'Registro de cotizaciones',
+          ],
+          [
+            'activity' => '7.3 Emision de orden',
+            'description' => 'Emitir orden de compra y hacer seguimiento a la entrega.',
+            'responsible' => 'Responsable de compras',
+            'records' => 'Orden de compra',
+          ],
+        ]
+      ),
+      'slug' => 'adquisicion-de-medicamentos-y-dispositivos-medicos',
+      'records' => array_map(
+        fn($item) => ['record' => $item],
+        [
+          'orden_compra',
+          'registro_cotizaciones',
+        ]
+      ),
+      'annexes' => array_map(
+        fn($item) => ['annexe' => $item],
+        [
+          'Formato de solicitud de compra',
+        ]
+      ),
+      'data' => [
+        'version' => '1.0',
+        'vigencia' => '04-03-2026',
+      ],
+      'prepared_by' => '',
+      'reviewed_by' => '',
+      'approved_by' => '',
+    ],
+    //Procedimiento de Recepcion de Medicamentos y Dispositivos Medicos
+    [
+      'title'         => 'Procedimiento de Recepcion de Medicamentos y Dispositivos Medicos',
+      'process_id'    => 'M-RT',
+      'document_category_id' => 'PR',
+      'objective'     => 'Verificar que los productos recibidos cumplan requisitos tecnicos, sanitarios y administrativos.',
+      'scope'         => 'Aplica a la recepcion administrativa y tecnica de productos.',
+      'references' => array_map(
+        fn($item) => ['title' => $item],
+        [
+          'Resolucion 1403 de 2007 - Servicio Farmaceutico.',
+          'Buenas practicas de almacenamiento y transporte.',
+        ]
+      ),
+      'terms' => array_map(
+        fn($item) => ['definition' => $item],
+        [
+          'Recepcion administrativa: verificacion de factura y cantidades.',
+          'Recepcion tecnica: inspeccion de calidad y condiciones.',
+        ]
+      ),
+      'responsibilities' => array_map(
+        fn($item) => ['responsibility' => $item],
+        [
+          'Responsable de recepcion: ejecutar verificaciones.',
+          'Direccion tecnica: decidir aceptacion o rechazo.',
+        ]
+      ),
+      'procedure' => array_map(
+        fn(array $step) => [
+          'activity' => $step['activity'],
+          'description' => $step['description'],
+          'responsible' => $step['responsible'],
+          'records' => $step['records'],
+        ],
+        [
+          [
+            'activity' => '7.1 Recepcion administrativa',
+            'description' => 'Verificar factura, cantidades, lotes y referencias.',
+            'responsible' => 'Responsable de recepcion',
+            'records' => 'Registro de recepcion administrativa',
+          ],
+          [
+            'activity' => '7.2 Recepcion tecnica',
+            'description' => 'Inspeccionar empaque, rotulado, registro sanitario y cadena de frio.',
+            'responsible' => 'Responsable de recepcion',
+            'records' => 'Registro de recepcion tecnica',
+          ],
+          [
+            'activity' => '7.3 Registro y decision',
+            'description' => 'Registrar resultados y definir aceptacion o rechazo.',
+            'responsible' => 'Direccion tecnica',
+            'records' => 'Acta de recepcion tecnica',
+          ],
+        ]
+      ),
+      'slug' => 'recepcion-de-medicamentos-y-dispositivos-medicos',
+      'records' => array_map(
+        fn($item) => ['record' => $item],
+        [
+          'acta_recepcion_tecnica',
+          'registro_no_conformidades_recepcion',
+        ]
+      ),
+      'annexes' => array_map(
+        fn($item) => ['annexe' => $item],
+        [
+          'Checklist de recepcion tecnica',
+        ]
+      ),
+      'data' => [
+        'version' => '1.0',
+        'vigencia' => '04-03-2026',
+      ],
+      'prepared_by' => '',
+      'reviewed_by' => '',
+      'approved_by' => '',
+    ],
+    //Procedimiento de Almacenamiento de Medicamentos y Dispositivos Medicos
+    [
+      'title'         => 'Procedimiento de Almacenamiento de Medicamentos y Dispositivos Medicos',
+      'process_id'    => 'M-AT',
+      'document_category_id' => 'PR',
+      'objective'     => 'Conservar los productos en condiciones adecuadas de temperatura, humedad, orden y seguridad.',
+      'scope'         => 'Aplica a todas las areas de almacenamiento del establecimiento.',
+      'references' => array_map(
+        fn($item) => ['title' => $item],
+        [
+          'Resolucion 1403 de 2007 - Servicio Farmaceutico.',
+          'Buenas practicas de almacenamiento.',
+        ]
+      ),
+      'terms' => array_map(
+        fn($item) => ['definition' => $item],
+        [
+          'PEPS/FEFO: metodo de rotacion de inventarios.',
+          'Condiciones ambientales: temperatura y humedad controladas.',
+        ]
+      ),
+      'responsibilities' => array_map(
+        fn($item) => ['responsibility' => $item],
+        [
+          'Responsable de almacenamiento: organizar y monitorear condiciones.',
+          'Direccion tecnica: verificar cumplimiento.',
+        ]
+      ),
+      'procedure' => array_map(
+        fn(array $step) => [
+          'activity' => $step['activity'],
+          'description' => $step['description'],
+          'responsible' => $step['responsible'],
+          'records' => $step['records'],
+        ],
+        [
+          [
+            'activity' => '7.1 Ubicacion y organizacion',
+            'description' => 'Ordenar productos por categoria y riesgo, evitando confusiones.',
+            'responsible' => 'Responsable de almacenamiento',
+            'records' => 'Registro de ubicaciones',
+          ],
+          [
+            'activity' => '7.2 Monitoreo ambiental',
+            'description' => 'Registrar temperatura y humedad segun la frecuencia definida.',
+            'responsible' => 'Responsable de almacenamiento',
+            'records' => 'Registro de temperatura y humedad',
+          ],
+          [
+            'activity' => '7.3 Control de vencimientos',
+            'description' => 'Aplicar FEFO y gestionar productos proximos a vencer.',
+            'responsible' => 'Responsable de almacenamiento',
+            'records' => 'Control de vencimientos',
+          ],
+        ]
+      ),
+      'slug' => 'almacenamiento-de-medicamentos-y-dispositivos-medicos',
+      'records' => array_map(
+        fn($item) => ['record' => $item],
+        [
+          'registro_temperatura_humedad',
+          'control_vencimientos',
+        ]
+      ),
+      'annexes' => array_map(
+        fn($item) => ['annexe' => $item],
+        [
+          'Plan de almacenamiento y rotacion',
+        ]
+      ),
+      'data' => [
+        'version' => '1.0',
+        'vigencia' => '04-03-2026',
+      ],
+      'prepared_by' => '',
+      'reviewed_by' => '',
+      'approved_by' => '',
+    ],
+    //Procedimiento de Dispensacion de Medicamentos y Dispositivos Medicos
+    [
+      'title'         => 'Procedimiento de Dispensacion de Medicamentos y Dispositivos Medicos',
+      'process_id'    => 'M-DP',
+      'document_category_id' => 'PR',
+      'objective'     => 'Garantizar la entrega segura y la orientacion adecuada al usuario.',
+      'scope'         => 'Aplica a la dispensacion con o sin formula medica.',
+      'references' => array_map(
+        fn($item) => ['title' => $item],
+        [
+          'Resolucion 1403 de 2007 - Servicio Farmaceutico.',
+          'Buenas practicas de dispensacion.',
+        ]
+      ),
+      'terms' => array_map(
+        fn($item) => ['definition' => $item],
+        [
+          'Dispensacion: entrega de medicamentos al usuario.',
+          'Orientacion: informacion para el uso seguro y efectivo.',
+        ]
+      ),
+      'responsibilities' => array_map(
+        fn($item) => ['responsibility' => $item],
+        [
+          'Dispensador: ejecutar la entrega y orientacion.',
+          'Direccion tecnica: supervisar el cumplimiento.',
+        ]
+      ),
+      'procedure' => array_map(
+        fn(array $step) => [
+          'activity' => $step['activity'],
+          'description' => $step['description'],
+          'responsible' => $step['responsible'],
+          'records' => $step['records'],
+        ],
+        [
+          [
+            'activity' => '7.1 Validacion',
+            'description' => 'Verificar formula, identidad del usuario y requisitos legales.',
+            'responsible' => 'Dispensador',
+            'records' => 'Registro de validacion',
+          ],
+          [
+            'activity' => '7.2 Entrega y orientacion',
+            'description' => 'Entregar el producto e informar dosis, uso y cuidados.',
+            'responsible' => 'Dispensador',
+            'records' => 'Registro de orientacion',
+          ],
+          [
+            'activity' => '7.3 Registro',
+            'description' => 'Registrar la dispensacion y novedades.',
+            'responsible' => 'Dispensador',
+            'records' => 'Registro de dispensacion',
+          ],
+        ]
+      ),
+      'slug' => 'dispensacion-de-medicamentos-y-dispositivos-medicos',
+      'records' => array_map(
+        fn($item) => ['record' => $item],
+        [
+          'registro_dispensacion',
+          'registro_orientacion_usuario',
+        ]
+      ),
+      'annexes' => array_map(
+        fn($item) => ['annexe' => $item],
+        [
+          'Guia de dispensacion',
+        ]
+      ),
+      'data' => [
+        'version' => '1.0',
+        'vigencia' => '04-03-2026',
+      ],
+      'prepared_by' => '',
+      'reviewed_by' => '',
+      'approved_by' => '',
+    ],
+    //Procedimiento de Devolucion de Medicamentos y Dispositivos Medicos
+    [
+      'title'         => 'Procedimiento de Devolucion de Medicamentos y Dispositivos Medicos',
+      'process_id'    => 'M-DV',
+      'document_category_id' => 'PR',
+      'objective'     => 'Gestionar devoluciones y disposicion final de productos no aptos o retirados.',
+      'scope'         => 'Aplica a devoluciones por vencimiento, retiro del mercado o no conformidad.',
+      'references' => array_map(
+        fn($item) => ['title' => $item],
+        [
+          'Resolucion 1403 de 2007 - Servicio Farmaceutico.',
+          'Normativa ambiental vigente para residuos.',
+        ]
+      ),
+      'terms' => array_map(
+        fn($item) => ['definition' => $item],
+        [
+          'Devolucion: retorno de un producto a proveedor o a disposicion final.',
+          'Cuarentena: retencion temporal para analisis.',
+        ]
+      ),
+      'responsibilities' => array_map(
+        fn($item) => ['responsibility' => $item],
+        [
+          'Responsable de devoluciones: ejecutar el proceso.',
+          'Direccion tecnica: aprobar decisiones de disposicion.',
+        ]
+      ),
+      'procedure' => array_map(
+        fn(array $step) => [
+          'activity' => $step['activity'],
+          'description' => $step['description'],
+          'responsible' => $step['responsible'],
+          'records' => $step['records'],
+        ],
+        [
+          [
+            'activity' => '7.1 Recepcion de devoluciones',
+            'description' => 'Recibir, clasificar y registrar productos devueltos.',
+            'responsible' => 'Responsable de devoluciones',
+            'records' => 'Registro de devoluciones',
+          ],
+          [
+            'activity' => '7.2 Definicion de destino',
+            'description' => 'Determinar reintegro, devolucion a proveedor o disposicion final.',
+            'responsible' => 'Direccion tecnica',
+            'records' => 'Acta de devolucion',
+          ],
+          [
+            'activity' => '7.3 Disposicion final',
+            'description' => 'Coordinar entrega a gestor autorizado y conservar soportes.',
+            'responsible' => 'Responsable de devoluciones',
+            'records' => 'Acta de disposicion final',
+          ],
+        ]
+      ),
+      'slug' => 'devolucion-de-medicamentos-y-dispositivos-medicos',
+      'records' => array_map(
+        fn($item) => ['record' => $item],
+        [
+          'acta_devolucion',
+          'acta_disposicion_final',
+        ]
+      ),
+      'annexes' => array_map(
+        fn($item) => ['annexe' => $item],
+        [
+          'Formato de devoluciones',
+        ]
+      ),
+      'data' => [
+        'version' => '1.0',
+        'vigencia' => '04-03-2026',
+      ],
+      'prepared_by' => '',
+      'reviewed_by' => '',
+      'approved_by' => '',
+    ],
+    //Procedimiento de Farmacovigilancia
+    [
+      'title'         => 'Procedimiento de Farmacovigilancia',
+      'process_id'    => 'M-DP',
+      'document_category_id' => 'PR',
+      'objective'     => 'Establecer el reporte y seguimiento de eventos adversos y alertas sanitarias.',
+      'scope'         => 'Aplica a la deteccion, registro y reporte de eventos adversos.',
+      'references' => array_map(
+        fn($item) => ['title' => $item],
+        [
+          'Resolucion 1403 de 2007 - Servicio Farmaceutico.',
+          'Lineamientos de farmacovigilancia del INVIMA.',
+        ]
+      ),
+      'terms' => array_map(
+        fn($item) => ['definition' => $item],
+        [
+          'Evento adverso: efecto no deseado asociado al uso de un medicamento.',
+          'Alerta sanitaria: comunicacion oficial sobre riesgos.',
+        ]
+      ),
+      'responsibilities' => array_map(
+        fn($item) => ['responsibility' => $item],
+        [
+          'Dispensador: identificar y registrar eventos.',
+          'Direccion tecnica: reportar a la autoridad sanitaria.',
+        ]
+      ),
+      'procedure' => array_map(
+        fn(array $step) => [
+          'activity' => $step['activity'],
+          'description' => $step['description'],
+          'responsible' => $step['responsible'],
+          'records' => $step['records'],
+        ],
+        [
+          [
+            'activity' => '7.1 Identificacion',
+            'description' => 'Detectar eventos adversos o alertas sanitarias.',
+            'responsible' => 'Dispensador',
+            'records' => 'Registro de evento adverso',
+          ],
+          [
+            'activity' => '7.2 Registro y analisis',
+            'description' => 'Documentar el caso y evaluar su gravedad.',
+            'responsible' => 'Direccion tecnica',
+            'records' => 'Formato de reporte',
+          ],
+          [
+            'activity' => '7.3 Reporte externo',
+            'description' => 'Reportar a la autoridad competente y hacer seguimiento.',
+            'responsible' => 'Direccion tecnica',
+            'records' => 'Reporte de farmacovigilancia',
+          ],
+        ]
+      ),
+      'slug' => 'farmacovigilancia',
+      'records' => array_map(
+        fn($item) => ['record' => $item],
+        [
+          'registro_eventos_adversos',
+          'reporte_farmacovigilancia',
+        ]
+      ),
+      'annexes' => array_map(
+        fn($item) => ['annexe' => $item],
+        [
+          'Formato de reporte de eventos adversos',
+        ]
+      ),
+      'data' => [
+        'version' => '1.0',
+        'vigencia' => '04-03-2026',
+      ],
+      'prepared_by' => '',
+      'reviewed_by' => '',
+      'approved_by' => '',
+    ],
+    //Procedimiento de Manejo de Productos Refrigerados
+    [
+      'title'         => 'Procedimiento de Manejo de Productos Refrigerados',
+      'process_id'    => 'M-AT',
+      'document_category_id' => 'PR',
+      'objective'     => 'Garantizar la conservacion de productos que requieren cadena de frio.',
+      'scope'         => 'Aplica a la recepcion, almacenamiento y control de productos refrigerados.',
+      'references' => array_map(
+        fn($item) => ['title' => $item],
+        [
+          'Resolucion 1403 de 2007 - Servicio Farmaceutico.',
+          'Recomendaciones del fabricante.',
+        ]
+      ),
+      'terms' => array_map(
+        fn($item) => ['definition' => $item],
+        [
+          'Cadena de frio: mantenimiento de temperatura controlada.',
+          'Desviacion: salida del rango permitido.',
+        ]
+      ),
+      'responsibilities' => array_map(
+        fn($item) => ['responsibility' => $item],
+        [
+          'Responsable de almacenamiento: monitorear condiciones.',
+          'Direccion tecnica: decidir acciones ante desviaciones.',
+        ]
+      ),
+      'procedure' => array_map(
+        fn(array $step) => [
+          'activity' => $step['activity'],
+          'description' => $step['description'],
+          'responsible' => $step['responsible'],
+          'records' => $step['records'],
+        ],
+        [
+          [
+            'activity' => '7.1 Recepcion en frio',
+            'description' => 'Verificar condiciones de transporte y temperatura al recibir.',
+            'responsible' => 'Responsable de recepcion',
+            'records' => 'Registro de recepcion en frio',
+          ],
+          [
+            'activity' => '7.2 Almacenamiento y monitoreo',
+            'description' => 'Conservar entre rangos establecidos y registrar temperaturas.',
+            'responsible' => 'Responsable de almacenamiento',
+            'records' => 'Registro de temperatura',
+          ],
+          [
+            'activity' => '7.3 Acciones por desviaciones',
+            'description' => 'Aplicar medidas correctivas y documentar el evento.',
+            'responsible' => 'Direccion tecnica',
+            'records' => 'Registro de desviaciones',
+          ],
+        ]
+      ),
+      'slug' => 'manejo-productos-refrigerados',
+      'records' => array_map(
+        fn($item) => ['record' => $item],
+        [
+          'registro_temperatura_refrigerados',
+          'registro_desviaciones_cadena_frio',
+        ]
+      ),
+      'annexes' => array_map(
+        fn($item) => ['annexe' => $item],
+        [
+          'Planilla de control de temperatura',
+        ]
+      ),
+      'data' => [
+        'version' => '1.0',
+        'vigencia' => '04-03-2026',
+      ],
+      'prepared_by' => '',
+      'reviewed_by' => '',
+      'approved_by' => '',
+    ],
+    //Plan de Emergencia para Cadena de Frio
+    [
+      'title'         => 'Plan de Emergencia para Cadena de Frio',
+      'process_id'    => 'M-AT',
+      'document_category_id' => 'PR',
+      'objective'     => 'Definir acciones de contingencia para mantener la cadena de frio ante fallas.',
+      'scope'         => 'Aplica a fallas electricas, averias o interrupciones del sistema de refrigeracion.',
+      'references' => array_map(
+        fn($item) => ['title' => $item],
+        [
+          'Resolucion 1403 de 2007 - Servicio Farmaceutico.',
+          'Lineamientos internos de contingencia.',
+        ]
+      ),
+      'terms' => array_map(
+        fn($item) => ['definition' => $item],
+        [
+          'Contingencia: evento que afecta la conservacion adecuada.',
+          'Accion correctiva: medida para recuperar el control.',
+        ]
+      ),
+      'responsibilities' => array_map(
+        fn($item) => ['responsibility' => $item],
+        [
+          'Direccion tecnica: activar el plan y comunicar.',
+          'Responsable de almacenamiento: ejecutar medidas de contingencia.',
+        ]
+      ),
+      'procedure' => array_map(
+        fn(array $step) => [
+          'activity' => $step['activity'],
+          'description' => $step['description'],
+          'responsible' => $step['responsible'],
+          'records' => $step['records'],
+        ],
+        [
+          [
+            'activity' => '7.1 Activacion del plan',
+            'description' => 'Notificar la falla y declarar la contingencia.',
+            'responsible' => 'Direccion tecnica',
+            'records' => 'Acta de activacion',
+          ],
+          [
+            'activity' => '7.2 Medidas de contencion',
+            'description' => 'Trasladar productos a equipos alternos o contenedores termicos.',
+            'responsible' => 'Responsable de almacenamiento',
+            'records' => 'Registro de traslado',
+          ],
+          [
+            'activity' => '7.3 Cierre y verificacion',
+            'description' => 'Verificar condiciones y cerrar la contingencia.',
+            'responsible' => 'Direccion tecnica',
+            'records' => 'Acta de cierre',
+          ],
+        ]
+      ),
+      'slug' => 'plan-de-emergencia-cadena-de-frio',
+      'records' => array_map(
+        fn($item) => ['record' => $item],
+        [
+          'acta_contingencia_cadena_frio',
+          'registro_contingencia_cadena_frio',
+        ]
+      ),
+      'annexes' => array_map(
+        fn($item) => ['annexe' => $item],
+        [
+          'Checklist de contingencia cadena de frio',
+        ]
+      ),
+      'data' => [
+        'version' => '1.0',
+        'vigencia' => '04-03-2026',
+      ],
+      'prepared_by' => '',
+      'reviewed_by' => '',
+      'approved_by' => '',
+    ],
+    //Gestion de Devoluciones Posconsumo
+    [
+      'title'         => 'Procedimiento de Gestion de Devoluciones Posconsumo',
+      'process_id'    => 'M-DV',
+      'document_category_id' => 'PR',
+      'objective'     => 'Gestionar la recoleccion y disposicion de medicamentos vencidos o no usados por usuarios.',
+      'scope'         => 'Aplica a la recepcion, almacenamiento temporal y entrega a gestores autorizados.',
+      'references' => array_map(
+        fn($item) => ['title' => $item],
+        [
+          'Resolucion 1403 de 2007 - Servicio Farmaceutico.',
+          'Normativa ambiental aplicable a posconsumo.',
+        ]
+      ),
+      'terms' => array_map(
+        fn($item) => ['definition' => $item],
+        [
+          'Posconsumo: devolucion de medicamentos no utilizados.',
+          'Gestor autorizado: entidad habilitada para disposicion final.',
+        ]
+      ),
+      'responsibilities' => array_map(
+        fn($item) => ['responsibility' => $item],
+        [
+          'Responsable de devoluciones: ejecutar el plan posconsumo.',
+          'Direccion tecnica: verificar cumplimiento normativo.',
+        ]
+      ),
+      'procedure' => array_map(
+        fn(array $step) => [
+          'activity' => $step['activity'],
+          'description' => $step['description'],
+          'responsible' => $step['responsible'],
+          'records' => $step['records'],
+        ],
+        [
+          [
+            'activity' => '7.1 Divulgacion y recoleccion',
+            'description' => 'Informar a usuarios y habilitar puntos de recoleccion.',
+            'responsible' => 'Responsable de devoluciones',
+            'records' => 'Registro de divulgacion',
+          ],
+          [
+            'activity' => '7.2 Almacenamiento temporal',
+            'description' => 'Conservar los residuos en area definida y senalizada.',
+            'responsible' => 'Responsable de devoluciones',
+            'records' => 'Registro de almacenamiento temporal',
+          ],
+          [
+            'activity' => '7.3 Entrega a gestor',
+            'description' => 'Entregar los residuos y conservar actas de disposicion.',
+            'responsible' => 'Direccion tecnica',
+            'records' => 'Acta de entrega a gestor',
+          ],
+        ]
+      ),
+      'slug' => 'gestion-de-devoluciones',
+      'records' => array_map(
+        fn($item) => ['record' => $item],
+        [
+          'registro_posconsumo',
+          'acta_entrega_gestor',
+        ]
+      ),
+      'annexes' => array_map(
+        fn($item) => ['annexe' => $item],
+        [
+          'Plan posconsumo vigente',
         ]
       ),
       'data' => [

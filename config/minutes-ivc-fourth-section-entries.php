@@ -34,7 +34,7 @@ return [
         'links' => [
             [
                 'key' => 'document.slug',
-                'value' => 'procedimiento-plan-contingencia-suministro-agua-potable'
+                'value' => 'plan-contingencia-suministro-agua-potable'
             ],
         ],
         'compliance' => true,
@@ -69,7 +69,7 @@ return [
         'links' => [
             [
                 'key' => 'document.slug',
-                'value' => 'procedimiento-control-integral-plagas'
+                'value' => 'control-integral-plagas'
             ]
         ],
         'compliance' => true,
@@ -84,7 +84,7 @@ return [
         'links' => [
             [
                 'key' => 'document.slug',
-                'value' => 'procedimiento-de-limpieza'
+                'value' => 'limpieza-sanitizacion-areas'
             ],
             [
                 'key' => 'record.route',
