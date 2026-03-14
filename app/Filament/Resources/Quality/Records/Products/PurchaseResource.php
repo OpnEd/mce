@@ -27,7 +27,7 @@ class PurchaseResource extends Resource
     protected static ?string $model = Purchase::class;
 
     protected static ?string $navigationGroup = 'Registros Diarios';
-    protected static ?string $navigationLabel = 'Productos Faltantes';
+    protected static ?string $navigationLabel = 'Órdenes de Compra';
     //protected static ?string $recordTitleAttribute = 'temp';
     protected static ?string $heading = 'Órdenes de compra e Indicadores de Selección y Adquisición';
     protected static ?string $slug = 'ordenes-de-compra'; // Cambiado de 'productos-faltantes'

@@ -45,7 +45,7 @@ class ListPurchases extends ListRecords
 
     public function getSubheading(): ?string
     {
-        return __('Registra: 1) los productos de alta rotación que se están acabando (fatantes ordinarios), 2) los productos que ya están en cero (faltantes efectivos) y 3) los productos de baja rotación (alto costo y control especial, por ejemplo) que han sido solicitados');
+        return __('Registra faltantes Clase A (seleccionados) y Clase B (no seleccionados solicitados por usuarios) para los indicadores de Seleccion y Adquisicion');
     }
 
     protected function getHeaderWidgets(): array

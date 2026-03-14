@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Cache;
@@ -60,6 +61,18 @@ class Purchase extends Model
     public function items(): HasMany
     {
         return $this->hasMany(PurchaseItem::class);
+    }
+
+    public function missingProducts(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            \App\Models\Quality\Records\Products\MissingProduct::class,
+            PurchaseItem::class,
+            'purchase_id',
+            'purchase_item_id',
+            'id',
+            'id'
+        );
     }
 
     public function productReceptions(): HasMany

@@ -3,7 +3,7 @@
 namespace App\Services\Quality\Records\Products;
 
 use App\Models\ManagementIndicator;
-use App\Models\PurchaseItem;
+use App\Models\Quality\Records\Products\MissingProduct;
 use Carbon\Carbon;
 use Filament\Facades\Filament;
 
@@ -25,8 +25,17 @@ class MissingProductService
         $tenantAquisitionIndicator = $aquisitionIndicator->teams->where('id', $currentTenant->id)->first();
         $aquisitionGoal = $tenantAquisitionIndicator->pivot->indicator_goal;
 
-        $selectionCount = PurchaseItem::where('team_id', $currentTenant->id)->where('type', 'faltante_baja_rotacion')->whereBetween('created_at', [$startDate, $endDate])->count();
-        $aquisitionCount = PurchaseItem::where('team_id', $currentTenant->id)->where('type', 'faltante_efectivo')->whereBetween('created_at', [$startDate, $endDate])->count();
+        $selectionCount = MissingProduct::query()
+            ->where('team_id', $currentTenant->id)
+            ->forSelectionIndicator()
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->count();
+
+        $aquisitionCount = MissingProduct::query()
+            ->where('team_id', $currentTenant->id)
+            ->forAcquisitionIndicator()
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->count();
 
         $progress = (is_numeric($aquisitionGoal) && $aquisitionGoal > 0)
             ? max(0, min(100, (int) round(($aquisitionCount / $aquisitionGoal) * 100)))

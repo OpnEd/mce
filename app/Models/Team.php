@@ -193,7 +193,7 @@ class Team extends Model
         return $this->hasMany(MinutesIvcSection::class);
     }
 
-    public function missing_products(): HasMany
+    public function missingProducts(): HasMany
     {
         return $this->hasMany(MissingProduct::class);
     }

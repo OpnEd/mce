@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Quality\Records\Products\MissingProduct;
 use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -63,6 +64,11 @@ class PurchaseItem extends Model
     public function dispatchItem(): HasMany
     {
         return $this->hasMany(DispatchItems::class);
+    }
+
+    public function missingProducts(): HasMany
+    {
+        return $this->hasMany(MissingProduct::class);
     }
 
     public function product(): BelongsTo

@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Quality\Records\Products\PurchaseResource\Widgets;
 
-use App\Models\PurchaseItem;
+use App\Models\Quality\Records\Products\MissingProduct;
 use App\Services\Quality\Records\Products\MissingProductService;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\DatePicker;
@@ -42,8 +42,9 @@ class MissingProductAquisitionChart extends ApexChartWidget
         $metaValue = $goal['aquisitionGoal'];
         
         $data = Trend::query(
-            PurchaseItem::query()
-                ->where('type', 'faltante_efectivo')
+            MissingProduct::query()
+                ->where('team_id', Filament::getTenant()->id)
+                ->forAcquisitionIndicator()
         )
             ->between(
                 start: Carbon::parse($this->filterFormData['date_start']),
@@ -69,7 +70,7 @@ class MissingProductAquisitionChart extends ApexChartWidget
             ],
             'series' => [
                 [
-                    'name' => 'Número de Faltantes (Adquisición) / mes',
+                    'name' => 'Numero de faltantes (Adquisicion) / mes',
                     'data' => $seriesData,
                 ],
             ],

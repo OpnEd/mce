@@ -22,10 +22,10 @@ class PurchaseItemResource extends Resource
     protected static ?string $tenantOwnershipRelationshipName = 'purchase';
     protected static ?string $slug = 'parangaricutirimicuarelamemte';
 
-    /* public static function shouldRegisterNavigation(): bool
+    public static function shouldRegisterNavigation(): bool
     {
         return false;
-    } */
+    }
 
     public static function form(Form $form): Form
     {
@@ -50,6 +50,15 @@ class PurchaseItemResource extends Resource
                     ->required()
                     ->numeric()
                     ->default(0),
+                Forms\Components\Select::make('type')
+                    ->label('Tipo de Faltante')
+                    ->options([
+                        'faltante_ordinario' => 'Faltante Ordinario',
+                        'faltante_efectivo' => 'Faltante Efectivo',
+                        'faltante_baja_rotacion' => 'Faltante Baja Rotacion',
+                    ])
+                    ->default('faltante_ordinario')
+                    ->required(),
             ]);
     }
 
@@ -71,6 +80,9 @@ class PurchaseItemResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('total')
                     ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('type')
+                    ->label('Tipo de Faltante')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()

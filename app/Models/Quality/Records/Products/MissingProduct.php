@@ -3,6 +3,7 @@
 namespace App\Models\Quality\Records\Products;
 
 use App\Models\Product;
+use App\Models\PurchaseItem;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -19,15 +20,27 @@ class MissingProduct extends Model
         'team_id',
         'user_id',
         'product_id',
-        'type'
+        'is_selected',
+        'requested_by_user',
+        'stock_status',
+        'purchase_item_id',
     ];
 
-    public static function getTypes()
+    protected $casts = [
+        'is_selected' => 'boolean',
+        'requested_by_user' => 'boolean',
+    ];
+
+    public const STOCK_STATUS_IN_STOCK = 'in_stock';
+    public const STOCK_STATUS_OUT_OF_STOCK = 'out_of_stock';
+    public const STOCK_STATUS_UNKNOWN = 'unknown';
+
+    public static function getStockStatuses(): array
     {
         return [
-            'faltante_ordinario' => 'Faltante Ordinario',
-            'faltante_efectivo' => 'Faltante Efectivo',
-            'faltante_baja_rotacion' => 'Faltante Baja Rotación',
+            self::STOCK_STATUS_IN_STOCK => 'Con existencias',
+            self::STOCK_STATUS_OUT_OF_STOCK => 'Sin existencias',
+            self::STOCK_STATUS_UNKNOWN => 'No definido',
         ];
     }
 
@@ -36,13 +49,66 @@ class MissingProduct extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function producto(): BelongsTo
+    public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function producto(): BelongsTo
+    {
+        return $this->product();
     }
 
     public function team(): BelongsTo
     {
         return $this->belongsTo(Team::class);
+    }
+
+    public function purchaseItem(): BelongsTo
+    {
+        return $this->belongsTo(PurchaseItem::class);
+    }
+
+    public function scopeClassA($query)
+    {
+        return $query->where('is_selected', true);
+    }
+
+    public function scopeClassB($query)
+    {
+        return $query->where('is_selected', false)
+            ->where('requested_by_user', true);
+    }
+
+    public function scopeForSelectionIndicator($query)
+    {
+        return $query->where('requested_by_user', true)
+            ->where('stock_status', self::STOCK_STATUS_OUT_OF_STOCK)
+            ->where('is_selected', false);
+    }
+
+    public function scopeForAcquisitionIndicator($query)
+    {
+        return $query->where('requested_by_user', true)
+            ->where('stock_status', self::STOCK_STATUS_OUT_OF_STOCK)
+            ->where('is_selected', true);
+    }
+
+    public function scopeOpen($query)
+    {
+        return $query->whereNull('purchase_item_id');
+    }
+
+    public function getMissingClassAttribute(): ?string
+    {
+        if ($this->is_selected) {
+            return 'A';
+        }
+
+        if ($this->requested_by_user) {
+            return 'B';
+        }
+
+        return null;
     }
 }

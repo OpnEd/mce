@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Quality\Records\Products\PurchaseResource\Widgets;
 
-use App\Models\PurchaseItem;
+use App\Models\Quality\Records\Products\MissingProduct;
 use App\Services\Quality\Records\Products\MissingProductService;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\DatePicker;
@@ -42,8 +42,9 @@ class MissingProductSelectionChart extends ApexChartWidget
         $metaValue = $goal['selectionGoal'];
         
         $data = Trend::query(
-            PurchaseItem::query()
-                ->where('type', 'faltante_baja_rotacion')
+            MissingProduct::query()
+                ->where('team_id', Filament::getTenant()->id)
+                ->forSelectionIndicator()
         )
             ->between(
                 start: Carbon::parse($this->filterFormData['date_start']),
@@ -68,7 +69,7 @@ class MissingProductSelectionChart extends ApexChartWidget
             ],
             'series' => [
                 [
-                    'name' => 'Número de Faltantes (Baja Rotación) / mes',
+                    'name' => 'Numero de faltantes (Seleccion) / mes',
                     'data' => $seriesData,
                 ],
             ],

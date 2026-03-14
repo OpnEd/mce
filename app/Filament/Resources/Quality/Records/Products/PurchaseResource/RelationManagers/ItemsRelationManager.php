@@ -7,6 +7,7 @@ use App\Helpers\PermissionVerificationHelper;
 use App\Models\CentralProductPrice;
 use App\Models\Product;
 use App\Models\Purchase;
+use App\Models\Quality\Records\Products\MissingProduct;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -21,6 +22,7 @@ use Filament\Forms\Get;
 use Filament\Forms\Set;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -72,11 +74,11 @@ class ItemsRelationManager extends RelationManager
 
                 Forms\Components\Select::make('type')
                     ->label('Tipo de Faltante')
-                    ->helperText(str('**Faltante Ordinario**: Producto a solicitar que aún tiene existencias. **Faltante Efectivo**: Producto de alta rotación solicitado por los usuarios y que no pudimos dispensar por existencias cero (0). **Faltante Baja Rotación**: Producto de baja rotación solicitado por los usuarios y que no pudimos dispensar por existencias cero (0)')->inlineMarkdown()->toHtmlString())
+                    ->helperText(str('**Faltante Ordinario**: Producto seleccionado que se debe comprar (puede tener existencias). **Faltante Efectivo**: Producto seleccionado, solicitado por usuario y sin existencias. **Faltante Baja Rotacion**: Producto no seleccionado, solicitado por usuario y sin existencias.')->inlineMarkdown()->toHtmlString())
                     ->options([
                         'faltante_ordinario' => 'Faltante Ordinario',
                         'faltante_efectivo' => 'Faltante Efectivo',
-                        'faltante_baja_rotacion' => 'Faltante Baja Rotación',
+                        'faltante_baja_rotacion' => 'Faltante Baja Rotacion',
                     ]) // ->default('faltante_ordinario')
                     ->default('faltante_ordinario')
                     ->required()
@@ -127,6 +129,104 @@ class ItemsRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
+                Tables\Actions\Action::make('addMissingProducts')
+                    ->label('Agregar faltantes')
+                    ->icon('phosphor-plus-circle')
+                    ->color('primary')
+                    ->form([
+                        Forms\Components\Select::make('missing_product_ids')
+                            ->label('Faltantes disponibles')
+                            ->multiple()
+                            ->searchable()
+                            ->preload(false)
+                            ->getSearchResultsUsing(function (string $search) {
+                                $owner = $this->getOwnerRecord();
+
+                                return MissingProduct::query()
+                                    ->where('team_id', $owner->team_id)
+                                    ->open()
+                                    ->whereHas('product', function ($query) use ($search) {
+                                        $query->where('name', 'like', "%{$search}%");
+                                    })
+                                    ->with('product')
+                                    ->orderByDesc('created_at')
+                                    ->limit(50)
+                                    ->get()
+                                    ->mapWithKeys(function (MissingProduct $missingProduct) {
+                                        return [$missingProduct->id => $this->formatMissingProductOption($missingProduct)];
+                                    })
+                                    ->toArray();
+                            })
+                            ->getOptionLabelsUsing(function (array $values) {
+                                return MissingProduct::query()
+                                    ->whereIn('id', $values)
+                                    ->with('product')
+                                    ->get()
+                                    ->mapWithKeys(function (MissingProduct $missingProduct) {
+                                        return [$missingProduct->id => $this->formatMissingProductOption($missingProduct)];
+                                    })
+                                    ->toArray();
+                            })
+                            ->required(),
+                    ])
+                    ->action(function (array $data) {
+                        $purchase = $this->ownerRecord;
+
+                        $missingProducts = MissingProduct::query()
+                            ->whereIn('id', $data['missing_product_ids'])
+                            ->whereNull('purchase_item_id')
+                            ->with('product')
+                            ->get();
+
+                        if ($missingProducts->isEmpty()) {
+                            Notification::make()
+                                ->title('No hay faltantes disponibles')
+                                ->warning()
+                                ->send();
+                            return;
+                        }
+
+                        DB::transaction(function () use ($purchase, $missingProducts) {
+                            $grouped = $missingProducts->groupBy('product_id');
+
+                            foreach ($grouped as $productId => $items) {
+                                $quantity = $items->count();
+                                $price = CentralProductPrice::find($productId)?->price ?? 0;
+
+                                $existingItem = $purchase->items()->where('product_id', $productId)->first();
+
+                                if ($existingItem) {
+                                    $existingItem->quantity += $quantity;
+                                    if ($existingItem->price <= 0) {
+                                        $existingItem->price = $price;
+                                    }
+                                    $existingItem->total = $existingItem->quantity * $existingItem->price;
+                                    $existingItem->save();
+                                    $purchaseItem = $existingItem;
+                                } else {
+                                    $purchaseItem = $purchase->items()->create([
+                                        'product_id' => $productId,
+                                        'quantity' => $quantity,
+                                        'price' => $price,
+                                        'total' => $quantity * $price,
+                                        'enlisted' => false,
+                                        'team_id' => $purchase->team_id,
+                                        'type' => $this->resolveTypeFromMissingProduct($items->first()),
+                                    ]);
+                                }
+
+                                MissingProduct::whereIn('id', $items->pluck('id'))
+                                    ->update(['purchase_item_id' => $purchaseItem->id]);
+                            }
+
+                            $purchase->updatePurchaseTotal();
+                        });
+
+                        Notification::make()
+                            ->title('Faltantes agregados a la orden')
+                            ->success()
+                            ->send();
+                    }),
                 CreateAction::make()
                     ->label('Agregar producto')
                     ->icon('phosphor-plus')
@@ -252,4 +352,36 @@ class ItemsRelationManager extends RelationManager
 
         $purchase->update(['total' => $total]);
     } */
+
+    protected function formatMissingProductOption(MissingProduct $missingProduct): string
+    {
+        $productName = $missingProduct->product?->name ?? 'Producto';
+        $class = $missingProduct->missing_class ?? '-';
+        $stockStatus = MissingProduct::getStockStatuses()[$missingProduct->stock_status] ?? $missingProduct->stock_status;
+        $requested = $missingProduct->requested_by_user ? 'Solicitado' : 'No solicitado';
+        $date = $missingProduct->created_at?->format('Y-m-d') ?? '';
+
+        return "{$productName} | Clase {$class} | {$stockStatus} | {$requested} | {$date}";
+    }
+
+    protected function resolveTypeFromMissingProduct(MissingProduct $missingProduct): string
+    {
+        if (
+            $missingProduct->is_selected
+            && $missingProduct->requested_by_user
+            && $missingProduct->stock_status === MissingProduct::STOCK_STATUS_OUT_OF_STOCK
+        ) {
+            return 'faltante_efectivo';
+        }
+
+        if (
+            !$missingProduct->is_selected
+            && $missingProduct->requested_by_user
+            && $missingProduct->stock_status === MissingProduct::STOCK_STATUS_OUT_OF_STOCK
+        ) {
+            return 'faltante_baja_rotacion';
+        }
+
+        return 'faltante_ordinario';
+    }
 }
