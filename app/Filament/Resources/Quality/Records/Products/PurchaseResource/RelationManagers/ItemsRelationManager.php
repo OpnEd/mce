@@ -133,6 +133,7 @@ class ItemsRelationManager extends RelationManager
                     ->label('Agregar faltantes')
                     ->icon('phosphor-plus-circle')
                     ->color('primary')
+                    ->visible(fn(): bool => $this->ownerRecord->status === 'in_progress')
                     ->form([
                         Forms\Components\Select::make('missing_product_ids')
                             ->label('Faltantes disponibles')
@@ -171,6 +172,13 @@ class ItemsRelationManager extends RelationManager
                     ])
                     ->action(function (array $data) {
                         $purchase = $this->ownerRecord;
+                        if ($purchase->status !== 'in_progress') {
+                            Notification::make()
+                                ->title('La orden no estÃ¡ en progreso')
+                                ->warning()
+                                ->send();
+                            return;
+                        }
 
                         $missingProducts = MissingProduct::query()
                             ->whereIn('id', $data['missing_product_ids'])
@@ -230,9 +238,16 @@ class ItemsRelationManager extends RelationManager
                 CreateAction::make()
                     ->label('Agregar producto')
                     ->icon('phosphor-plus')
-                    ->visible(fn(): bool => Gate::allows('confirm', $this->ownerRecord))
+                    ->visible(fn(): bool => Gate::allows('confirm', $this->ownerRecord) && $this->ownerRecord->status === 'in_progress')
                     ->before(function (array $data, $action) {
                         $purchase = $this->ownerRecord;
+                        if ($purchase->status !== 'in_progress') {
+                            \Filament\Notifications\Notification::make()
+                                ->title('La orden no estÃ¡ en progreso')
+                                ->warning()
+                                ->send();
+                            $action->cancel();
+                        }
                         $exists = $purchase->items()->where('product_id', $data['product_id'])->exists();
                         // si ya existe el producto en la orden, no permitir agregarlo de nuevo
                         if ($exists) {
@@ -270,6 +285,8 @@ class ItemsRelationManager extends RelationManager
                         Gate::allows('confirm', $this->ownerRecord)
                             &&
                             $this->ownerRecord->items()->count() > 0
+                            &&
+                            $this->ownerRecord->status === 'in_progress'
                     )
                     ->requiresConfirmation()
                     ->action(function () {
@@ -278,7 +295,6 @@ class ItemsRelationManager extends RelationManager
                             DB::transaction(function () use ($purchase) {
                                 $purchase->update([
                                     'status' => 'confirmed',
-                                    'confirmed_at' => now(),
                                 ]);
                             });
 
@@ -310,12 +326,14 @@ class ItemsRelationManager extends RelationManager
             ->actions([
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\EditAction::make()
+                        ->visible(fn(): bool => $this->ownerRecord->status === 'in_progress')
                         ->after(function ($record) {
                             DB::transaction(function ($livewire) use ($record) {
                                 $record->purchase->updatePurchaseTotal();
                             });
                         }),
                     Tables\Actions\DeleteAction::make()
+                        ->visible(fn(): bool => $this->ownerRecord->status === 'in_progress')
                         ->after(function ($record) {
                             DB::transaction(function ($livewire) use ($record) {
                                 $record->purchase->updatePurchaseTotal();
@@ -325,7 +343,13 @@ class ItemsRelationManager extends RelationManager
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->visible(fn(): bool => $this->ownerRecord->status === 'in_progress')
+                        ->after(function ($records) {
+                            if ($this->ownerRecord) {
+                                $this->ownerRecord->updatePurchaseTotal();
+                            }
+                        }),
                 ]),
             ]);
     }

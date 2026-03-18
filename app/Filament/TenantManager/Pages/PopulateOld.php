@@ -1,78 +1,195 @@
 <?php
 
-namespace App\Services;
 
-use App\Enums\PermissionType;
-use App\Models\Quality\Training\Course;
-use App\Models\Document;
-use App\Models\DocumentCategory;
-use App\Models\Quality\Training\Enrollment;
-use App\Models\Event;
-use App\Models\ManagementIndicator;
-use App\Models\MinutesIvcSection;
-use App\Models\MinutesIvcSectionEntry;
-use App\Models\Process;
-use App\Models\ProcessType;
-use App\Models\Quality\Records\Cleaning\CleaningImplement;
-use App\Models\Quality\Records\Cleaning\Desinfectant;
-use App\Models\Quality\Records\Cleaning\StablishmentArea;
-use App\Models\Schedule;
+namespace App\Filament\TenantManager\Pages;
+
+use Filament\Pages\Page;
+use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Forms\Contracts\HasForms;
+use Filament\Forms\Components\Select;
+use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Arr;
+use DateTimeInterface;
+use Carbon\Carbon;
 use App\Models\Setting;
 use App\Models\Team;
 use App\Models\TenantSetting;
+use App\Models\ManagementIndicator;
+use App\Models\MinutesIvcSection;
+use App\Models\MinutesIvcSectionEntry;
+use App\Models\Document;
+use App\Models\Process;
+use App\Models\ProcessType;
+use App\Models\DocumentCategory;
+use App\Models\Schedule;
+use App\Models\Event;
 use App\Models\User;
-use Carbon\Carbon;
-use DateTimeInterface;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Log;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\PermissionRegistrar;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
 
-class TeamSetupService
+class PopulateOld extends Page implements HasForms
 {
-    public function getPopulateConfigOptions(): array
+    use InteractsWithForms;
+
+    protected static ?string $navigationIcon = 'phosphor-database';
+    protected static string $view = 'filament.tenant-manager.pages.populate';
+    protected static ?string $title = 'Poblar Team desde config';
+
+    // Datos del formulario
+    public ?array $formData = [
+        'team_id'    => null,
+        'config_key' => null,
+    ];
+
+    public function mount(): void
+    {
+        //$this->form->fill($this->formData);
+        $this->form->fill();
+    }
+
+    /**
+     * Opciones de archivos de configuración
+     * Ajusta y/o extiende según tus config reales.
+     */
+    protected function getConfigOptions(): array
     {
         return [
-            'General' => [
-                'management-indicators' => 'Indicadores de gestión',
-                'minutes-ivc-sections' => 'Secciones IVC (estructura)',
-                'minutes-ivc-second-section-entries' => 'Entradas IVC - Sección 2',
-                'minutes-ivc-third-section-entries' => 'Entradas IVC - Sección 3',
-                'minutes-ivc-fourth-section-entries' => 'Entradas IVC - Sección 4',
-                'minutes-ivc-fifth-section-entries' => 'Entradas IVC - Sección 5',
-                'minutes-ivc-sixth-section-entries' => 'Entradas IVC - Sección 6',
-                'minutes-ivc-seventh-section-entries' => 'Entradas IVC - Sección 7',
-                'minutes-ivc-eighth-section-entries' => 'Entradas IVC - Sección 8',
-                'minutes-ivc-nine-section-entries' => 'Entradas IVC - Sección 9',
-                'document_templates.default_docs' => 'Plantillas de documentos',
-                'training_schedule' => 'Cronograma de capacitación',
-                'cleaning_schedule' => 'Cronograma de limpieza',
-                'equipment_calibration_schedule' => 'Cronograma de calibración de equipos',
-                'internal_audit_schedule' => 'Cronograma de Auditorías internas',
-                'ethical_values' => 'Valores',
-                'tenant_settings' => 'Misión, Visión, Política de Calidad',
-            ],
-            'Limpieza' => [
-                'stablishment_areas' => 'Áreas del establecimiento',
-                'cleaning_implements' => 'Implementos de limpieza',
-                'desinfectants' => 'Desinfectantes',
-            ],
+            'management-indicators'                 => 'Indicadores de gestión',
+            'minutes-ivc-sections'                  => 'Secciones IVC (estructura)',
+            'minutes-ivc-second-section-entries'    => 'Entradas IVC - Sección 2',
+            'minutes-ivc-third-section-entries'    => 'Entradas IVC - Sección 3',
+            'minutes-ivc-fourth-section-entries'    => 'Entradas IVC - Sección 4',
+            'minutes-ivc-fifth-section-entries'    => 'Entradas IVC - Sección 5',
+            'minutes-ivc-sixth-section-entries'    => 'Entradas IVC - Sección 6',
+            'minutes-ivc-seventh-section-entries'    => 'Entradas IVC - Sección 7',
+            'minutes-ivc-eighth-section-entries'    => 'Entradas IVC - Sección 8',
+            'minutes-ivc-nine-section-entries'    => 'Entradas IVC - Sección 9',
+            'document_templates.default_docs'       => 'Plantillas de documentos',
+            'training_schedule'                     => 'Cronograma de capacitación',
+            'cleaning_schedule'                     => 'Cronograma de limpieza',
+            'equipment_calibration_schedule'        => 'Cronograma de calibración de equipos',
+            'internal_audit_schedule'               => 'Cronograma de Auditorías internas',
+            'ethical_values'                        => 'Valores',
+            'tenant_settings'                       => 'Misión, Visión, Política de Calidad',
+            // agrega más según tus configs
         ];
     }
 
-    public function populateByConfigKey(Team $team, string $configKey, ?User $actor = null): void
+
+    public function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                Select::make('team_id')
+                    ->label('Seleccione Team')
+                    ->options(Team::query()->orderBy('name')->pluck('name', 'id')->toArray())
+                    ->searchable()
+                    ->required(),
+                Select::make('config_key')
+                    ->label('Archivo de configuración a aplicar')
+                    ->options($this->getConfigOptions())
+                    ->required(),
+            ])
+            ->statePath('formData');
+    }
+
+    /**
+     * Acción pública que dispara el poblamiento (custom action).
+     * Vincula el botón desde la vista Blade con wire:click="populateSelected"
+     */
+    public function populateSelected()
+    {
+        // Validar inputs del formulario Filament
+        //$this->form->fill($this->formData);
+        $data = $this->form->getState();
+        $teamId = (int) ($data['team_id'] ?? 0);
+        $configKey = $data['config_key'] ?? null;
+
+        if (! $teamId || ! $configKey) {
+            Notification::make()
+                ->title('Formulario incompleto')
+                ->danger()
+                ->body('Debes seleccionar un team y un archivo de configuración.')
+                ->send();
+            return;
+        }
+
+        $team = Team::find($teamId);
+        if (! $team) {
+            Notification::make()
+                ->title('Team no encontrado')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        try {
+            DB::transaction(function () use ($team, $configKey) {
+                $this->handlePopulate($team, $configKey);
+            });
+
+            // Notificación visual
+            Notification::make()
+                ->title('Población completada')
+                ->success()
+                ->body("Se aplicó correctamente '{$this->getConfigOptions()[$configKey]}' al team '{$team->name}'.")
+                ->send();
+
+            /* $schedule = Schedule::create([
+                'team_id' => $team->id,
+                'user_id' => Auth::id(),
+                'name' => "Población desde config: {$configKey}",
+                'description' => "El archivo de configuración '{$configKey}' fue aplicado al team name={$team->name}). Pasar a checkear!",
+            ]); */
+            // Registro en DB: guardamos un Event para ese team como "notificación interna"
+            /* Event::create([
+                'team_id'    => $team->id,
+                'user_id'    => Auth::id(),
+                'role_id'    => null,
+                'schedule_id' => $schedule->id,
+                'title'      => "Población desde config: {$configKey}",
+                'description' => "El archivo de configuración '{$configKey}' fue aplicado al team name={$team->name})",
+                'type'       => 'task',
+                'start_date' => now(),
+                'end_date'   => now()->addMonth(),
+            ]); */
+        } catch (\Throwable $e) {
+            Log::error('Error al poblar team desde config', [
+                'team_id' => $team->id,
+                'config'  => $configKey,
+                'error'   => $e->getMessage(),
+            ]);
+
+            Notification::make()
+                ->title('Error durante el poblamiento')
+                ->danger()
+                ->body("Ocurrió un error: " . $e->getMessage())
+                ->send();
+
+            // Volvemos a lanzar la excepción si quieres que el devtools la capture
+            throw $e;
+        }
+    }
+
+    /**
+     * Handler central que delega en funciones por configKey
+     */
+    protected function handlePopulate(Team $team, string $configKey): void
     {
         $consultant = $this->getConsultant();
-        [$roleAdmin] = $this->createRoles($team);
 
         switch ($configKey) {
             case 'management-indicators':
-                $this->populateManagementIndicators($team, $roleAdmin);
+                $this->populateManagementIndicators($team);
                 break;
+
             case 'minutes-ivc-sections':
                 $this->populateIvcSections($team);
                 break;
+
             case 'minutes-ivc-second-section-entries':
             case 'minutes-ivc-third-section-entries':
             case 'minutes-ivc-fourth-section-entries':
@@ -81,413 +198,44 @@ class TeamSetupService
             case 'minutes-ivc-seventh-section-entries':
             case 'minutes-ivc-eighth-section-entries':
             case 'minutes-ivc-nine-section-entries':
+                // Para entradas de secciones usamos el mismo método que recibe el configKey
                 $this->populateIvcSectionEntries($team, $configKey);
                 break;
+
             case 'document_templates.default_docs':
-                $this->populateDocumentsFromConfig($team, $consultant);
+                $this->populateDocumentTemplates($team, $consultant);
                 break;
+
             case 'ethical_values':
                 $this->populateValuesSetting($team);
                 break;
+
             case 'tenant_settings':
                 $this->createTenantSettingsFromConfig($team);
                 break;
+
             case 'training_schedule':
             case 'cleaning_schedule':
             case 'equipment_calibration_schedule':
             case 'internal_audit_schedule':
-                $this->populateScheduleByKey($team, $configKey, $actor, $roleAdmin);
+                $this->populateSchedules($team, $configKey);
                 break;
-            case 'stablishment_areas':
-                $this->populateStablishmentAreas($team);
-                break;
-            case 'cleaning_implements':
-                $this->populateCleaningImplements($team);
-                break;
-            case 'desinfectants':
-                $this->populateDesinfectants($team);
-                break;
+
             default:
                 throw new \InvalidArgumentException("Clave de configuración no reconocida: {$configKey}");
         }
     }
 
-    public function setupTeam(Team $team, User $owner): void
-    {
-        $consultant = $this->getConsultant();
-
-        /* if ($consultant) {
-            $team->users()->syncWithoutDetaching([$consultant->id]);
-        } */
-
-        [$roleAdmin, $roleConsultant] = $this->createRoles($team);
-
-        app(PermissionRegistrar::class)->setPermissionsTeamId($team->id);
-
-        $this->assignRoles(
-            $owner,
-            //$consultant, 
-            $roleAdmin,
-            //$roleConsultant
-        );
-
-        $this->createPermissionsAndSyncRole($team, $roleAdmin);
-        $this->populateManagementIndicators($team, $roleAdmin);
-        $this->populateIvcSectionsAndEntries($team);
-        $this->createTenantSettingsFromConfig($team);
-        $this->populateStablishmentAreas($team);
-        $this->populateCleaningImplements($team);
-        $this->populateDesinfectants($team);
-        $this->populateDocumentsFromConfig($team, $consultant);
-        $this->populateSchedules($team, $owner, $roleAdmin);
-        $this->enrollInitialCourse($team, $owner);
-    }
-
     private function getConsultant(): ?User
     {
-        $consultantId = env('CONSULTANT_ID', 1);
+        $consultantId = config('app.default_consultant_id', 1);
         return User::find($consultantId);
     }
 
-    private function createRoles(Team $team): array
-    {
-        $admin = Role::firstOrCreate(
-            ['name' => 'Administrador', 'guard_name' => 'web', 'team_id' => $team->id]
-        );
-
-        $consultant = Role::firstOrCreate(
-            ['name' => 'Consultor', 'guard_name' => 'web', 'team_id' => $team->id]
-        );
-
-        return [$admin, $consultant];
-    }
-
-    private function assignRoles(
-        User $user,
-        //?User $consultant, 
-        Role $adminRole,
-        //?Role $consultantRole
-    ): void {
-        $user->assignRole($adminRole);
-        /* if ($consultant && $consultantRole) {
-            $consultant->assignRole($consultantRole);
-        } */
-    }
-
-    public function populateManagementIndicators(Team $team, Role $roleAdmin): void
-    {
-        $indicatorNames = config('management-indicators', []);
-        $indicators = ManagementIndicator::whereIn('name', $indicatorNames)->get()->keyBy('name');
-
-        foreach ($indicatorNames as $name) {
-            $indicator = $indicators->get($name);
-            if (!$indicator) {
-                Log::warning("ManagementIndicator no hallado para name='{$name}'");
-                continue;
-            }
-
-            $team->managementIndicators()->syncWithoutDetaching([
-                $indicator->id => [
-                    'role_id' => $roleAdmin->id,
-                    'periodicity' => 'Mensual',
-                    'indicator_goal' => $indicator->indicator_goal,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ],
-            ]);
-        }
-    }
-
-    public function populateIvcSections(Team $team): void
-    {
-        $sections = config('minutes-ivc-sections', []);
-        if (!is_array($sections)) {
-            return;
-        }
-
-        foreach ($sections as $s) {
-            MinutesIvcSection::updateOrCreate(
-                [
-                    'team_id' => $team->id,
-                    'slug' => $s['slug'] ?? null,
-                ],
-                [
-                    'order' => $s['order'] ?? null,
-                    'route' => $s['route'] ?? null,
-                    'name' => $s['name'] ?? null,
-                    'description' => $s['description'] ?? null,
-                    'status' => $s['status'] ?? null,
-                ]
-            );
-        }
-    }
-
-    public function populateIvcSectionEntries(Team $team, string $configKey): void
-    {
-        $sectionOrderByConfig = [
-            'minutes-ivc-second-section-entries' => 2,
-            'minutes-ivc-third-section-entries' => 3,
-            'minutes-ivc-fourth-section-entries' => 4,
-            'minutes-ivc-fifth-section-entries' => 5,
-            'minutes-ivc-sixth-section-entries' => 6,
-            'minutes-ivc-seventh-section-entries' => 7,
-            'minutes-ivc-eighth-section-entries' => 8,
-            'minutes-ivc-nine-section-entries' => 9,
-        ];
-
-        $order = $sectionOrderByConfig[$configKey] ?? null;
-        if (!$order) {
-            Log::warning("Config de entradas IVC no reconocida: {$configKey}");
-            return;
-        }
-
-        $section = MinutesIvcSection::query()
-            ->where('team_id', $team->id)
-            ->where('order', $order)
-            ->first();
-
-        if (!$section) {
-            Log::warning("Sección IVC no encontrada para order={$order} (team {$team->id})");
-            return;
-        }
-
-        $rawEntries = config($configKey, []);
-        $entries = $this->flattenMinutesIvcEntries(is_array($rawEntries) ? $rawEntries : []);
-
-        foreach ($entries as $e) {
-            if (empty($e['entry_id'])) {
-                Log::warning("Entrada IVC sin entry_id", ['config' => $configKey, 'entry' => $e]);
-                continue;
-            }
-
-            MinutesIvcSectionEntry::updateOrCreate(
-                ['minutes_ivc_section_id' => $section->id, 'entry_id' => $e['entry_id']],
-                [
-                    'question' => $e['question'] ?? null,
-                    'apply' => $e['apply'] ?? true,
-                    'criticality' => $e['criticality'] ?? null,
-                    'answer' => $e['answer'] ?? null,
-                    'entry_type' => MinutesIvcSectionEntry::normalizeEntryType($e['entry_type'] ?? null),
-                    'links' => $e['links'] ?? null,
-                    'compliance' => $e['compliance'] ?? null,
-                ]
-            );
-        }
-    }
-
-    public function populateIvcSectionsAndEntries(Team $team): void
-    {
-        $this->populateIvcSections($team);
-
-        $sectionConfigByOrder = [
-            2 => 'minutes-ivc-second-section-entries',
-            3 => 'minutes-ivc-third-section-entries',
-            4 => 'minutes-ivc-fourth-section-entries',
-            5 => 'minutes-ivc-fifth-section-entries',
-            6 => 'minutes-ivc-sixth-section-entries',
-            7 => 'minutes-ivc-seventh-section-entries',
-            8 => 'minutes-ivc-eighth-section-entries',
-            9 => 'minutes-ivc-nine-section-entries',
-        ];
-
-        foreach ($sectionConfigByOrder as $configKey) {
-            $this->populateIvcSectionEntries($team, $configKey);
-        }
-    }
-
-    private function flattenMinutesIvcEntries(array $node): array
-    {
-        $flat = [];
-
-        foreach ($node as $item) {
-            if (!is_array($item)) {
-                continue;
-            }
-
-            if ($this->isMinutesIvcLeafEntry($item)) {
-                $flat[] = $item;
-                continue;
-            }
-
-            $flat = array_merge($flat, $this->flattenMinutesIvcEntries($item));
-        }
-
-        return $flat;
-    }
-
-    public function populateStablishmentAreas(Team $team): void
-    {
-        $areas = config('stablishment_areas', []);
-        if (!is_array($areas)) {
-            return;
-        }
-
-        foreach ($areas as $area) {
-            if (!is_array($area)) {
-                continue;
-            }
-
-            $name = trim((string) ($area['name'] ?? ''));
-            if ($name === '') {
-                continue;
-            }
-
-            StablishmentArea::updateOrCreate(
-                [
-                    'team_id' => $team->id,
-                    'name' => $name,
-                ],
-                [
-                    'description' => $area['description'] ?? null,
-                    'type' => $area['type'] ?? null,
-                    'frequency' => $area['frequency'] ?? null,
-                    'active' => $area['active'] ?? true,
-                ]
-            );
-        }
-    }
-
-    public function populateCleaningImplements(Team $team): void
-    {
-        $implements = config('cleaning_implements', []);
-        if (!is_array($implements)) {
-            return;
-        }
-
-        $areasByName = StablishmentArea::query()
-            ->where('team_id', $team->id)
-            ->pluck('id', 'name');
-
-        foreach ($implements as $implement) {
-            if (!is_array($implement)) {
-                continue;
-            }
-
-            $name = trim((string) ($implement['name'] ?? ''));
-            if ($name === '') {
-                continue;
-            }
-
-            $areaNames = $implement['areas_use'] ?? [];
-            if (!is_array($areaNames)) {
-                $areaNames = [];
-            }
-
-            $areaIds = [];
-            foreach ($areaNames as $areaName) {
-                if (!is_string($areaName)) {
-                    continue;
-                }
-
-                $areaId = $areasByName[$areaName] ?? null;
-                if ($areaId) {
-                    $areaIds[] = (int) $areaId;
-                }
-            }
-
-            $areaIds = array_values(array_unique($areaIds));
-
-            CleaningImplement::updateOrCreate(
-                [
-                    'team_id' => $team->id,
-                    'name' => $name,
-                ],
-                [
-                    'description' => $implement['description'] ?? null,
-                    'type' => $implement['type'] ?? 'reutilizable',
-                    'areas_use' => $areaIds,
-                    'active' => $implement['active'] ?? true,
-                ]
-            );
-        }
-    }
-
-    public function populateDesinfectants(Team $team): void
-    {
-        $desinfectants = config('desinfectants', []);
-        if (!is_array($desinfectants)) {
-            return;
-        }
-
-        $areasByName = StablishmentArea::query()
-            ->where('team_id', $team->id)
-            ->pluck('id', 'name');
-
-        foreach ($desinfectants as $desinfectant) {
-            if (!is_array($desinfectant)) {
-                continue;
-            }
-
-            $name = trim((string) ($desinfectant['name'] ?? ''));
-            if ($name === '') {
-                continue;
-            }
-
-            $concentration = trim((string) ($desinfectant['concentration'] ?? ''));
-            if ($concentration === '') {
-                continue;
-            }
-
-            $areaNames = $desinfectant['applicable_areas'] ?? [];
-            if (!is_array($areaNames)) {
-                $areaNames = [];
-            }
-
-            $areaIds = [];
-            foreach ($areaNames as $areaName) {
-                if (!is_string($areaName)) {
-                    continue;
-                }
-
-                $areaId = $areasByName[$areaName] ?? null;
-                if ($areaId) {
-                    $areaIds[] = (int) $areaId;
-                }
-            }
-
-            $areaIds = array_values(array_unique($areaIds));
-
-            Desinfectant::updateOrCreate(
-                [
-                    'team_id' => $team->id,
-                    'name' => $name,
-                    'concentration' => $concentration,
-                ],
-                [
-                    'active_ingredient' => $desinfectant['active_ingredient'] ?? null,
-                    'indications' => $desinfectant['indications'] ?? null,
-                    'level' => $desinfectant['level'] ?? 'medio',
-                    'applicable_areas' => $areaIds,
-                    'active' => $desinfectant['active'] ?? true,
-                ]
-            );
-        }
-    }
-
-    private function isMinutesIvcLeafEntry(array $item): bool
-    {
-        return array_key_exists('entry_id', $item) && array_key_exists('question', $item);
-    }
-
-    public function createPermissionsAndSyncRole(Team $team, Role $roleAdmin): void
-    {
-        $permissionNames = [];
-        foreach (PermissionType::cases() as $permissionType) {
-            $perm = Permission::firstOrCreate([
-                'name'       => $permissionType->value,
-                'guard_name' => 'web',
-                'team_id'    => $team->id,
-            ]);
-
-            if (array_key_exists('label', $perm->getAttributes())) {
-                $perm->label = $permissionType->getLabel();
-                $perm->save();
-            }
-            $permissionNames[] = $perm->name;
-        }
-        $roleAdmin->syncPermissions($permissionNames);
-    }
-
+    /**
+     * Implementaciones de poblamiento (ejemplos idempotentes).
+     * Ajusta los campos según tus modelos reales.
+     */
     public function createTenantSettingsFromConfig(Team $team): void
     {
         $cfg = config('tenant_settings', []);
@@ -527,7 +275,6 @@ class TeamSetupService
             );
         }
     }
-
     public function populateValuesSetting(Team $team): void
     {
         // Config con los valores tipo ["Transparencia" => "Llevamos...", ...]
@@ -558,54 +305,163 @@ class TeamSetupService
             ]
         );
     }
-
-
-    /* public function populateDocumentsFromConfig(Team $team, ?User $consultant): void
+    protected function populateManagementIndicators(Team $team): void
     {
-        $templates = config('document_templates.default_docs', []);
-        if (!is_array($templates) || empty($templates)) return;
+        $names = config('management-indicators', []);
+        if (! is_array($names) || empty($names)) return;
 
-        foreach ($templates as $tpl) {
-            $processId = Process::where('code', $tpl['process_id'] ?? null)->value('id');
-            $categoryId = DocumentCategory::where('code', $tpl['document_category_id'] ?? null)->value('id');
+        $indicators = ManagementIndicator::whereIn('name', $names)->get()->keyBy('name');
 
-            if (!$processId || !$categoryId) {
-                Log::warning("Plantilla de documento: tipo o proceso no hallado", $tpl);
+        // recuperar o crear rol administrador del team si existe la relación por nombre+team_id
+        $adminRole = \Spatie\Permission\Models\Role::firstOrCreate([
+            'name' => 'Administrador',
+            'guard_name' => 'web',
+            'team_id' => $team->id,
+        ]);
+
+        foreach ($names as $name) {
+            $indicator = $indicators->get($name);
+            if (! $indicator) {
+                Log::warning("management-indicator no encontrado: {$name}");
                 continue;
             }
-
-            Document::updateOrCreate(
-                ['team_id' => $team->id, 'slug' => $tpl['slug']],
-                [
-                    'title' => $tpl['title'] ?? null,
-                    'sequence' => 0,
-                    'process_id' => $processId,
-                    'document_category_id' => $categoryId,
-                    'objective' => $tpl['objective'] ?? null,
-                    'scope' => $tpl['scope'] ?? null,
-                    'references' => $tpl['references'] ?? [],
-                    'terms' => $tpl['terms'] ?? [],
-                    'responsibilities' => $tpl['responsibilities'] ?? [],
-                    'procedure' => $tpl['procedure'] ?? [],
-                    'records' => $tpl['records'] ?? [],
-                    'annexes' => $tpl['annexes'] ?? [],
-                    'data' => $tpl['data'] ?? [],
-                    'prepared_by' => $consultant?->id,
-                    'reviewed_by' => is_numeric($tpl['reviewed_by'] ?? null) ? (int)$tpl['reviewed_by'] : null,
-                    'approved_by' => is_numeric($tpl['approved_by'] ?? null) ? (int)$tpl['approved_by'] : null,
+            $team->managementIndicators()->syncWithoutDetaching([
+                $indicator->id => [
+                    'role_id' => $adminRole->id,
+                    'periodicity' => 'Mensual',
+                    'indicator_goal' => $indicator->indicator_goal,
+                    'created_at' => now(),
                     'updated_at' => now(),
+                ],
+            ]);
+        }
+    }
+
+    protected function populateIvcSections(Team $team): void
+    {
+        $sections = config('minutes-ivc-sections', []);
+        if (! is_array($sections)) return;
+
+        foreach ($sections as $s) {
+            Log::alert('Creando sección IVC', ['section' => $s]);
+
+            MinutesIvcSection::updateOrCreate(
+                [
+                    'team_id' => $team->id,
+                    'slug'    => $s['slug'] ?? null,
+                ],
+                [
+                    'order'       => $s['order'] ?? null,
+                    'route'       => $s['route'] ?? null,
+                    'name'        => $s['name'] ?? null,
+                    'description' => $s['description'] ?? null,
+                    'status'      => $s['status'] ?? null,
                 ]
             );
         }
-    } */
+    }
 
+    protected function populateIvcSectionEntries(Team $team, string $configKey): void
+    {
+        // El configKey debe corresponder a la clave en config y devolver un array de entradas
+        $rawEntries = config($configKey, []);
+        if (! is_array($rawEntries) || empty($rawEntries)) return;
+        //dd($this->flattenMinutesIvcEntries($rawEntries));
 
-    public function populateDocumentsFromConfig(Team $team, ?User $consultant): void
+        $entries = $this->flattenMinutesIvcEntries($rawEntries);
+        if (empty($entries)) return;
+
+        // Mapeo de prefijos de entry_id a nombre de sección
+        $sectionPrefixes = [
+            '2.'  => 'Talento Humano',
+            '3.'  => 'Infraestructura Física',
+            '4.'  => 'Saneamiento de edificaciones',
+            '5.'  => 'Áreas',
+            '6.'  => 'Sistema de gestión de calidad',
+            '7.'  => 'Procesos y procedimientos',
+            '8.'  => 'Revisión de productos',
+            '9.'  => 'Revisión de otros aspectos',
+        ];
+
+        foreach ($entries as $e) {
+            if (empty($e['entry_id'])) {
+                Log::warning('Entrada IVC sin entry_id', ['config' => $configKey, 'entry' => $e]);
+                continue;
+            }
+
+            $entryId = $e['entry_id'] ?? '';
+            $sectionName = null;
+
+            // Determinar el nombre de la sección según el prefijo de entry_id
+            foreach ($sectionPrefixes as $prefix => $name) {
+                if (str_starts_with($entryId, $prefix)) {
+                    $sectionName = $name;
+                    break;
+                }
+            }
+            $sectionId = null;
+            if ($sectionName) {
+                $section = MinutesIvcSection::where('team_id', $team->id)
+                    ->where('name', $sectionName)
+                    ->first();
+                $sectionId = $section?->id;
+            } elseif (!empty($e['minutes_ivc_section_id'])) {
+                $sectionId = $e['minutes_ivc_section_id'];
+            }
+
+            if (! $sectionId) {
+                Log::warning('No se pudo determinar minutes_ivc_section_id para entrada', ['entry' => $e]);
+                continue;
+            }
+
+            MinutesIvcSectionEntry::updateOrCreate(
+                [
+                    'minutes_ivc_section_id' => $sectionId,
+                    'entry_id' => $e['entry_id'],
+                ],
+                [
+                    'question' => $e['question'] ?? null,
+                    'apply' => $e['apply'] ?? true,
+                    'criticality' => $e['criticality'] ?? null,
+                    'answer' => $e['answer'] ?? null,
+                    'entry_type' => MinutesIvcSectionEntry::normalizeEntryType($e['entry_type'] ?? null),
+                    'links' => $e['links'] ?? null,
+                    'compliance' => $e['compliance'] ?? null,
+                ]
+            );
+        }
+    }
+
+    private function flattenMinutesIvcEntries(array $node): array
+    {
+        $flat = [];
+
+        foreach ($node as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+
+            if ($this->isMinutesIvcLeafEntry($item)) {
+                $flat[] = $item;
+                continue;
+            }
+
+            $flat = array_merge($flat, $this->flattenMinutesIvcEntries($item));
+        }
+
+        return $flat;
+    }
+
+    private function isMinutesIvcLeafEntry(array $item): bool
+    {
+        return array_key_exists('entry_id', $item) && array_key_exists('question', $item);
+    }
+
+    protected function populateDocumentTemplates(Team $team, ?User $consultant): void
     {
         $templates = $this->loadDocumentTemplates();
-        if (!is_array($templates) || empty($templates)) {
-            Log::warning('No hay plantillas en config(document_templates.default_docs).');
-            return;
+        if (! is_array($templates) || empty($templates)) {
+            throw new \RuntimeException('No hay plantillas en config(document_templates.default_docs).');
         }
 
         $created = 0;
@@ -615,12 +471,6 @@ class TeamSetupService
         $skipReasons = [];
 
         foreach ($templates as $tpl) {
-            if (!is_array($tpl)) {
-                $skipped++;
-                $skipReasons[] = 'tpl no array';
-                continue;
-            }
-
             $slug = is_string($tpl['slug'] ?? null) ? trim($tpl['slug']) : '';
             if ($slug === '') {
                 Log::warning('Plantilla sin slug, se omite.', ['tpl' => $tpl]);
@@ -634,7 +484,7 @@ class TeamSetupService
             $processId = $this->resolveTemplateProcessId($team, $tpl);
             $categoryId = $this->resolveTemplateCategoryId($team, $tpl);
 
-            if (!$processId || !$categoryId) {
+            if (! $processId || ! $categoryId) {
                 Log::warning('Plantilla omitida: proceso o category no encontrados', [
                     'slug' => $slug,
                     'process_code' => $tpl['process_id'] ?? null,
@@ -645,6 +495,7 @@ class TeamSetupService
                 continue;
             }
 
+            // Incluimos eliminados para restaurarlos si ya existian.
             $document = Document::withTrashed()->firstOrNew(
                 [
                     'team_id' => $team->id,
@@ -656,6 +507,7 @@ class TeamSetupService
                 $document->restore();
             }
 
+            // Si el documento ya existe y ha sido actualizado al menos una vez, continuamos.
             if (
                 $document->exists
                 && $document->updated_at
@@ -668,9 +520,9 @@ class TeamSetupService
 
             $wasExisting = $document->exists;
 
+            // Si es nuevo o nunca ha sido actualizado, lo llenamos con los datos y guardamos.
             $document->fill([
                 'title' => $tpl['title'] ?? null,
-                'sequence' => $tpl['sequence'] ?? 0,
                 'process_id' => $processId,
                 'document_category_id' => $categoryId,
                 'objective' => $tpl['objective'] ?? null,
@@ -681,10 +533,10 @@ class TeamSetupService
                 'procedure' => Arr::wrap($tpl['procedure'] ?? []),
                 'records' => Arr::wrap($tpl['records'] ?? []),
                 'annexes' => Arr::wrap($tpl['annexes'] ?? []),
-                'data' => Arr::wrap($tpl['data'] ?? []),
+                'data' => $tpl['data'] ?? [],
                 'prepared_by' => $consultant?->id,
-                'reviewed_by' => is_numeric($tpl['reviewed_by'] ?? null) ? (int) $tpl['reviewed_by'] : null,
-                'approved_by' => is_numeric($tpl['approved_by'] ?? null) ? (int) $tpl['approved_by'] : null,
+                'reviewed_by' => is_numeric($tpl['reviewed_by'] ?? null) ? (int)$tpl['reviewed_by'] : null,
+                'approved_by' => is_numeric($tpl['approved_by'] ?? null) ? (int)$tpl['approved_by'] : null,
             ]);
 
             $document->save();
@@ -696,14 +548,41 @@ class TeamSetupService
             }
         }
 
-        Log::info('Plantillas de documentos procesadas', [
+        $templateSlugs = array_values(array_unique($templateSlugs));
+        $existingSlugs = empty($templateSlugs)
+            ? []
+            : Document::where('team_id', $team->id)
+            ->whereIn('slug', $templateSlugs)
+            ->pluck('slug')
+            ->all();
+        $existing = count($existingSlugs);
+        $missingSlugs = array_values(array_diff($templateSlugs, $existingSlugs));
+
+        Log::info('Resultado de populateDocumentTemplates', [
             'team_id' => $team->id,
+            'templates_loaded' => count($templates),
+            'template_slugs' => $templateSlugs,
             'created' => $created,
             'updated' => $updated,
             'skipped' => $skipped,
-            'slugs' => array_values(array_unique($templateSlugs)),
-            'skip_reasons' => array_values(array_unique($skipReasons)),
+            'existing_after_run' => $existing,
+            'missing_after_run' => $missingSlugs,
         ]);
+
+        if (! empty($missingSlugs)) {
+            $missingHint = implode(', ', array_slice($missingSlugs, 0, 8));
+            $reasonHint = empty($skipReasons) ? '' : ' Detalle: ' . implode('; ', array_slice($skipReasons, 0, 5));
+            throw new \RuntimeException(
+                'No se pudieron crear todas las plantillas. Faltan: ' . $missingHint . '.' . $reasonHint
+            );
+        }
+
+        if ($existing === 0) {
+            $hint = empty($skipReasons) ? '' : ' Detalle: ' . implode('; ', array_slice($skipReasons, 0, 5));
+            throw new \RuntimeException(
+                'No se crearon documentos desde document_templates.' . $hint
+            );
+        }
     }
 
     private function loadDocumentTemplates(): array
@@ -716,6 +595,7 @@ class TeamSetupService
         if (is_file($path) && is_readable($path)) {
             $fromFile = $this->loadDocumentTemplatesFromDisk($path);
 
+            // Fallback legacy include (por compatibilidad).
             if (empty($fromFile)) {
                 if (function_exists('opcache_invalidate')) {
                     @opcache_invalidate($path, true);
@@ -737,7 +617,8 @@ class TeamSetupService
             'path' => $path,
         ]);
 
-        if (!empty($fromFile)) {
+        // Siempre priorizamos archivo para evitar config cache desactualizado.
+        if (! empty($fromFile)) {
             return $fromFile;
         }
 
@@ -748,10 +629,11 @@ class TeamSetupService
     {
         try {
             $contents = file_get_contents($path);
-            if (!is_string($contents) || trim($contents) === '') {
+            if (! is_string($contents) || trim($contents) === '') {
                 return [];
             }
 
+            // Evalua el contenido leido de disco para evitar bytecode stale de OPcache.
             $raw = (static function (string $phpCode) {
                 return eval('?>' . $phpCode);
             })($contents);
@@ -774,7 +656,7 @@ class TeamSetupService
         $slugs = [];
 
         foreach ($templates as $tpl) {
-            if (!is_array($tpl)) {
+            if (! is_array($tpl)) {
                 continue;
             }
 
@@ -807,7 +689,7 @@ class TeamSetupService
         }
 
         $defaults = config('processes_templates.default_processes', []);
-        if (!is_array($defaults)) {
+        if (! is_array($defaults)) {
             return null;
         }
 
@@ -815,12 +697,12 @@ class TeamSetupService
             return is_array($item) && (($item['code'] ?? null) === $code);
         });
 
-        if (!is_array($default)) {
+        if (! is_array($default)) {
             return null;
         }
 
         $processTypeId = $this->resolveTemplateProcessTypeId($default, $code);
-        if (!$processTypeId) {
+        if (! $processTypeId) {
             Log::warning('No se pudo crear proceso desde config: process_type_id no resoluble', [
                 'process_code' => $code,
             ]);
@@ -869,7 +751,7 @@ class TeamSetupService
         }
 
         $defaults = config('process_types.process_types', []);
-        if (!is_array($defaults)) {
+        if (! is_array($defaults)) {
             return null;
         }
 
@@ -878,7 +760,7 @@ class TeamSetupService
                 && strtoupper((string) ($item['code'] ?? '')) === $typeCode;
         });
 
-        if (!is_array($default)) {
+        if (! is_array($default)) {
             return null;
         }
 
@@ -911,11 +793,11 @@ class TeamSetupService
         }
 
         $defaults = config('document_categories.document_caterogies', []);
-        if (!is_array($defaults) || empty($defaults)) {
+        if (! is_array($defaults) || empty($defaults)) {
             $defaults = config('document_categories.document_categories', []);
         }
 
-        if (!is_array($defaults)) {
+        if (! is_array($defaults)) {
             return null;
         }
 
@@ -923,7 +805,7 @@ class TeamSetupService
             return is_array($item) && (($item['code'] ?? null) === $code);
         });
 
-        if (!is_array($default)) {
+        if (! is_array($default)) {
             return null;
         }
 
@@ -942,85 +824,69 @@ class TeamSetupService
         return $created->id;
     }
 
-
-    public function populateSchedules(Team $team, ?User $owner = null, ?Role $roleAdmin = null): void
+    protected function populateTrainingSchedule(Team $team): void
     {
-        $this->populateTrainingSchedule($team, $owner, $roleAdmin);
-        $this->populateInternalAuditSchedule($team, $owner, $roleAdmin);
-        $this->populateCleaningSchedule($team, $owner, $roleAdmin);
-        $this->populateEquipmentCalibrationSchedule($team, $owner, $roleAdmin);
+        $payload = $this->resolveSchedulePayload('training_schedule');
+        if ($payload === null) {
+            return;
+        }
+
+        $this->persistSchedulePayload($team, $payload, 'training_schedule');
     }
 
-    public function populateScheduleByKey(Team $team, string $configKey, ?User $owner = null, ?Role $roleAdmin = null): void
+    protected function populateSchedules(Team $team, string $configKey): void
     {
         switch ($configKey) {
             case 'training_schedule':
-                $this->populateTrainingSchedule($team, $owner, $roleAdmin);
+                $this->populateTrainingSchedule($team);
                 break;
             case 'cleaning_schedule':
-                $this->populateCleaningSchedule($team, $owner, $roleAdmin);
+                $this->populateCleaningSchedule($team);
                 break;
             case 'equipment_calibration_schedule':
-                $this->populateEquipmentCalibrationSchedule($team, $owner, $roleAdmin);
+                $this->populateEquipmentCalibrationSchedule($team);
                 break;
             case 'internal_audit_schedule':
-                $this->populateInternalAuditSchedule($team, $owner, $roleAdmin);
+                $this->populateInternalAuditSchedule($team);
                 break;
-            default:
-                Log::warning("Config de cronograma no reconocida: {$configKey}");
         }
     }
 
-    public function populateInternalAuditSchedule(Team $team, ?User $owner = null, ?Role $roleAdmin = null): void
+    protected function populateInternalAuditSchedule(Team $team): void
     {
         $payload = $this->resolveSchedulePayload('internal_audit_schedule', [
             'sections' => config('minutes-ivc-sections', []),
         ]);
-
         if ($payload === null) {
             return;
         }
 
-        $this->persistSchedulePayload($team, $owner, $roleAdmin, $payload, 'internal_audit_schedule');
+        $this->persistSchedulePayload($team, $payload, 'internal_audit_schedule');
     }
 
-    public function populateCleaningSchedule(Team $team, ?User $owner = null, ?Role $roleAdmin = null): void
+    protected function populateCleaningSchedule(Team $team): void
     {
         $payload = $this->resolveSchedulePayload('cleaning_schedule');
-
         if ($payload === null) {
             return;
         }
 
-        $this->persistSchedulePayload($team, $owner, $roleAdmin, $payload, 'cleaning_schedule');
+        $this->persistSchedulePayload($team, $payload, 'cleaning_schedule');
     }
 
-    public function populateEquipmentCalibrationSchedule(Team $team, ?User $owner = null, ?Role $roleAdmin = null): void
+    protected function populateEquipmentCalibrationSchedule(Team $team): void
     {
         $payload = $this->resolveSchedulePayload('equipment_calibration_schedule');
-
         if ($payload === null) {
             return;
         }
 
-        $this->persistSchedulePayload($team, $owner, $roleAdmin, $payload, 'equipment_calibration_schedule');
-    }
-
-    public function populateTrainingSchedule(Team $team, ?User $owner = null, ?Role $roleAdmin = null): void
-    {
-        $payload = $this->resolveSchedulePayload('training_schedule');
-
-        if ($payload === null) {
-            return;
-        }
-
-        $this->persistSchedulePayload($team, $owner, $roleAdmin, $payload, 'training_schedule');
+        $this->persistSchedulePayload($team, $payload, 'equipment_calibration_schedule');
     }
 
     private function resolveSchedulePayload(string $configKey, array $context = []): ?array
     {
         $builder = config($configKey);
-
         if (! is_callable($builder)) {
             Log::warning("{$configKey} config no es callable");
             return null;
@@ -1043,7 +909,6 @@ class TeamSetupService
 
         $schedule = $payload['schedule'] ?? null;
         $events = $payload['events'] ?? null;
-
         if (! is_array($schedule) || ! is_array($events)) {
             Log::warning("{$configKey} config debe retornar ['schedule' => [], 'events' => []]");
             return null;
@@ -1081,9 +946,6 @@ class TeamSetupService
                 ? trim((string) $item['icon'])
                 : $scheduleIcon;
 
-            $minStart = $minStart === null || $startAt->lt($minStart) ? $startAt->copy() : $minStart;
-            $maxEnd = $maxEnd === null || $endAt->gt($maxEnd) ? $endAt->copy() : $maxEnd;
-
             $descriptionParts = [];
             if (is_string($item['description'] ?? null) && trim((string) $item['description']) !== '') {
                 $descriptionParts[] = trim((string) $item['description']);
@@ -1102,6 +964,9 @@ class TeamSetupService
                 'start_time' => $startAt->format('H:i:s'),
                 'end_time' => $endAt->format('H:i:s'),
             ];
+
+            $minStart = $minStart === null || $startAt->lt($minStart) ? $startAt->copy() : $minStart;
+            $maxEnd = $maxEnd === null || $endAt->gt($maxEnd) ? $endAt->copy() : $maxEnd;
         }
 
         return [
@@ -1118,25 +983,14 @@ class TeamSetupService
         ];
     }
 
-    private function persistSchedulePayload(
-        Team $team,
-        ?User $owner,
-        ?Role $roleAdmin,
-        array $payload,
-        string $configKey
-    ): void {
+    private function persistSchedulePayload(Team $team, array $payload, string $configKey): void
+    {
         $scheduleData = is_array($payload['schedule'] ?? null) ? $payload['schedule'] : [];
         $eventsData = is_array($payload['events'] ?? null) ? $payload['events'] : [];
 
         $name = trim((string) ($scheduleData['name'] ?? ''));
         if ($name === '') {
             Log::warning("{$configKey}: schedule.name vacio, no se puede poblar");
-            return;
-        }
-
-        $userId = $owner?->id ?? auth()->id();
-        if (!$userId) {
-            Log::warning("{$configKey}: user_id requerido para crear schedule/eventos");
             return;
         }
 
@@ -1150,7 +1004,7 @@ class TeamSetupService
                 'name' => $name,
             ],
             [
-                'user_id' => $userId,
+                'user_id' => Auth::id(),
                 'description' => $scheduleData['description'] ?? null,
                 'objective' => $scheduleData['objective'] ?? null,
                 'starts_at' => $startsAt,
@@ -1199,8 +1053,8 @@ class TeamSetupService
                     'end_date' => $endDate,
                 ],
                 [
-                    'user_id' => $userId,
-                    'role_id' => $roleAdmin?->id,
+                    'user_id' => Auth::id(),
+                    'role_id' => null,
                     'description' => $eventData['description'] ?? ($scheduleData['description'] ?? null),
                     'type' => $type,
                     'has_time' => $hasTime,
@@ -1309,31 +1163,4 @@ class TeamSetupService
 
         return '#0F766E';
     }
-
-    public function enrollInitialCourse(Team $team, User $owner): void
-    {
-        $courseTitle = '¿Cómo pasar la visita de la Secretaría de Salud?';
-        $course = Course::where('title', $courseTitle)->first();
-
-        if (!$course) {
-            Log::warning("Curso inicial no encontrado: {$courseTitle}");
-            return;
-        }
-
-        Enrollment::firstOrCreate([
-            'team_id' => $team->id,
-            'user_id' => $owner->id,
-            'course_id' => $course->id,
-        ], [
-            'status' => 'in_progress',
-            'progress' => 0,
-            'started_at' => null,
-            'completed_at' => null,
-            'last_accessed_at' => null,
-            'certificated_at' => null,
-            'certificate_url' => null,
-            'score_final' => null,
-        ]);
-    }
 }
-

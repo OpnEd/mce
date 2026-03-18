@@ -25,42 +25,20 @@ use Filament\Forms\Get;
 use Filament\Forms\Set;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Gate;
-use App\Filament\Resources\Quality\Records\Products\PurchaseResource\Widgets\MissingProductAquisitionProgressChart;
-use App\Filament\Resources\Quality\Records\Products\PurchaseResource\Widgets\MissingProductAquisitionChart;
-use App\Filament\Resources\Quality\Records\Products\PurchaseResource\Widgets\MissingProductSelectionChart;
 
 class ListPurchases extends ListRecords
 {
     protected static string $resource = PurchaseResource::class;
 
-    public function getHeaderWidgetsColumns(): int | array
-    {
-        return 3;
-    }
-
     public function getHeading(): string
     {
-        return __('Registro diario de Faltantes, e Indicadores de Selección y Adquisición');
-    }
-
-    public function getSubheading(): ?string
-    {
-        return __('Registra faltantes Clase A (seleccionados) y Clase B (no seleccionados solicitados por usuarios) para los indicadores de Seleccion y Adquisicion');
-    }
-
-    protected function getHeaderWidgets(): array
-    {
-        return [
-            MissingProductSelectionChart::class,
-            MissingProductAquisitionChart::class,
-            MissingProductAquisitionProgressChart::class,
-        ];
+        return __('Órdenes de compra');
     }
 
     protected function getHeaderActions(): array
     {
         return [
-            Action::make('create_with_code')
+            /* Action::make('create_with_code')
                 ->label('Registro simple')
                 ->icon('phosphor-cursor-click')
                 ->form([
@@ -100,9 +78,9 @@ class ListPurchases extends ListRecords
                         ->icon('phosphor-check')
                         ->success()
                         ->send();
-                }),
-            Action::make('quickPurchase')
-                ->label('Iniciar Pedido!')
+                }), */
+            /* Action::make('quickPurchase')
+                ->label('Crear orden de compra')
                 ->icon('phosphor-shopping-bag')
                 ->modalHeading(__('New Purchase'))
                 ->form([
@@ -204,7 +182,7 @@ class ListPurchases extends ListRecords
                     );
                 })
                 ->requiresConfirmation()
-                ->visible(fn(): bool => Gate::allows('create', Purchase::class)),
+                ->visible(fn(): bool => Gate::allows('create', Purchase::class)), */
         ];
     }
 

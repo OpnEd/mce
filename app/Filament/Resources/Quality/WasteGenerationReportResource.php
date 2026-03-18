@@ -7,6 +7,7 @@ use App\Filament\Resources\WasteGenerationReportResource\RelationManagers;
 use App\Models\Quality\WasteGenerationReport;
 use App\Services\Quality\WasteGenerationReportService;
 use Filament\Facades\Filament;
+use Filament\GlobalSearch\Actions\Action;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -27,6 +28,7 @@ class WasteGenerationReportResource extends Resource
     protected static ?int $navigationSort = 3;
     protected static ?string $navigationGroup = 'Plataforma Estratégica';
     protected static ?string $slug = 'informe-generacion-residuos';
+    protected static ?string $recordTitleAttribute = 'numero_informe';
 
     public static function form(Form $form): Form
     {
@@ -123,6 +125,30 @@ class WasteGenerationReportResource extends Resource
                     ->columns(2)
                     ->collapsible(),
             ]);
+    }
+
+    public static function getGlobalSearchResultUrl(Model $record): string
+    {
+        $tenant = Filament::getTenant();
+
+        return route('informe.residuos', [
+            'tenant' => $tenant?->id,
+            'report' => $record,
+        ]);
+    }
+
+    public static function getGlobalSearchResultActions(Model $record): array
+    {
+        $tenant = Filament::getTenant();
+
+        return [
+            Action::make('pdf')
+                ->label('PDF')
+                ->url(route('informe.residuos', [
+                    'tenant' => $tenant?->id,
+                    'report' => $record,
+                ]), shouldOpenInNewTab: true),
+        ];
     }
 
     public static function table(Table $table): Table

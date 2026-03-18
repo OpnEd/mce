@@ -6,6 +6,7 @@ use App\Filament\Clusters\Cleaning;
 use App\Filament\Resources\Quality\Records\Cleaning\CleaningImplementResource\Pages;
 use App\Filament\Resources\Quality\Records\Cleaning\CleaningImplementResource\RelationManagers;
 use App\Models\Quality\Records\Cleaning\CleaningImplement;
+use App\Models\Quality\Records\Cleaning\StablishmentArea;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -43,8 +44,15 @@ class CleaningImplementResource extends Resource
                     ])
                     ->default('reutilizable')
                     ->required(),
-                Forms\Components\TextInput::make('areas_use')
-                    ->label(__('fields.areas_use')),
+                Forms\Components\Select::make('areas_use')
+                    ->label(__('fields.areas_use'))
+                    ->multiple()
+                    ->preload()
+                    ->searchable()
+                    ->options(fn () => StablishmentArea::query()
+                        ->where('active', true)
+                        ->orderBy('name')
+                        ->pluck('name', 'id')),
                 Forms\Components\Toggle::make('active')
                     ->label(__('fields.active'))
                     ->required(),

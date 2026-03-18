@@ -148,9 +148,9 @@ class CleaningRecordResource extends Resource
                                             ->label(__('fields.cleaned'))
                                             ->default(true),
 
-                                        Forms\Components\Checkbox::make('desinfected')
+                                        /* Forms\Components\Checkbox::make('desinfected')
                                             ->label(__('fields.desinfected'))
-                                            ->default(true),
+                                            ->default(true), */
 
                                         Forms\Components\Checkbox::make('sanitized')
                                             ->label(__('fields.sanitized'))

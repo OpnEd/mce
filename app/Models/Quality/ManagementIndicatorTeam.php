@@ -20,6 +20,16 @@ class ManagementIndicatorTeam extends Pivot
         'indicator_goal',
     ];
 
+    public function managementIndicator(): BelongsTo
+    {
+        return $this->belongsTo(ManagementIndicator::class);
+    }
+
+    public function team(): BelongsTo
+    {
+        return $this->belongsTo(Team::class);
+    }
+
     protected $casts = [
         'indicator_goal' => 'decimal:2',
     ];

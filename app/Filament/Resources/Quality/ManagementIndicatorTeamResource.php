@@ -26,7 +26,7 @@ class ManagementIndicatorTeamResource extends Resource
     protected static ?string $navigationGroup = 'Plataforma Estratégica';
     protected static ?string $pluralModelLabel = 'Indicadores de Gestión';
     protected static ?string $modelLabel = 'Indicador de Gestión';
-    protected static ?string $recordTitleAttribute = 'name';
+    protected static ?string $recordTitleAttribute = 'managementIndicator.name';
     protected static ?string $slug = 'indicadores-de-gestion';
 
     public static function form(Form $form): Form

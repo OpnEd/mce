@@ -399,28 +399,44 @@ return [
       'references' => array_map(
         fn($item) => ['title' => $item],
         [
-          'Ley 9 de 1979 - medidas sanitarias.',
-          'Resolucion 1403 de 2007 - condiciones esenciales del servicio farmaceutico.',
-          'Resolucion 591 de 2024 - gestion integral de residuos en salud.',
-          'Protocolos internos de limpieza y bioseguridad.',
+            'Ley 9 de 1979 - Código Sanitario Nacional, medidas sanitarias.',
+            'Resolución 1403 de 2007 - Determinación de condiciones esenciales del servicio farmacéutico.',
+            'Resolución 591 de 2024 - Gestión integral de residuos generados en atención en salud.',
+            'Resolución 2003 de 2014 - Procedimientos y condiciones de inscripción de prestadores de servicios de salud.',
+            'Cartilla INVIMA - Recomendaciones técnicas de preparación, uso y almacenamiento adecuado del hipoclorito de sodio.',
+            'Decreto 780 de 2016 - Único Reglamentario del Sector Salud y Protección Social.',
+            'Protocolos internos de limpieza, bioseguridad y control de infecciones.',
         ]
       ),
       'terms' => array_map(
         fn($item) => ['definition' => $item],
-        [
-          'Limpieza: remocion de suciedad visible de superficies y equipos.',
-          'Desinfeccion: proceso para reducir carga microbiologica con agente quimico autorizado.',
-          'Frecuencia: periodicidad establecida para cada tarea en el cronograma.',
-        ]
+            [
+                'Limpieza: Remoción mecánica de suciedad visible, materia orgánica y partículas de superficies y equipos mediante agua, detergentes y acción física.',
+                'Desinfección: Proceso físico o químico que destruye o inactiva microorganismos patógenos en objetos inanimados, reduciendo la carga microbiológica a niveles seguros mediante agentes químicos autorizados.',
+                'Desinfectante de alto nivel: Agente químico capaz de eliminar bacterias vegetativas, bacilo tuberculoso, hongos, virus y algunas esporas. Ej: Peróxido de hidrógeno 7.5%.',
+                'Desinfectante de nivel intermedio: Agente químico que inactiva bacterias vegetativas, bacilo tuberculoso, hongos y virus. Ej: Hipoclorito de sodio, alcoholes 70%.',
+                'Desinfectante de bajo nivel: Agente químico que elimina bacterias vegetativas, algunos hongos y virus. Ej: Cuaternarios de amonio.',
+                'Hipoclorito de sodio: Desinfectante clorado de nivel intermedio, efectivo contra amplio espectro microbiano. Concentración comercial recomendada: 5-5.25%.',
+                'ppm (partes por millón): Unidad de concentración equivalente a miligramos por litro (mg/L). 1% = 10,000 ppm.',
+                'Área crítica: Zona con alto riesgo de transmisión de infecciones donde se realizan procedimientos invasivos o se manipulan dispositivos estériles.',
+                'Área semicrítica: Zona con riesgo moderado de contaminación, con contacto frecuente con pacientes o personal.',
+                'Área no crítica o de bajo riesgo: Zona con mínimo contacto con pacientes y baja probabilidad de contaminación.',
+                'Frecuencia: Periodicidad establecida para cada tarea de limpieza según clasificación del área en el cronograma.',
+                'EPP (Elementos de Protección Personal): Equipamiento para proteger al trabajador de riesgos químicos y biológicos: guantes, gafas, bata/delantal, mascarilla.',
+                'Tiempo de contacto: Período mínimo que el desinfectante debe permanecer en contacto con la superficie para lograr eficacia microbicida.',
+                'Vida útil de solución preparada: Tiempo máximo de 12 horas para soluciones de hipoclorito diluidas debido a degradación por luz, calor y materia orgánica.',
+            ]
       ),
       'responsibilities' => array_map(
         fn($item) => ['responsibility' => $item],
-        [
-          'Direccion tecnica: aprobar cronograma y recursos de limpieza.',
-          'Responsable de saneamiento: coordinar ejecucion y verificacion de actividades.',
-          'Personal operativo: ejecutar actividades segun instructivo y registrar evidencias.',
-          'Responsable de calidad: verificar cumplimiento y cierre de hallazgos.',
-        ]
+            [
+                'Director Técnico: Aprobar cronograma de limpieza, asignar recursos humanos y materiales, garantizar disponibilidad de desinfectantes e insumos, validar procedimientos y supervisar cumplimiento normativo.',
+                'Químico Farmacéutico Responsable: Capacitar al personal en preparación de soluciones desinfectantes, verificar cálculos de dilución, supervisar rotulación y almacenamiento de productos químicos.',
+                'Responsable de Saneamiento Ambiental: Coordinar ejecución del cronograma, verificar cumplimiento de actividades, gestionar inventario de implementos de limpieza, registrar evidencias y reportar incumplimientos.',
+                'Personal Operativo de Limpieza: Ejecutar actividades según instructivo, preparar soluciones desinfectantes conforme a protocolos, usar EPP obligatoriamente, registrar actividades diarias y reportar novedades.',
+                'Responsable de Gestión de Calidad: Verificar cumplimiento de procedimientos mediante auditorías internas, gestionar acciones correctivas y preventivas, cerrar hallazgos y mantener registros actualizados.',
+                'Auxiliar de Farmacia: Colaborar con limpieza de áreas de dispensación y almacenamiento, reportar derrames o contaminación, mantener orden en estanterías y vitrinas.',
+            ]
       ),
       'procedure' => array_map(
         fn(array $step) => [
@@ -430,42 +446,60 @@ return [
           'records' => $step['records'],
         ],
         [
-          [
-            'activity' => '7.1 Programacion',
-            'description' => 'Se define cronograma por area, frecuencia, responsable e insumos requeridos.',
-            'responsible' => 'Responsable de saneamiento',
-            'records' => 'Cronograma de limpieza',
-          ],
-          [
-            'activity' => '7.2 Preparacion',
-            'description' => 'Se prepara EPP, implementos y desinfectantes autorizados en concentraciones definidas.',
-            'responsible' => 'Personal operativo',
-            'records' => 'Checklist de insumos y EPP',
-          ],
-          [
-            'activity' => '7.3 Limpieza de superficies',
-            'description' => 'Se realiza limpieza de arriba hacia abajo y de zonas limpias a zonas sucias para evitar contaminacion cruzada.',
-            'responsible' => 'Personal operativo',
-            'records' => 'Registro diario de limpieza',
-          ],
-          [
-            'activity' => '7.4 Desinfeccion',
-            'description' => 'Se aplica desinfectante con tiempo de contacto recomendado por el fabricante.',
-            'responsible' => 'Personal operativo',
-            'records' => 'Registro de desinfeccion',
-          ],
-          [
-            'activity' => '7.5 Disposicion de residuos',
-            'description' => 'Se clasifican y disponen residuos generados conforme al plan de gestion de residuos.',
-            'responsible' => 'Personal operativo',
-            'records' => 'Registro de disposicion de residuos',
-          ],
-          [
-            'activity' => '7.6 Verificacion',
-            'description' => 'Se inspecciona el cumplimiento del cronograma y se gestionan acciones correctivas ante incumplimientos.',
-            'responsible' => 'Responsable de saneamiento y calidad',
-            'records' => 'Formato de verificacion y acciones',
-          ],
+                [
+                    'activity' => '7.1 Programación y planificación',
+                    'description' => 'Se elabora cronograma anual de limpieza y desinfección especificando: áreas (críticas, semicríticas, no críticas), frecuencia según clasificación (diaria, semanal, quincenal, mensual), responsable asignado, implementos requeridos (traperos, escobas, paños), desinfectantes a utilizar con concentraciones específicas y horarios de ejecución. El cronograma debe ser aprobado por Dirección Técnica y socializado con todo el personal.',
+                    'responsible' => 'Responsable de saneamiento ambiental / Director Técnico',
+                    'records' => 'Cronograma anual de limpieza y desinfección de áreas',
+                ],
+                [
+                    'activity' => '7.2 Preparación de insumos y EPP',
+                    'description' => 'Se verifica disponibilidad y se preparan elementos de protección personal (guantes de nitrilo, gafas protectoras contra químicos, bata o delantal plástico impermeable, tapabocas), implementos de limpieza según área asignada (traperos, escobas, paños diferenciados por colores), detergentes biodegradables y desinfectantes autorizados. Se realiza inspección previa de estado de implementos y se reportan elementos deteriorados para reemplazo. Nunca manipular desinfectantes sin EPP completo, incluso en exposiciones cortas.',
+                    'responsible' => 'Personal operativo de limpieza',
+                    'records' => 'Checklist de verificación de insumos y EPP',
+                ],
+                [
+                    'activity' => '7.3 Preparación de soluciones de hipoclorito de sodio',
+                    'description' => 'Se preparan soluciones desinfectantes según necesidad específica usando la fórmula: V? = (Cd × Vd) / Cc. Donde: Cd = concentración deseada en ppm, Vd = volumen a preparar en mL, Cc = concentración conocida del producto comercial en ppm, V? = volumen de hipoclorito comercial a utilizar en mL. Usar hipoclorito comercial al 5% (50,000 ppm) o 5.25% (52,500 ppm). Concentraciones según uso: (1) Fluidos biológicos/sangre: 10,000 ppm (200 mL hipoclorito 5% + 800 mL agua), (2) Lavado terminal áreas críticas/semicríticas: 5,000 ppm (100 mL + 900 mL agua), (3) Lavado rutinario áreas críticas/semicríticas: 2,500 ppm (50 mL + 950 mL agua), (4) Áreas no críticas: 2,000 ppm (40 mL + 960 mL agua). Usar ÚNICAMENTE agua desionizada o destilada libre de metales (hierro, cobre, níquel, manganeso) y cloro, pH neutro. Preparar en lugares ventilados. Tiempo de vida útil: máximo 12 horas, desechar inmediatamente después. Rotular envases con: nombre del producto, concentración en ppm, fecha y hora de preparación, nombre de quien preparó, área de uso.',
+                    'responsible' => 'Personal operativo capacitado / Químico Farmacéutico supervisa',
+                    'records' => 'Registro de preparación de soluciones desinfectantes',
+                ],
+                [
+                    'activity' => '7.4 Limpieza mecánica de superficies',
+                    'description' => 'Se realiza limpieza física de arriba hacia abajo (techos → paredes → mobiliario → pisos) y de zonas limpias hacia zonas sucias para evitar contaminación cruzada. Remover polvo, residuos visibles y materia orgánica usando detergente biodegradable y paños húmedos. En estanterías y vitrinas retirar productos temporalmente. Enjuagar con agua limpia abundante. Secar con paño limpio desechable o reutilizable exclusivo del área. La superficie debe quedar libre de residuos antes de aplicar desinfectante.',
+                    'responsible' => 'Personal operativo de limpieza',
+                    'records' => 'Registro diario de limpieza por área',
+                ],
+                [
+                    'activity' => '7.5 Aplicación de desinfectante',
+                    'description' => 'Se aplica solución de hipoclorito de sodio u otro desinfectante autorizado según concentración validada para el tipo de área. Método de aplicación: aspersión uniforme con atomizador o aplicación con paño impregnado. Respetar tiempo de contacto mínimo de 10 minutos para hipoclorito según tabla INVIMA. No mezclar NUNCA hipoclorito con detergentes, ácidos, amoniaco ni agua caliente (genera vapores tóxicos). Evitar contacto con metales (níquel, hierro, acero) por más tiempo del indicado. Ventilar adecuadamente durante y después de aplicación. Enjuagar superficies que tengan contacto directo con medicamentos o alimentos. Desechar solución sobrante conforme a normativa de residuos químicos.',
+                    'responsible' => 'Personal operativo de limpieza',
+                    'records' => 'Registro de aplicación de desinfectantes',
+                ],
+                [
+                    'activity' => '7.6 Disposición final de residuos',
+                    'description' => 'Se clasifican residuos generados durante limpieza según código de colores: ordinarios/no peligrosos (verde), reciclables (gris), peligrosos químicos (rojo). Desinfectantes usados y envases contaminados se disponen como residuos químicos. No reutilizar envases de desinfectantes para otros fines. Seguir protocolos del Plan de Gestión Integral de Residuos (PGIRS). No incinerar envases de hipoclorito. Lavar y desinfectar implementos de limpieza después de cada uso. Almacenar traperos y paños en área exclusiva, secos y ventilados.',
+                    'responsible' => 'Personal operativo de limpieza',
+                    'records' => 'Registro de gestión de residuos generados en limpieza',
+                ],
+                [
+                    'activity' => '7.7 Almacenamiento de desinfectantes',
+                    'description' => 'Hipoclorito comercial concentrado: almacenar en área exclusiva protegida de luz solar y artificial, ventilada, temperatura no superior a 30°C. Usar ÚNICAMENTE envases plásticos opacos con tapa hermética, NUNCA metálicos ni de vidrio. Purgar envases con solución antes de llenar. Señalizar área con advertencias de producto corrosivo. Mantener alejado de materiales combustibles, ácidos y derivados del amonio. Rotación PEPS (primero en entrar, primero en salir). Verificar fecha de vencimiento. Soluciones preparadas: máximo 12 horas de vida útil, protegidas de luz y calor, rotuladas. Mantener hojas de seguridad del producto accesibles.',
+                    'responsible' => 'Responsable de saneamiento / Auxiliar de farmacia',
+                    'records' => 'Registro de control de inventario de desinfectantes',
+                ],
+                [
+                    'activity' => '7.8 Verificación y auditoría',
+                    'description' => 'Se inspecciona cumplimiento del cronograma mediante auditorías programadas y aleatorias. Verificar: ejecución de actividades en horarios establecidos, uso correcto de EPP, concentraciones de desinfectantes preparadas, rotulación de envases, estado de implementos, registros diligenciados, disposición de residuos. Aplicar lista de chequeo por área. Ante hallazgos o incumplimientos, se generan acciones correctivas con responsable y plazo. Realizar seguimiento hasta cierre efectivo. Retroalimentar al personal y registrar lecciones aprendidas.',
+                    'responsible' => 'Responsable de saneamiento / Responsable de calidad',
+                    'records' => 'Formato de verificación de limpieza / Plan de acciones correctivas',
+                ],
+                [
+                    'activity' => '7.9 Capacitación continua',
+                    'description' => 'Se ejecuta programa de capacitación periódica (mínimo semestral) al personal involucrado en: cálculo y preparación de diluciones de hipoclorito, manejo seguro de desinfectantes, uso obligatorio de EPP, técnicas de limpieza de arriba hacia abajo, clasificación de áreas según riesgo, tiempos de contacto, almacenamiento seguro, prevención de intoxicaciones, primeros auxilios ante exposición química. Documentar asistencia y evaluar competencias. Reforzar capacitación ante incidentes o cambios normativos.',
+                    'responsible' => 'Director Técnico / Químico Farmacéutico / Responsable de calidad',
+                    'records' => 'Registro de capacitaciones / Evaluación de competencias',
+                ],
         ]
       ),
       'slug' => 'limpieza-sanitazacion-areas',

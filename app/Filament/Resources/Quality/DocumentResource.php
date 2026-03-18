@@ -8,6 +8,7 @@ use App\Models\Document;
 use App\Models\User;
 use App\Notifications\DocumentPendingReviewNotification;
 use Filament\Facades\Filament;
+use Filament\GlobalSearch\Actions\Action;
 use Filament\Notifications\Notification as FilamentNotification;
 use Filament\Forms;
 use Filament\Forms\Components\Fieldset;
@@ -16,6 +17,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Validation\Rules\Unique;
 use Filament\Forms\Set;
@@ -366,6 +368,30 @@ class DocumentResource extends Resource
             ]);
     }
 
+    public static function getGlobalSearchResultUrl(Model $record): string
+    {
+        $tenant = Filament::getTenant();
+
+        return route('document.details', [
+            'tenant' => $tenant?->id,
+            'document' => $record,
+        ]);
+    }
+
+    public static function getGlobalSearchResultActions(Model $record): array
+    {
+        $tenant = Filament::getTenant();
+
+        return [
+            Action::make('pdf')
+                ->label('PDF')
+                ->url(route('document.details', [
+                    'tenant' => $tenant?->id,
+                    'document' => $record,
+                ]), shouldOpenInNewTab: true),
+        ];
+    }
+
     public static function getRelations(): array
     {
         return [
@@ -426,5 +452,4 @@ class DocumentResource extends Resource
             ]);
     }
 }
-
 

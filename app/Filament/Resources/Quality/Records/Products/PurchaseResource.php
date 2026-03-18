@@ -33,6 +33,16 @@ class PurchaseResource extends Resource
     protected static ?string $slug = 'ordenes-de-compra'; // Cambiado de 'productos-faltantes'
     protected static ?string $pluralModelLabel = 'Órdenes de Compra';
     protected static ?string $modelLabel = 'Orden de Compra';
+    protected static ?string $tenantOwnershipRelationshipName = 'team';
+
+    protected static function getStatusOptions(): array
+    {
+        return [
+            'in_progress' => 'En progreso',
+            'confirmed' => 'Confirmada',
+            'received' => 'Recibida',
+        ];
+    }
 
     public static function getNavigationBadge(): ?string
     {
@@ -42,7 +52,8 @@ class PurchaseResource extends Resource
 
     public static function getNavigationBadgeColor(): ?string
     {
-        return static::getModel()::where('status', 'confirmed')->count() > 10 ? 'warning' : 'primary';
+        $teamId = Filament::getTenant()->id;
+        return static::getModel()::where('team_id', $teamId)->where('status', 'confirmed')->count() > 10 ? 'warning' : 'primary';
     }
 
     public static function getNavigationBadgeTooltip(): ?string
@@ -56,12 +67,18 @@ class PurchaseResource extends Resource
             ->schema([
                 Section::make(__('Order details'))
                     ->schema([
+                        Forms\Components\TextInput::make('code')
+                            ->label('Código')
+                            ->disabled()
+                            ->dehydrated(false),
+                        Forms\Components\Select::make('supplier_id')
+                            ->label('Proveedor')
+                            ->relationship('supplier', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->required(),
                         Forms\Components\Select::make('status')
-                            ->options([
-                                'in_progress' => 'In Progress',
-                                'confirmed' => 'Confirmed',
-                                'delivered' => 'Delivered',
-                            ])
+                            ->options(static::getStatusOptions())
                             ->default('in_progress')
                             ->required(),
                         Forms\Components\TextInput::make('total')
@@ -90,14 +107,24 @@ class PurchaseResource extends Resource
                     ->label(__('Code'))
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\SelectColumn::make('status')
-                    ->options([
-                        'in_progress' => 'In Progress',
-                        'confirmed' => 'Confirmed',
-                        'delivered' => 'Delivered',
-                    ]),
+                Tables\Columns\TextColumn::make('supplier.name')
+                    ->label('Proveedor')
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('status')
+                    ->label('Estado')
+                    ->formatStateUsing(fn(?string $state) => static::getStatusOptions()[$state] ?? $state)
+                    ->badge()
+                    ->color(fn(?string $state) => match ($state) {
+                        'in_progress' => 'warning',
+                        'confirmed' => 'primary',
+                        'delivered' => 'success',
+                        'received' => 'gray',
+                        default => 'gray',
+                    })
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('total')
-                    ->prefix('$ ')
+                    ->money('cop', true)
                     ->sortable(),
                 Tables\Columns\TextColumn::make('deleted_at')
                     ->dateTime()
@@ -117,6 +144,24 @@ class PurchaseResource extends Resource
             ])
             ->actions([
                 ActionsActionGroup::make([
+                    Tables\Actions\Action::make('confirm_purchase')
+                        ->label('Confirmar compra')
+                        ->icon('heroicon-o-check')
+                        ->color('success')
+                        ->visible(fn(Purchase $record): bool => $record->status === 'in_progress' && $record->items()->count() > 0)
+                        ->requiresConfirmation()
+                        ->action(function (Purchase $record) {
+                            $record->update(['status' => 'confirmed']);
+                        }),
+                    Tables\Actions\Action::make('mark_delivered')
+                        ->label('Marcar entregada')
+                        ->icon('heroicon-o-truck')
+                        ->color('info')
+                        ->visible(fn(Purchase $record): bool => $record->status === 'confirmed')
+                        ->requiresConfirmation()
+                        ->action(function (Purchase $record) {
+                            $record->update(['status' => 'delivered']);
+                        }),
                     Tables\Actions\ViewAction::make()
                         ->color('primary'),
                     Tables\Actions\DeleteAction::make()

@@ -5,10 +5,18 @@ namespace App\Filament\Resources\Quality\Records\Products\MissingProductResource
 use App\Filament\Resources\Quality\Records\Products\MissingProductResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use App\Filament\Resources\Quality\Records\Products\PurchaseResource\Widgets\MissingProductAquisitionProgressChart;
+use App\Filament\Resources\Quality\Records\Products\PurchaseResource\Widgets\MissingProductAquisitionChart;
+use App\Filament\Resources\Quality\Records\Products\PurchaseResource\Widgets\MissingProductSelectionChart;
 
 class ListMissingProducts extends ListRecords
 {
     protected static string $resource = MissingProductResource::class;
+
+    public function getHeaderWidgetsColumns(): int | array
+    {
+        return 3;
+    }
 
     protected function getHeaderActions(): array
     {
@@ -21,5 +29,19 @@ class ListMissingProducts extends ListRecords
     public function getHeading(): string
     {
         return __('Lista de Faltantes');
+    }
+
+    public function getSubheading(): ?string
+    {
+        return __('E indicadores de gestión de Selección y Adquisición');
+    }
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            MissingProductSelectionChart::class,
+            MissingProductAquisitionChart::class,
+            MissingProductAquisitionProgressChart::class,
+        ];
     }
 }
