@@ -18,6 +18,7 @@ use App\Models\Quality\Records\Cleaning\CleaningRecord;
 use App\Models\Quality\Records\Cleaning\Desinfectant;
 use App\Models\Quality\Records\Products\DispenseRecord;
 use App\Models\Quality\Records\Products\MissingProduct;
+use App\Models\Quality\RiskAssessment\Risk;
 use App\Models\Quality\Training\Enrollment;
 use App\Models\Quality\Training\Question;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -295,6 +296,11 @@ class Team extends Model
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class);
+    }
+
+    public function risks(): HasMany
+    {
+        return $this->hasMany(Risk::class);
     }
 
     public function training_categories(): HasMany

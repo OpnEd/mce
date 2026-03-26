@@ -82,6 +82,7 @@ return function ($baseDate = null, array $context = []): array {
     return [
         'schedule' => [
             'name' => 'Cronograma de auditoria interna IVC',
+            'slug' => 'cronograma-de-auditoria-interna-ivc',
             'description' => 'Auditoria interna semanal por secciones IVC durante un ano.',
             'objective' => 'Verificar de forma continua el cumplimiento de las secciones IVC en la drogueria.',
             'starts_at' => $yearStart->toDateTimeString(),

@@ -10,7 +10,7 @@ return [
     | Minutes IVC Sections
     |--------------------------------------------------------------------------
     */
-
+//1
     [
         'apply' => true,
         'entry_id' => '6.1',
@@ -22,10 +22,15 @@ return [
             [
                 'key' => 'document.slug',
                 'value' => 'planeacion-estrategica'
+            ],
+            [
+                'key' => 'page.route',
+                'value' => 'filament.admin.pages.planeacion-estrategica'
             ]
         ],
         'compliance' => true,
     ],
+    //2
     [
         'apply' => true,
         'entry_id' => '6.2',
@@ -41,6 +46,7 @@ return [
         ],
         'compliance' => true,
     ],
+    //3
     [
         'apply' => true,
         'entry_id' => '6.3',
@@ -52,10 +58,15 @@ return [
             [
                 'key' => 'document.slug',
                 'value' => 'manual-de-funciones'
+            ],
+            [
+                'key' => 'page.route',
+                'value' => 'filament.admin.pages.plataforma-estrategica-archivos'
             ]
         ],
         'compliance' => true,
     ],
+    //4
     [
         'apply' => true,
         'entry_id' => '6.4',
@@ -65,34 +76,35 @@ return [
         'entry_type' => EntryType::ROUTE,
         'links' => [
             [
-                'key' => 'document.slug',
-                'value' => 'caracterizacion-de-seleccion'
+                'key' => 'characterization.slug',
+                'value' => 'seleccion'
             ],
             [
-                'key' => 'document.slug',
-                'value' => 'caracterizacion-de-adquisicion'
+                'key' => 'characterization.slug',
+                'value' => 'adquisicion'
             ],
             [
-                'key' => 'document.slug',
-                'value' => 'caracterizacion-de-recepcion'
+                'key' => 'characterization.slug',
+                'value' => 'recepcion'
             
             ],
             [
-                'key' => 'document.slug',
-                'value' => 'caracterizacion-de-almacenamiento'
+                'key' => 'characterization.slug',
+                'value' => 'almacenamiento'
 
             ],
             [
-                'key' => 'document.slug',
-                'value' => 'caracterizacion-de-dispensacion'
+                'key' => 'characterization.slug',
+                'value' => 'dispensacion'
             ],
             [
-                'key' => 'document.slug',
-                'value' => 'caracterizacion-de-devolucion'
+                'key' => 'characterization.slug',
+                'value' => 'devolucion'
             ]
         ],
         'compliance' => true,
     ],
+//5
     [
         'apply' => true,
         'entry_id' => '6.5',
@@ -102,12 +114,13 @@ return [
         'entry_type' => EntryType::ROUTE,
         'links' => [
             [
-                'key' => 'document.slug',
-                'value' => 'mapa-de-procesos'
+                'key' => 'page.route',
+                'value' => 'filament.admin.pages.plataforma-estrategica-archivos'
             ],
         ],
         'compliance' => true,
     ],
+    //6
     [
         'apply' => true,
         'entry_id' => '6.6',
@@ -121,12 +134,13 @@ return [
                 'value' => 'induccion-capacitacion'
             ],
             [
-                'key' => 'record.route',
-                'value' => 'filament.admin.resources.quality.schedules.index'
+                'key' => 'schedule.route',
+                'value' => 'cronograma-de-capacitaciones'
             ],
         ],
         'compliance' => true,
     ],
+    //7
     [
         'apply' => true,
         'entry_id' => '6.7',
@@ -142,6 +156,7 @@ return [
         ],
         'compliance' => true,
     ],
+    //8
     [
         'apply' => true,
         'entry_id' => '6.8',
@@ -161,6 +176,7 @@ return [
         ],
         'compliance' => true,
     ],
+    //9
     [
         'apply' => true,
         'entry_id' => '6.9',
@@ -175,11 +191,12 @@ return [
             ],
             [
                 'key' => 'schedule.route',
-                'value' => 'plan-de-auditoria-interna'
+                'value' => 'cronograma-de-auditoria-interna-ivc'
             ]
         ],
         'compliance' => true,
     ],
+    //10
     [
         'apply' => true,
         'entry_id' => '6.10',
@@ -193,12 +210,13 @@ return [
                 'value' => 'planes-mejora'
             ],
             [
-                'key' => 'schedule.route',
-                'value' => 'planes-de-mejora'
+                'key' => 'record.route',
+                'value' => 'filament.admin.resources.plan-de-mejora.index'
             ]
         ],
         'compliance' => true,
     ],
+    //11
     [
         'apply' => true,
         'entry_id' => '6.11',
@@ -212,12 +230,13 @@ return [
                 'value' => 'evaluacion-gestion-riesgos'
             ],
             [
-                'key' => 'document.slug',
-                'value' => 'matriz-riesgos'
+                'key' => 'matriz.riesgos', 
+                'value' => 'risk.matrix.pdf'
             ],
         ],
         'compliance' => true,
     ],
+    //12
     [
         'apply' => true,
         'entry_id' => '6.12',
@@ -228,7 +247,7 @@ return [
         'links' => [
             [
                 'key' => 'page.route',
-                'value' => 'filament.admin.pages.management-indicators'
+                'value' => 'filament.admin.resources.indicadores-de-gestion.index'
             ]
         ],
         'compliance' => true,

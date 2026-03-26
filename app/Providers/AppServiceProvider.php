@@ -8,6 +8,7 @@ use App\Models\DispatchItems;
 use App\Models\Document;
 use App\Models\Sale;
 use App\Models\SaleItem;
+use App\Models\Quality\Records\Improvement\ChecklistItemAnswer as ImprovementChecklistItemAnswer;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Permission\PermissionRegistrar;
 use App\Models\Team;
@@ -26,6 +27,7 @@ use App\Models\TeamNotification;
 use App\Observers\AnesthesiaSheetObserver;
 use App\Observers\DocumentObserver;
 use App\Observers\ExternalOrderObserver;
+use App\Observers\ChecklistItemAnswerObserver;
 use App\Services\Quality\Records\Products\MissingProductService;
 use App\Services\IndicatorService;
 use App\Services\ExternalOrderActionService;
@@ -104,5 +106,6 @@ class AppServiceProvider extends ServiceProvider
         SaleItem::observe(SaleItemObserver::class);
         Document::observe(DocumentObserver::class);
         ExternalOrder::observe(ExternalOrderObserver::class);
+        ImprovementChecklistItemAnswer::observe(ChecklistItemAnswerObserver::class);
     }
 }

@@ -42,6 +42,7 @@ return function ($baseDate = null, array $context = []): array {
     return [
         'schedule' => [
             'name' => 'Cronograma de limpieza profunda',
+            'slug' => 'cronograma-de-limpieza-profunda',
             'description' => 'Actividades mensuales de limpieza de techos y limpieza detras de vitrinas/estantes.',
             'objective' => 'Sostener condiciones sanitarias adecuadas mediante limpieza profunda mensual.',
             'starts_at' => $yearStart->toDateTimeString(),

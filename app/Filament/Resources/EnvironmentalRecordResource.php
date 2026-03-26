@@ -25,6 +25,8 @@ class EnvironmentalRecordResource extends Resource
     
     protected static ?string $navigationGroup = 'Registros Diarios';
     protected static ?string $navigationLabel = 'Temperatura y Humedad';
+    protected static ?string $pluralModelLabel = 'Variables ambientales';
+    protected static ?string $modelLabel = 'Temperatura y Humedad';
     protected static ?string $recordTitleAttribute = 'temp';
     protected static ?string $slug = 'variables-ambientales';
 
@@ -52,6 +54,10 @@ class EnvironmentalRecordResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label(__('fields.created_at'))
+                    ->dateTime('d/m/Y H:m')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('user.name')
                     ->label(__('fields.created_by'))
                     ->numeric()
@@ -64,11 +70,6 @@ class EnvironmentalRecordResource extends Resource
                     ->label(__('fields.humidity'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->label(__('fields.created_at'))
-                    ->dateTime('d/m/Y')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label(__('fields.updated_at'))
                     ->dateTime('d/m/Y')

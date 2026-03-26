@@ -9,10 +9,12 @@ use App\Models\DocumentCategory;
 use App\Models\Quality\Training\Enrollment;
 use App\Models\Event;
 use App\Models\ManagementIndicator;
+use App\Models\Quality\ManagementIndicatorTeam;
 use App\Models\MinutesIvcSection;
 use App\Models\MinutesIvcSectionEntry;
 use App\Models\Process;
 use App\Models\ProcessType;
+use App\Models\Quality\QualityGoal;
 use App\Models\Quality\Records\Cleaning\CleaningImplement;
 use App\Models\Quality\Records\Cleaning\Desinfectant;
 use App\Models\Quality\Records\Cleaning\StablishmentArea;
@@ -45,6 +47,7 @@ class TeamSetupService
                 'minutes-ivc-seventh-section-entries' => 'Entradas IVC - Sección 7',
                 'minutes-ivc-eighth-section-entries' => 'Entradas IVC - Sección 8',
                 'minutes-ivc-nine-section-entries' => 'Entradas IVC - Sección 9',
+                'processes_templates.default_processes' => 'Plantillas de caracterización de Procesos',
                 'document_templates.default_docs' => 'Plantillas de documentos',
                 'training_schedule' => 'Cronograma de capacitación',
                 'cleaning_schedule' => 'Cronograma de limpieza',
@@ -82,6 +85,9 @@ class TeamSetupService
             case 'minutes-ivc-eighth-section-entries':
             case 'minutes-ivc-nine-section-entries':
                 $this->populateIvcSectionEntries($team, $configKey);
+                break;
+            case 'processes_templates.default_processes':
+                $this->populateProcessesTemplatesFromConfig($team);
                 break;
             case 'document_templates.default_docs':
                 $this->populateDocumentsFromConfig($team, $consultant);
@@ -138,6 +144,7 @@ class TeamSetupService
         $this->populateStablishmentAreas($team);
         $this->populateCleaningImplements($team);
         $this->populateDesinfectants($team);
+        $this->populateProcessesTemplatesFromConfig($team);
         $this->populateDocumentsFromConfig($team, $consultant);
         $this->populateSchedules($team, $owner, $roleAdmin);
         $this->enrollInitialCourse($team, $owner);
@@ -176,26 +183,291 @@ class TeamSetupService
 
     public function populateManagementIndicators(Team $team, Role $roleAdmin): void
     {
-        $indicatorNames = config('management-indicators', []);
-        $indicators = ManagementIndicator::whereIn('name', $indicatorNames)->get()->keyBy('name');
+        $entries = $this->normalizeManagementIndicatorConfig(config('management-indicators', []));
+        if (empty($entries)) {
+            return;
+        }
 
-        foreach ($indicatorNames as $name) {
+        $names = array_values(array_unique(array_column($entries, 'name')));
+        $indicators = ManagementIndicator::query()
+            ->whereIn('name', $names)
+            ->get()
+            ->keyBy('name');
+
+        foreach ($entries as $entry) {
+            $name = $entry['name'];
             $indicator = $indicators->get($name);
-            if (!$indicator) {
-                Log::warning("ManagementIndicator no hallado para name='{$name}'");
+
+            if (! $indicator) {
+                $createData = $this->buildManagementIndicatorCreateData($entry);
+                if (! $createData) {
+                    Log::warning("ManagementIndicator no hallado y no se pudo crear: {$name}");
+                    continue;
+                }
+
+                $indicator = ManagementIndicator::create($createData);
+                $indicators->put($name, $indicator);
+            }
+
+            $defaultGoal = $this->normalizeIndicatorGoal($entry['indicator_goal'] ?? null);
+
+            $pivot = ManagementIndicatorTeam::query()
+                ->where('team_id', $team->id)
+                ->where('management_indicator_id', $indicator->id)
+                ->first();
+
+            if (! $pivot) {
+                ManagementIndicatorTeam::create([
+                    'team_id' => $team->id,
+                    'management_indicator_id' => $indicator->id,
+                    'role_id' => $roleAdmin->id,
+                    'periodicity' => $entry['periodicity'] ?? 'Mensual',
+                    'indicator_goal' => $defaultGoal,
+                ]);
                 continue;
             }
 
-            $team->managementIndicators()->syncWithoutDetaching([
-                $indicator->id => [
-                    'role_id' => $roleAdmin->id,
-                    'periodicity' => 'Mensual',
-                    'indicator_goal' => $indicator->indicator_goal,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ],
-            ]);
+            $updates = [];
+            if (! $pivot->role_id) {
+                $updates['role_id'] = $roleAdmin->id;
+            }
+            if (! $pivot->periodicity) {
+                $updates['periodicity'] = $entry['periodicity'] ?? 'Mensual';
+            }
+            if ($pivot->indicator_goal === null && $defaultGoal !== null) {
+                $updates['indicator_goal'] = $defaultGoal;
+            }
+
+            if (! empty($updates)) {
+                $pivot->fill($updates);
+                $pivot->save();
+            }
         }
+    }
+
+    private function normalizeManagementIndicatorConfig(array $raw): array
+    {
+        $entries = [];
+
+        foreach ($raw as $key => $value) {
+            $entry = [];
+
+            if (is_int($key)) {
+                if (is_string($value)) {
+                    $entry['name'] = $value;
+                } elseif (is_array($value)) {
+                    $entry = $value;
+                }
+            } else {
+                $entry['name'] = (string) $key;
+                if (is_array($value)) {
+                    $entry = array_merge($entry, $value);
+                } else {
+                    $entry['indicator_goal'] = $value;
+                }
+            }
+
+            if (! isset($entry['name']) && isset($entry['indicator'])) {
+                $entry['name'] = $entry['indicator'];
+            }
+
+            $name = trim((string) ($entry['name'] ?? ''));
+            if ($name === '') {
+                continue;
+            }
+
+            $entry['name'] = $name;
+
+            if (! array_key_exists('indicator_goal', $entry)) {
+                if (array_key_exists('goal', $entry)) {
+                    $entry['indicator_goal'] = $entry['goal'];
+                } elseif (array_key_exists('meta', $entry)) {
+                    $entry['indicator_goal'] = $entry['meta'];
+                }
+            }
+
+            $entries[$name] = $entry;
+        }
+
+        return array_values($entries);
+    }
+
+    private function buildManagementIndicatorCreateData(array $entry): ?array
+    {
+        $name = $entry['name'] ?? null;
+        if (! is_string($name) || trim($name) === '') {
+            return null;
+        }
+
+        $defaults = $this->defaultManagementIndicatorPayloads();
+        $payload = array_merge($defaults[$name] ?? [], $entry);
+
+        $qualityGoalId = $payload['quality_goal_id'] ?? null;
+        if (! $qualityGoalId && isset($payload['quality_goal'])) {
+            $qualityGoalId = QualityGoal::query()
+                ->where('name', $payload['quality_goal'])
+                ->value('id');
+        }
+        if (! $qualityGoalId) {
+            $qualityGoalId = QualityGoal::query()->value('id');
+        }
+        if (! $qualityGoalId) {
+            Log::warning("ManagementIndicator '{$name}' sin quality_goal_id");
+            return null;
+        }
+
+        $objective = trim((string) ($payload['objective'] ?? ''));
+        $description = trim((string) ($payload['description'] ?? ''));
+        $numerator = trim((string) ($payload['numerator'] ?? ''));
+
+        if ($objective === '') {
+            $objective = "Indicador {$name}.";
+        }
+        if ($description === '') {
+            $description = "Indicador {$name}.";
+        }
+        if ($numerator === '') {
+            $numerator = "# de registros de {$name}";
+        }
+
+        $type = $payload['type'] ?? null;
+        if (! in_array($type, ['Cardinal', 'Porcentual'], true)) {
+            $type = null;
+        }
+
+        $denominator = $payload['denominator'] ?? null;
+        $denominator = is_numeric($denominator) ? (int) $denominator : null;
+
+        return [
+            'quality_goal_id' => $qualityGoalId,
+            'name' => $name,
+            'objective' => $objective,
+            'description' => $description,
+            'type' => $type,
+            'information_source' => $payload['information_source'] ?? null,
+            'numerator' => $numerator,
+            'denominator' => $denominator,
+            'denominator_description' => $payload['denominator_description'] ?? null,
+        ];
+    }
+
+    private function normalizeIndicatorGoal(mixed $value): ?float
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_numeric($value)) {
+            return (float) $value;
+        }
+
+        return null;
+    }
+
+    private function defaultManagementIndicatorPayloads(): array
+    {
+        return [
+            'Selección' => [
+                'quality_goal_id' => 1,
+                'objective' => 'Vigilar incumplimientos en la disponibilidad por fallas en la selección.',
+                'description' => '# de productos faltantes por considerarse de baja rotación o alto costo (productos no seleccionados), no se incluyen productos descontinuados, agotados en el mercado, o que por cualquier otra razón ajena a la responsabilidad de la droguería no se hallan disponibles.',
+                'type' => 'Cardinal',
+                'information_source' => 'Registros de faltantes.',
+                'numerator' => '# de faltantes de baja rotación',
+                'denominator' => null,
+                'denominator_description' => null,
+            ],
+            'Adquisición' => [
+                'quality_goal_id' => 1,
+                'objective' => 'Vigilar incumplimientos en la disponibilidad debidos a fallas en el proceso de adquisición.',
+                'description' => '# de productos faltantes por fallas en el proceso de adquisición. Productos de alta rotación que el usuario no encuentra.',
+                'type' => 'Cardinal',
+                'information_source' => 'Registros de faltantes.',
+                'numerator' => '# de faltantes de alta rotación',
+                'denominator' => null,
+                'denominator_description' => null,
+            ],
+            'Recepción' => [
+                'quality_goal_id' => 2,
+                'objective' => 'Vigilar la realización de recepción técnica de todos los productos que ingresan al establecimiento.',
+                'description' => 'Proporción de envíos por parte de los proveedores a los que se les realiza la recepción técnica.',
+                'type' => 'Porcentual',
+                'information_source' => 'Registro de órdenes de compra y registro de recepción técnica.',
+                'numerator' => '# de recepciones técnicas',
+                'denominator' => null,
+                'denominator_description' => '# de órdenes de compra',
+            ],
+            'Almacenamiento - VAMT' => [
+                'quality_goal_id' => 2,
+                'objective' => 'Vigilar el monitoreo diario de variables ambientales.',
+                'description' => 'Variables Ambientales Medidas a Tiempo - Cumplimiento con la obligación de verificar, como mínimo, dos veces al día (mañana y tarde-noche), que la temperatura y la humedad se encuentren dentro de los rangos permitidos.',
+                'type' => 'Cardinal',
+                'information_source' => 'Registros de temperatura y humedad.',
+                'numerator' => 'sumatoria de registros diarios en la mañana y de registros diarios en la tarde-noche',
+                'denominator' => 30,
+                'denominator_description' => '# de días en el mes',
+            ],
+            'Almacenamiento - VADR' => [
+                'quality_goal_id' => 2,
+                'objective' => 'Vigilar la permanencia de variables ambientales dentro de rangos permitidos.',
+                'description' => 'Variables Ambientales Dentro de Rango - Se calcula la proporción del tiempo que las variables ambientales se encuentran dentro de los rangos permitidos.',
+                'type' => 'Porcentual',
+                'information_source' => 'Registros de temperatura y humedad.',
+                'numerator' => '# de registros que indican desviación',
+                'denominator' => null,
+                'denominator_description' => '# total de registros',
+            ],
+            'Almacenamiento' => [
+                'quality_goal_id' => 2,
+                'objective' => 'Vigilar la permanencia de variables ambientales dentro de rangos permitidos.',
+                'description' => 'Variables Ambientales Dentro de Rango - Se calcula la proporción del tiempo que las variables ambientales se encuentran dentro de los rangos permitidos.',
+                'type' => 'Porcentual',
+                'information_source' => 'Registros de temperatura y humedad.',
+                'numerator' => '# de registros que indican desviación',
+                'denominator' => null,
+                'denominator_description' => '# total de registros',
+            ],
+            'Devoluciones' => [
+                'quality_goal_id' => 6,
+                'objective' => 'Vigilar devoluciones por fallas en los procesos de la droguería (vencimiento o deterioro durante el almacenamiento).',
+                'description' => '# de productos que es necesario devolver al proveedor, o descartarlos, debido al acercamiento o cumplimiento de la fecha de vencimiento, o por deterioro atribuible a malas prácticas de manejo o almacenamiento.',
+                'type' => 'Cardinal',
+                'information_source' => 'Registro de devoluciones y descartes.',
+                'numerator' => '# de productos devueltos o descartados',
+                'denominator' => null,
+                'denominator_description' => null,
+            ],
+            'Dispensación - PUR' => [
+                'quality_goal_id' => 5,
+                'objective' => 'Vigilar que se realice la promoción del uso racional de los medicamentos priorizados (venta con fórmula médica).',
+                'description' => 'Promoción del Uso Racional - Frecuencia con que se brinda información sobre el uso racional de medicamentos.',
+                'type' => 'Cardinal',
+                'information_source' => 'Registros de promoción del uso adecuado de medicamentos.',
+                'numerator' => '# de actividades de promoción del uso racional documentadas',
+                'denominator' => null,
+                'denominator_description' => null,
+            ],
+            'Dispensación - SU' => [
+                'quality_goal_id' => 5,
+                'objective' => 'Vigilar que los usuarios se sientan atendidos con cordialidad, humanidad, efectividad y con productos seguros a precios razonables.',
+                'description' => 'Satisfacción del Usuario - Encuesta de satisfacción a los usuarios que evalúa distintas áreas y aspectos del establecimiento.',
+                'type' => 'Cardinal',
+                'information_source' => 'Encuestas de satisfacción del usuario.',
+                'numerator' => 'puntaje promedio en la pregunta de satisfacción en general',
+                'denominator' => null,
+                'denominator_description' => null,
+            ],
+            'Dispensación' => [
+                'quality_goal_id' => 5,
+                'objective' => 'Vigilar el desempeño del proceso de dispensación (uso racional y satisfacción del usuario).',
+                'description' => 'Frecuencia con que se brinda información sobre el uso racional de medicamentos y el nivel de satisfacción del usuario con el servicio.',
+                'type' => 'Cardinal',
+                'information_source' => 'Registros de dispensación y encuestas de satisfacción del usuario.',
+                'numerator' => '# de actividades de dispensación documentadas',
+                'denominator' => null,
+                'denominator_description' => null,
+            ],
+        ];
     }
 
     public function populateIvcSections(Team $team): void
@@ -501,9 +773,16 @@ class TeamSetupService
             'commitments' => $policy['commitments'] ?? [],
         ];
 
+        $defaultProcessMap = [['path' => 'public_process_map.png']];
+        $defaultOrgChart = [['path' => 'public_organization_chart.png']];
+
         $settingsByKey = Setting::pluck('id', 'key');
 
         foreach ($settingsByKey as $settingKey => $settingId) {
+            $existingTenantSetting = TenantSetting::where('team_id', $team->id)
+                ->where('setting_id', $settingId)
+                ->first();
+
             switch ($settingKey) {
                 case 'Misión':
                     $value = $mission;
@@ -516,6 +795,20 @@ class TeamSetupService
                 case 'Política de Calidad':
                     $value = $policyText;
                     $data = $policyData;
+                    break;
+                case 'Mapa de Procesos':
+                    if ($existingTenantSetting && ! $this->isEmptyFileSettingValue($existingTenantSetting->value)) {
+                        continue;
+                    }
+                    $value = $defaultProcessMap;
+                    $data = null;
+                    break;
+                case 'Organigrama':
+                    if ($existingTenantSetting && ! $this->isEmptyFileSettingValue($existingTenantSetting->value)) {
+                        continue;
+                    }
+                    $value = $defaultOrgChart;
+                    $data = null;
                     break;
                 default:
                     $value = null;
@@ -557,6 +850,26 @@ class TeamSetupService
                 'data'  => null,
             ]
         );
+    }
+
+    private function isEmptyFileSettingValue($value): bool
+    {
+        if (is_null($value) || $value === '') {
+            return true;
+        }
+
+        if (is_array($value)) {
+            return empty($value);
+        }
+
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                return empty($decoded);
+            }
+        }
+
+        return false;
     }
 
 
@@ -668,6 +981,11 @@ class TeamSetupService
 
             $wasExisting = $document->exists;
 
+            $templateData = Arr::wrap($tpl['data'] ?? []);
+            if (! array_key_exists('submitted_for_review_at', $templateData)) {
+                $templateData['submitted_for_review_at'] = now()->toDateTimeString();
+            }
+
             $document->fill([
                 'title' => $tpl['title'] ?? null,
                 'sequence' => $tpl['sequence'] ?? 0,
@@ -681,7 +999,7 @@ class TeamSetupService
                 'procedure' => Arr::wrap($tpl['procedure'] ?? []),
                 'records' => Arr::wrap($tpl['records'] ?? []),
                 'annexes' => Arr::wrap($tpl['annexes'] ?? []),
-                'data' => Arr::wrap($tpl['data'] ?? []),
+                'data' => $templateData,
                 'prepared_by' => $consultant?->id,
                 'reviewed_by' => is_numeric($tpl['reviewed_by'] ?? null) ? (int) $tpl['reviewed_by'] : null,
                 'approved_by' => is_numeric($tpl['approved_by'] ?? null) ? (int) $tpl['approved_by'] : null,
@@ -752,6 +1070,11 @@ class TeamSetupService
                 return [];
             }
 
+            // Eliminar BOM (Byte Order Mark) si está presente al inicio del archivo.
+            if (str_starts_with($contents, "\xEF\xBB\xBF")) {
+                $contents = substr($contents, 3);
+            }
+
             $raw = (static function (string $phpCode) {
                 return eval('?>' . $phpCode);
             })($contents);
@@ -796,10 +1119,7 @@ class TeamSetupService
 
         $process = Process::query()
             ->where('code', $code)
-            ->where(function ($query) use ($team) {
-                $query->whereNull('team_id')->orWhere('team_id', $team->id);
-            })
-            ->orderByRaw('CASE WHEN team_id = ? THEN 0 ELSE 1 END', [$team->id])
+            ->where('team_id', $team->id)
             ->first();
 
         if ($process) {
@@ -941,6 +1261,146 @@ class TeamSetupService
 
         return $created->id;
     }
+    /**
+     * Procesos
+     */
+    public function populateProcessesTemplatesFromConfig(Team $team): void
+    {
+        $templates = $this->loadProcessesTemplates();
+        if (!is_array($templates) || empty($templates)) {
+            Log::warning('No hay plantillas en config(process_templates.default_processes).');
+            return;
+        }
+        
+        $created = 0;
+        $updated = 0;
+        $skipped = 0;
+        $skipReasons = [];
+
+        foreach ($templates as $tpl) {
+            if (!is_array($tpl)) {
+                $skipped++;
+                $skipReasons[] = 'tpl no array';
+                continue;
+            }
+
+            $document = Process::withTrashed()->firstOrNew(
+                [
+                    'team_id' => $team->id,
+                    'code' => $tpl['code'] ?? null,
+                ]
+            );
+
+            if ($document->exists && method_exists($document, 'trashed') && $document->trashed()) {
+                $document->restore();
+            }
+
+            if (
+                $document->exists
+                && $document->updated_at
+                && $document->created_at
+                && $document->updated_at->gt($document->created_at)
+            ) {
+                $skipped++;
+                continue;
+            }
+
+            $wasExisting = $document->exists;
+
+            $document->fill([
+                'process_type_id' => $tpl['process_type_id'] ?? null,
+                'records' => Arr::wrap($tpl['records'] ?? []),
+                'code' => $tpl['code'] ?? null,
+                'name' => $tpl['name'] ?? null,
+                'slug' => $tpl['slug'] ?? null,
+                'description' => $tpl['description'] ?? null, //json
+                'suppliers' => Arr::wrap($tpl['suppliers'] ?? []),
+                'inputs' => Arr::wrap($tpl['inputs'] ?? []),
+                'procedures' => Arr::wrap($tpl['procedures'] ?? []),
+                'outputs' => Arr::wrap($tpl['outputs'] ?? []),
+                'clients' => Arr::wrap($tpl['clients'] ?? []),
+                'data' => Arr::wrap($tpl['data'] ?? []),
+            ]);
+
+            $document->save();
+
+            if ($wasExisting) {
+                $updated++;
+            } else {
+                $created++;
+            }
+        }
+    }
+
+    private function loadProcessesTemplates(): array
+    {
+        $fromConfig = config('processes_templates.default_processes', []);
+        $fromConfig = is_array($fromConfig) ? $fromConfig : [];
+
+        $fromFile = [];
+        $path = config_path('processes_templates.php');
+        if (is_file($path) && is_readable($path)) {
+            $fromFile = $this->loadProcessesTemplatesFromDisk($path);
+
+            if (empty($fromFile)) {
+                if (function_exists('opcache_invalidate')) {
+                    @opcache_invalidate($path, true);
+                }
+                clearstatcache(true, $path);
+
+                $raw = include $path;
+                if (is_array($raw) && is_array($raw['default_processes'] ?? null)) {
+                    $fromFile = $raw['default_processes'];
+                }
+            }
+        }
+
+        Log::info('Carga de document_templates', [
+            'from_config_count' => count($fromConfig),
+            'from_file_count' => count($fromFile),
+            'path' => $path,
+        ]);
+
+        if (!empty($fromFile)) {
+            return $fromFile;
+        }
+
+        return $fromConfig;
+    }
+
+    private function loadProcessesTemplatesFromDisk(string $path): array
+    {
+        try {
+            $contents = file_get_contents($path);
+            if (!is_string($contents) || trim($contents) === '') {
+                return [];
+            }
+
+            // Eliminar BOM (Byte Order Mark) si está presente al inicio del archivo.
+            if (str_starts_with($contents, "\xEF\xBB\xBF")) {
+                $contents = substr($contents, 3);
+            }
+
+            $raw = (static function (string $phpCode) {
+                return eval('?>' . $phpCode);
+            })($contents);
+
+            if (is_array($raw) && is_array($raw['default_processes'] ?? null)) {
+                return $raw['default_processes'];
+            }
+        } catch (\Throwable $e) {
+            Log::warning('No se pudo leer processes_templates.php desde disco con eval', [
+                'path' => $path,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        return [];
+    }
+
+    /**
+     * Fin populate procesos
+     */
 
 
     public function populateSchedules(Team $team, ?User $owner = null, ?Role $roleAdmin = null): void
@@ -1106,8 +1566,9 @@ class TeamSetupService
 
         return [
             'schedule' => [
-                'name' => 'Cronograma de capacitacion',
-                'description' => 'Cronograma de capacitaciones generado desde config.training_schedule.',
+                'name' => 'Cronograma de capacitaciones',
+                'slug' => 'cronograma-de-capacitaciones',
+                'description' => 'Cronograma de capacitaciones sobre procesos del servicio farmacéutico; procesos estratégicos, misionales, de apoyo y mejora continua',
                 'objective' => 'Fortalecer competencias del equipo mediante sesiones programadas.',
                 'starts_at' => $minStart?->toDateTimeString(),
                 'ends_at' => $maxEnd?->toDateTimeString(),
@@ -1134,8 +1595,16 @@ class TeamSetupService
             return;
         }
 
-        $userId = $owner?->id ?? auth()->id();
-        if (!$userId) {
+        $userId = $owner?->id;
+        if (! $userId) {
+            $userId = $team->users()
+                ->orderBy('users.id')
+                ->value('users.id');
+        }
+        if (! $userId) {
+            $userId = auth()->id();
+        }
+        if (! $userId) {
             Log::warning("{$configKey}: user_id requerido para crear schedule/eventos");
             return;
         }
@@ -1336,4 +1805,3 @@ class TeamSetupService
         ]);
     }
 }
-

@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Checklist;
+use App\Models\Quality\Records\Improvement\Checklist as ImprovementChecklist;
 use App\Models\Team;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -16,7 +17,7 @@ return new class extends Migration
         Schema::create('checklist_items', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(Team::class)->constrained()->cascadeOnDelete();
-            $table->foreignIdFor(Checklist::class)->constrained()->cascadeOnDelete();
+            $table->foreignIdFor(ImprovementChecklist::class)->constrained()->cascadeOnDelete();
             $table->text('description');
             $table->json('data')->nullable();
             $table->softDeletes();

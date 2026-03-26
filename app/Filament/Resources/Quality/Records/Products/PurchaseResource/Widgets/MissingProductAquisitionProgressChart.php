@@ -2,11 +2,14 @@
 
 namespace App\Filament\Resources\Quality\Records\Products\PurchaseResource\Widgets;
 
-use App\Services\Quality\Records\Products\MissingProductService;
+use App\Services\IndicatorService;
+use App\Filament\Widgets\Concerns\HasIndicatorTooltip;
+use Filament\Facades\Filament;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
 class MissingProductAquisitionProgressChart extends ApexChartWidget
 {
+    use HasIndicatorTooltip;
     /**
      * Chart Id
      *
@@ -19,7 +22,7 @@ class MissingProductAquisitionProgressChart extends ApexChartWidget
      *
      * @var string|null
      */
-    protected static ?string $heading = 'Cómo vamos con los faltantes';
+    protected static ?string $heading = 'Cuota permitida de faltantes / mes';
 
     /**
      * Chart options (series, labels, types, size, animations...)
@@ -29,16 +32,16 @@ class MissingProductAquisitionProgressChart extends ApexChartWidget
      */
     protected function getOptions(): array
     {
-        $missingProductService = app(MissingProductService::class);
-        $progressData = $missingProductService->calculateProgress();
-        //dd($progressData);
+        $teamId = Filament::getTenant()->id;
+        $indicatorName = 'Adquisición';
+        $data = app(IndicatorService::class)->getMonthlyCompliance($teamId, $indicatorName);
 
         return [
             'chart' => [
                 'type' => 'radialBar',
-                'height' => 300,
+                'height' => 200,
             ],
-            'series' => [$progressData['aquisitionProgress']],
+            'series' => [$data['progress']],
             'plotOptions' => [
                 'radialBar' => [
                     'hollow' => [
@@ -71,5 +74,10 @@ class MissingProductAquisitionProgressChart extends ApexChartWidget
                 ],
             ],
         ];
+    }
+
+    protected function extraJsOptions(): ?\Filament\Support\RawJs
+    {
+        return $this->indicatorTooltipExtraJsOptionsFromIndicatorName('Adquisición');
     }
 }

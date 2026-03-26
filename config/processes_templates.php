@@ -3,67 +3,73 @@
 return [
 
     'default_processes' => [
-//Saneamiento y Mantenimiento
+        //Saneamiento y Mantenimiento
         [
             'process_type_id' => 3,
             'records' => [
-                'Calibración de equipos',
-                'Limpieza y desinfección de tanques de agua',
+                'Calibracion de equipos',
+                'Limpieza y desinfeccion de tanques de agua',
                 'Control de plagas',
             ],
             'code' => 'A-SM',
             'name' => 'Saneamiento y Mantenimiento',
-            'description' => 'Garantiza que la infraestructura, equipos y servicios de apoyo de la droguería se mantengan en condiciones higiénicas, seguras y operacionales para preservar la calidad de los medicamentos y la seguridad de usuarios y trabajadores.',
+            'slug' => 'saneamiento-y-mantenimiento',
+            'description' => 'Garantiza que la infraestructura, equipos y servicios de apoyo de la drogueria se mantengan en condiciones higienicas, seguras y operacionales para preservar la calidad de los medicamentos y la seguridad de usuarios y trabajadores.',
             'suppliers' => [
-                'Dirección técnica',
-                'Propietario o administración',
+                'Direccion tecnica',
+                'Propietario o administracion',
                 'Proveedores de servicios (mantenimiento, aseo, control de plagas)',
             ],
             'inputs' => [
                 'Requerimientos de mantenimiento de infraestructura y equipos',
-                'Programas de limpieza y desinfección',
+                'Programas de limpieza y desinfeccion',
                 'Planes de saneamiento ambiental',
                 'Reportes de fallas o incidentes en equipos/instalaciones',
             ],
             'procedures' => [
-                'Identificación y priorización de necesidades de mantenimiento y saneamiento',
-                'Programación y ejecución de limpieza, desinfección y control de plagas',
-                'Gestión de mantenimiento preventivo y correctivo de equipos (incluidas neveras y termómetros)',
-                'Verificación y registro de la ejecución de actividades de saneamiento y mantenimiento',
+                'Identificacion y priorizacion de necesidades de mantenimiento y saneamiento',
+                'Programacion y ejecucion de limpieza, desinfeccion y control de plagas',
+                'Gestion de mantenimiento preventivo y correctivo de equipos (incluidas neveras y termometros)',
+                'Verificacion y registro de la ejecucion de actividades de saneamiento y mantenimiento',
             ],
             'outputs' => [
-                'Áreas y equipos limpios, desinfectados y en condiciones adecuadas de operación',
-                'Registros de limpieza, desinfección, control de plagas y mantenimiento',
-                'Disminución de riesgos para la calidad de los medicamentos y la seguridad del personal',
+                'areas y equipos limpios, desinfectados y en condiciones adecuadas de operacion',
+                'Registros de limpieza, desinfeccion, control de plagas y mantenimiento',
+                'Disminucion de riesgos para la calidad de los medicamentos y la seguridad del personal',
             ],
             'clients' => [
-                'Todos los procesos del servicio farmacéutico',
+                'Todos los procesos del servicio farmaceutico',
                 'Usuarios y comunidad atendida',
             ],
+            'data'        => [
+                'version'   => '1.0',
+                'vigencia'  => '01-01-2025'
+            ],
         ],
-//Asuntos regulatorios
+        //Asuntos regulatorios
         [
             'process_type_id' => 1,
             'records' => [],
             'code' => 'A-AR',
             'name' => 'Asuntos Regulatorios',
-            'description' => 'Gestiona el cumplimiento de los requisitos legales y normativos aplicables a la droguería y a los procesos del servicio farmacéutico.',
+            'slug' => 'asuntos-regulatorios',
+            'description' => 'Gestiona el cumplimiento de los requisitos legales y normativos aplicables a la drogueria y a los procesos del servicio farmaceutico.',
             'suppliers' => [
-                'Ministerio de Salud y Protección Social',
-                'Secretarías de Salud',
+                'Ministerio de Salud y Proteccion Social',
+                'Secretarias de Salud',
                 'INVIMA',
-                'Colegio profesional y demás entes de control',
+                'Colegio profesional y demas entes de control',
             ],
             'inputs' => [
                 'Normatividad legal y sanitaria vigente (leyes, decretos, resoluciones como 2200 de 2005 y 1403 de 2007)',
                 'Requerimientos y comunicaciones de autoridades sanitarias',
-                'Información sobre cambios normativos',
+                'Informacion sobre cambios normativos',
             ],
             'procedures' => [
-                'Revisión y actualización periódica de la normatividad aplicable',
-                'Tramitación y renovación de licencias de funcionamiento y habilitación',
-                'Atención de visitas de inspección, vigilancia y control',
-                'Actualización de procedimientos internos según cambios normativos',
+                'Revision y actualizacion periodica de la normatividad aplicable',
+                'Tramitacion y renovacion de licencias de funcionamiento y habilitacion',
+                'Atencion de visitas de inspeccion, vigilancia y control',
+                'Actualizacion de procedimientos internos segun cambios normativos',
             ],
             'outputs' => [
                 'Licencias, registros y certificados vigentes',
@@ -72,11 +78,15 @@ return [
             ],
             'clients' => [
                 'Entes regulatorios',
-                'Dirección técnica',
+                'Direccion tecnica',
                 'Procesos misionales y de apoyo',
             ],
+            'data'        => [
+                'version'   => '1.0',
+                'vigencia'  => '01-01-2025'
+            ],
         ],
-//Planeación y Gerencia
+        //Planeacion y Gerencia
         [
             'process_type_id' => 1,
             'records' => [
@@ -84,370 +94,421 @@ return [
                 'Acciones correctivas o preventivas',
             ],
             'code' => 'D-PG',
-            'name' => 'Planeación y Gerencia',
-            'description' => 'Define la plataforma estratégica de la droguería (misión, visión, objetivos, política de calidad) y realiza la planeación, seguimiento y evaluación integral de la gestión.',
+            'name' => 'Planeacion y Gerencia',
+            'slug' => 'planeacion-y-gerencia',
+            'description' => 'Define la plataforma estrategica de la drogueria (mision, vision, objetivos, politica de calidad) y realiza la planeacion, seguimiento y evaluacion integral de la gestion.',
             'suppliers' => [
-                'Dirección técnica',
+                'Direccion tecnica',
                 'Propietario o gerencia',
-                'Todos los procesos del servicio farmacéutico',
+                'Todos los procesos del servicio farmaceutico',
             ],
             'inputs' => [
-                'Indicadores de gestión y calidad',
-                'Resultados de auditorías internas y externas',
-                'Información financiera y de ventas',
-                'Retroalimentación de usuarios (quejas, sugerencias, encuestas)',
+                'Indicadores de gestion y calidad',
+                'Resultados de auditorias internas y externas',
+                'Informacion financiera y de ventas',
+                'Retroalimentacion de usuarios (quejas, sugerencias, encuestas)',
             ],
             'procedures' => [
-                'Análisis de contexto, análisis DOFA y análisis de riesgos',
-                'Definición y actualización de objetivos, metas e indicadores',
-                'Elaboración de planes estratégicos y operativos',
-                'Seguimiento periódico a resultados y formulación de acciones de mejora',
+                'Analisis de contexto, analisis DOFA y analisis de riesgos',
+                'Definicion y actualizacion de objetivos, metas e indicadores',
+                'Elaboracion de planes estrategicos y operativos',
+                'Seguimiento periodico a resultados y formulacion de acciones de mejora',
             ],
             'outputs' => [
-                'Políticas y directrices institucionales',
-                'Planes estratégicos, operativos y de mejoramiento',
+                'Politicas y directrices institucionales',
+                'Planes estrategicos, operativos y de mejoramiento',
                 'Matriz de riesgos y planes de tratamiento',
             ],
             'clients' => [
-                'Todos los procesos del servicio farmacéutico',
+                'Todos los procesos del servicio farmaceutico',
                 'Propietario/gerencia',
             ],
+            'data'        => [
+                'version'   => '1.0',
+                'vigencia'  => '01-01-2025'
+            ],
         ],
-//Evaluación, retroalimentación y seguimiento
+        //Evaluacion, retroalimentacion y seguimiento
         [
             'process_type_id' => 4,
             'records' => [
-                'Programa de auditoría',
-                'Planes de auditorías',
-                'Informes de auditorías',
+                'Programa de auditoria',
+                'Planes de auditorias',
+                'Informes de auditorias',
             ],
             'code' => 'E-RS',
-            'name' => 'Evaluación Retroalimentación y Seguimiento',
-            'description' => 'Recolecta y analiza información sobre el desempeño de los procesos para emitir juicios de cumplimiento y generar oportunidades de mejora.',
+            'name' => 'Evaluacion Retroalimentacion y Seguimiento',
+            'slug' => 'evaluacion-retroalimentacion-y-seguimiento',
+            'description' => 'Recolecta y analiza informacion sobre el desempeno de los procesos para emitir juicios de cumplimiento y generar oportunidades de mejora.',
             'suppliers' => [
                 'Todos los procesos',
                 'Usuarios internos y externos',
                 'Entes de control',
             ],
             'inputs' => [
-                'Indicadores de gestión y calidad',
+                'Indicadores de gestion y calidad',
                 'Registros de procesos y productos',
-                'Resultados de auditorías, visitas de inspección y PQRS',
+                'Resultados de auditorias, visitas de inspeccion y PQRS',
             ],
             'procedures' => [
-                'Planificación y ejecución de auditorías internas',
-                'Entrevistas y revisión de registros como evidencia de ejecución',
-                'Análisis de resultados, identificación de no conformidades y oportunidades de mejora',
-                'Socialización de hallazgos y seguimiento a planes de acción',
+                'Planificacion y ejecucion de auditorias internas',
+                'Entrevistas y revision de registros como evidencia de ejecucion',
+                'Analisis de resultados, identificacion de no conformidades y oportunidades de mejora',
+                'Socializacion de hallazgos y seguimiento a planes de accion',
             ],
             'outputs' => [
-                'Informes de auditoría y evaluación',
-                'Planes de acción correctiva, preventiva y de mejora',
-                'Retroalimentación estructurada a los procesos',
+                'Informes de auditoria y evaluacion',
+                'Planes de accion correctiva, preventiva y de mejora',
+                'Retroalimentacion estructurada a los procesos',
             ],
             'clients' => [
                 'Todos los procesos',
-                'Dirección técnica y gerencia',
+                'Direccion tecnica y gerencia',
+            ],
+            'data'        => [
+                'version'   => '1.0',
+                'vigencia'  => '01-01-2025'
             ],
         ],
-//Selección
+        //Seleccion
         [
             'process_type_id' => 2,
             'records' => [
-                'Listado básico de medicamentos',
-                'Selección y evaluación de proveedores',
+                'Listado basico de medicamentos',
+                'Seleccion y evaluacion de proveedores',
             ],
             'code' => 'M-SL',
-            'name' => 'Selección',
-            'description' => 'Define el portafolio de medicamentos y dispositivos médicos a ofrecer, así como los proveedores aprobados, con base en criterios técnicos, normativos y de calidad.',
+            'name' => 'Seleccion',
+            'slug' => 'seleccion',
+            'description' => 'Define el portafolio de medicamentos y dispositivos medicos a ofrecer, asi como los proveedores aprobados, con base en criterios tecnicos, normativos y de calidad.',
             'suppliers' => [
                 'Usuarios y comunidad atendida',
-                'Dirección técnica',
-                'Normatividad y listados oficiales (PBS, guías, etc.)',
-                'Proveedores de medicamentos y dispositivos médicos',
+                'Direccion tecnica',
+                'Normatividad y listados oficiales (PBS, guias, etc.)',
+                'Proveedores de medicamentos y dispositivos medicos',
             ],
             'inputs' => [
-                'Información de consumos históricos y patrones de prescripción',
-                'Perfil epidemiológico de la población atendida',
-                'Información sobre proveedores y condiciones de suministro',
-                'Normativa y guías de tratamiento vigentes',
+                'Informacion de consumos historicos y patrones de prescripcion',
+                'Perfil epidemiologico de la poblacion atendida',
+                'Informacion sobre proveedores y condiciones de suministro',
+                'Normativa y guias de tratamiento vigentes',
             ],
             'procedures' => [
-                'Análisis de consumos y necesidades de la comunidad',
-                'Definición y actualización del listado básico de medicamentos y dispositivos médicos',
-                'Definición de criterios y evaluación de proveedores',
-                'Documentación y aprobación de cambios en el portafolio',
+                'Analisis de consumos y necesidades de la comunidad',
+                'Definicion y actualizacion del listado basico de medicamentos y dispositivos medicos',
+                'Definicion de criterios y evaluacion de proveedores',
+                'Documentacion y aprobacion de cambios en el portafolio',
             ],
             'outputs' => [
-                'Listado básico de medicamentos y dispositivos médicos actualizado',
-                'Relación de proveedores aprobados',
-                'Registros de evaluación y selección de proveedores',
+                'Listado basico de medicamentos y dispositivos medicos actualizado',
+                'Relacion de proveedores aprobados',
+                'Registros de evaluacion y seleccion de proveedores',
             ],
             'clients' => [
-                'Proceso de Adquisición',
-                'Dirección técnica y gerencia',
+                'Proceso de Adquisicion',
+                'Direccion tecnica y gerencia',
+            ],
+            'data'        => [
+                'version'   => '1.0',
+                'vigencia'  => '01-01-2025'
             ],
         ],
-//Gestión de Recurso Humano
+        //Gestion de Recurso Humano
         [
             'process_type_id' => 3,
             'records' => ['Por definir'],
             'code' => 'A-RH',
-            'name' => 'Gestión de Recurso Humano',
-            'description' => 'Gestiona la vinculación, desarrollo de competencias, bienestar y seguridad del talento humano que participa en los procesos de la droguería.',
+            'name' => 'Gestion de Recurso Humano',
+            'slug' => 'gestion-de-recurso-humano',
+            'description' => 'Gestiona la vinculacion, desarrollo de competencias, bienestar y seguridad del talento humano que participa en los procesos de la drogueria.',
             'suppliers' => [
-                'Dirección técnica',
-                'Área administrativa/contable',
-                'Entidades de formación y capacitación',
+                'Direccion tecnica',
+                'area administrativa/contable',
+                'Entidades de formacion y capacitacion',
             ],
             'inputs' => [
                 'Normatividad laboral y de seguridad y salud en el trabajo',
-                'Hojas de vida y soportes de formación',
-                'Evaluaciones de desempeño',
-                'Requerimientos de capacitación y perfiles de cargo',
+                'Hojas de vida y soportes de formacion',
+                'Evaluaciones de desempeno',
+                'Requerimientos de capacitacion y perfiles de cargo',
             ],
             'procedures' => [
-                'Definición de perfiles y requisitos de cargo',
-                'Procesos de selección, vinculación y contratación',
-                'Evaluación de desempeño y retroalimentación al personal',
-                'Gestión de seguridad y salud en el trabajo (inducción en riesgos, EPP, reportes de incidentes)',
+                'Definicion de perfiles y requisitos de cargo',
+                'Procesos de seleccion, vinculacion y contratacion',
+                'Evaluacion de desempeno y retroalimentacion al personal',
+                'Gestion de seguridad y salud en el trabajo (induccion en riesgos, EPP, reportes de incidentes)',
             ],
             'outputs' => [
-                'Personal idóneo, vinculado y documentado',
-                'Planes y registros de capacitación y desarrollo',
-                'Registros de evaluaciones de desempeño',
+                'Personal idoneo, vinculado y documentado',
+                'Planes y registros de capacitacion y desarrollo',
+                'Registros de evaluaciones de desempeno',
             ],
             'clients' => [
-                'Todos los procesos del servicio farmacéutico',
-                'Trabajadores de la droguería',
+                'Todos los procesos del servicio farmaceutico',
+                'Trabajadores de la drogueria',
+            ],
+            'data'        => [
+                'version'   => '1.0',
+                'vigencia'  => '01-01-2025'
             ],
         ],
-//Inducción y Capacitación
+        //Induccion y Capacitacion
         [
             'process_type_id' => 3,
-            'records' => ['Material de inducción y capacitación'],
+            'records' => ['Material de induccion y capacitacion'],
             'code' => 'A-BL',
-            'name' => 'Inducción y Capacitación',
-            'description' => 'Desarrolla y conserva el material y los programas de inducción y capacitación para fortalecer las competencias del personal.',
+            'name' => 'Induccion y Capacitacion',
+            'slug' => 'induccion-y-capacitacion',
+            'description' => 'Desarrolla y conserva el material y los programas de induccion y capacitacion para fortalecer las competencias del personal.',
             'suppliers' => [
-                'Gestión de Recurso Humano',
-                'Dirección técnica',
-                'Fuentes científicas y normativas',
+                'Gestion de Recurso Humano',
+                'Direccion tecnica',
+                'Fuentes cientificas y normativas',
             ],
             'inputs' => [
-                'Necesidades de formación identificadas en los procesos',
-                'Cambios normativos y actualizaciones científicas',
+                'Necesidades de formacion identificadas en los procesos',
+                'Cambios normativos y actualizaciones cientificas',
                 'Manuales de procesos y procedimientos',
             ],
             'procedures' => [
-                'Diseño y actualización de programas de inducción para personal nuevo',
-                'Diseño y ejecución de planes de capacitación periódica',
-                'Registro de asistencia y evaluación de efectividad de las capacitaciones',
+                'Diseno y actualizacion de programas de induccion para personal nuevo',
+                'Diseno y ejecucion de planes de capacitacion periodica',
+                'Registro de asistencia y evaluacion de efectividad de las capacitaciones',
             ],
             'outputs' => [
-                'Material didáctico e informativo actualizado',
-                'Registros de inducción y capacitación del personal',
-                'Mejora en las competencias y desempeño del equipo',
+                'Material didactico e informativo actualizado',
+                'Registros de induccion y capacitacion del personal',
+                'Mejora en las competencias y desempeno del equipo',
             ],
             'clients' => [
                 'Todos los procesos',
-                'Personal de la droguería',
+                'Personal de la drogueria',
+            ],
+            'data'        => [
+                'version'   => '1.0',
+                'vigencia'  => '01-01-2025'
             ],
         ],
-//Adquisición
+        //Adquisicion
         [
             'process_type_id' => 3,
             'records' => ['Orden de compra'],
             'code' => 'M-AQ',
-            'name' => 'Adquisición',
-            'description' => 'Gestiona la compra de medicamentos y dispositivos médicos, asegurando oportunidad, calidad y cumplimiento de requisitos legales y técnicos.',
+            'name' => 'Adquisicion',
+            'slug' => 'adquisicion',
+            'description' => 'Gestiona la compra de medicamentos y dispositivos medicos, asegurando oportunidad, calidad y cumplimiento de requisitos legales y tecnicos.',
             'suppliers' => [
-                'Proceso de Selección',
-                'Proceso de Dispensación (reporte de faltantes)',
+                'Proceso de Seleccion',
+                'Proceso de Dispensacion (reporte de faltantes)',
                 'Proveedores aprobados',
             ],
             'inputs' => [
-                'Listado básico de medicamentos y dispositivos médicos',
-                'Solicitudes de reposición e informes de consumo',
+                'Listado basico de medicamentos y dispositivos medicos',
+                'Solicitudes de reposicion e informes de consumo',
                 'Cotizaciones y condiciones comerciales de proveedores',
             ],
             'procedures' => [
-                'Revisión de niveles de inventario y puntos de reposición',
-                'Solicitud y análisis de cotizaciones a proveedores',
-                'Emisión y seguimiento de órdenes de compra',
-                'Coordinación de condiciones de entrega y transporte',
+                'Revision de niveles de inventario y puntos de reposicion',
+                'Solicitud y analisis de cotizaciones a proveedores',
+                'Emision y seguimiento de ordenes de compra',
+                'Coordinacion de condiciones de entrega y transporte',
             ],
             'outputs' => [
-                'Órdenes de compra emitidas y documentadas',
-                'Productos adquiridos con soportes de facturación',
-                'Soportes de proceso contractual y selección de proveedor',
+                'ordenes de compra emitidas y documentadas',
+                'Productos adquiridos con soportes de facturacion',
+                'Soportes de proceso contractual y seleccion de proveedor',
             ],
             'clients' => [
-                'Recepción Técnica',
-                'Dirección técnica y gerencia',
+                'Recepcion Tecnica',
+                'Direccion tecnica y gerencia',
+            ],
+            'data'        => [
+                'version'   => '1.0',
+                'vigencia'  => '01-01-2025'
             ],
         ],
-//Recepción Técnica
+        //Recepcion Tecnica
         [
             'process_type_id' => 3,
-            'records' => ['Acta de Recepción técnica y administrativa'],
+            'records' => ['Acta de Recepcion tecnica y administrativa'],
             'code' => 'M-RT',
-            'name' => 'Recepción Técnica',
-            'description' => 'Verifica, al ingreso a la droguería, que los medicamentos y dispositivos médicos recibidos cumplan los requisitos administrativos, técnicos y de calidad.',
+            'name' => 'Recepcion Tecnica',
+            'slug' => 'recepcion-tecnica',
+            'description' => 'Verifica, al ingreso a la drogueria, que los medicamentos y dispositivos medicos recibidos cumplan los requisitos administrativos, tecnicos y de calidad.',
             'suppliers' => [
-                'Proceso de Adquisición',
-                'Proveedores de medicamentos y dispositivos médicos',
+                'Proceso de Adquisicion',
+                'Proveedores de medicamentos y dispositivos medicos',
             ],
             'inputs' => [
-                'Medicamentos y dispositivos médicos entregados por el proveedor',
+                'Medicamentos y dispositivos medicos entregados por el proveedor',
                 'Orden de compra y factura',
-                'Especificaciones técnicas, políticas de calidad y normatividad vigente',
+                'Especificaciones tecnicas, politicas de calidad y normatividad vigente',
             ],
             'procedures' => [
-                'Recepción administrativa (verificación de factura, cantidades, precios y referencias)',
-                'Recepción técnica (estado del empaque, rotulado, registro sanitario, fechas de vencimiento, cadena de frío)',
-                'Registro de resultados de la recepción y manejo de no conformidades (rechazos, devoluciones)',
-                'Archivo y custodia de documentos de recepción',
+                'Recepcion administrativa (verificacion de factura, cantidades, precios y referencias)',
+                'Recepcion tecnica (estado del empaque, rotulado, registro sanitario, fechas de vencimiento, cadena de frio)',
+                'Registro de resultados de la recepcion y manejo de no conformidades (rechazos, devoluciones)',
+                'Archivo y custodia de documentos de recepcion',
             ],
             'outputs' => [
                 'Productos recibidos y clasificados como aceptados o rechazados',
-                'Registros de recepción administrativa y técnica',
-                'Actas de devolución al proveedor cuando aplique',
+                'Registros de recepcion administrativa y tecnica',
+                'Actas de devolucion al proveedor cuando aplique',
             ],
             'clients' => [
                 'Almacenamiento',
-                'Dispensación',
+                'Dispensacion',
                 'Proveedores (en caso de devoluciones)',
             ],
+            'data'        => [
+                'version'   => '1.0',
+                'vigencia'  => '01-01-2025'
+            ],
         ],
-//Almacenamiento
+        //Almacenamiento
         [
             'process_type_id' => 3,
             'records' => [
                 'Registros de temperatura y humedad',
-                'Registros de limpieza y sanitización',
+                'Registros de limpieza y sanitizacion',
             ],
             'code' => 'M-AT',
             'name' => 'Almacenamiento',
-            'description' => 'Conserva los medicamentos y dispositivos médicos en condiciones adecuadas de temperatura, humedad, orden y seguridad hasta su entrega al usuario.',
+            'slug' => 'almacenamiento',
+            'description' => 'Conserva los medicamentos y dispositivos medicos en condiciones adecuadas de temperatura, humedad, orden y seguridad hasta su entrega al usuario.',
             'suppliers' => [
-                'Recepción Técnica',
+                'Recepcion Tecnica',
                 'Saneamiento y Mantenimiento',
             ],
             'inputs' => [
-                'Productos aceptados en recepción técnica',
-                'Políticas y procedimientos de almacenamiento',
-                'Plan de control de fechas de vencimiento y rotación',
+                'Productos aceptados en recepcion tecnica',
+                'Politicas y procedimientos de almacenamiento',
+                'Plan de control de fechas de vencimiento y rotacion',
             ],
             'procedures' => [
-                'Ubicación y organización de productos según forma farmacéutica y riesgo',
+                'Ubicacion y organizacion de productos segun forma farmaceutica y riesgo',
                 'Monitoreo y registro de condiciones ambientales (temperatura, humedad)',
-                'Aplicación de principios PEPS/FEFO y control de fechas de vencimiento',
-                'Limpieza y orden sistemático de estanterías y áreas de almacenamiento',
+                'Aplicacion de principios PEPS/FEFO y control de fechas de vencimiento',
+                'Limpieza y orden sistematico de estanterias y areas de almacenamiento',
             ],
             'outputs' => [
                 'Productos almacenados en condiciones que preservan su calidad',
                 'Registros de almacenamiento, control ambiental y vencimientos',
-                'Listados de productos próximos a vencer o en mal estado para gestión posterior',
+                'Listados de productos proximos a vencer o en mal estado para gestion posterior',
             ],
             'clients' => [
-                'Dispensación',
-                'Devoluciones y Disposición Final',
+                'Dispensacion',
+                'Devoluciones y Disposicion Final',
+            ],
+            'data'        => [
+                'version'   => '1.0',
+                'vigencia'  => '01-01-2025'
             ],
         ],
-//Dispensación
+        //Dispensacion
         [
             'process_type_id' => 3,
             'records' => [
-                'Registros de educación al usuario',
-                'Encuestas de satisfacción del usuario',
+                'Registros de educacion al usuario',
+                'Encuestas de satisfaccion del usuario',
                 'PQRS',
             ],
             'code' => 'M-DP',
-            'name' => 'Dispensación',
-            'description' => 'Entrega medicamentos y dispositivos médicos al usuario, asegurando el producto correcto, en la cantidad y forma adecuada, con la información necesaria para su uso seguro y efectivo.',
+            'name' => 'Dispensacion',
+            'slug' => 'dispensacion',
+            'description' => 'Entrega medicamentos y dispositivos medicos al usuario, asegurando el producto correcto, en la cantidad y forma adecuada, con la informacion necesaria para su uso seguro y efectivo.',
             'suppliers' => [
                 'Usuarios y prescriptores',
                 'Proceso de Almacenamiento',
             ],
             'inputs' => [
-                'Fórmulas médicas y solicitudes de usuarios',
+                'Formulas medicas y solicitudes de usuarios',
                 'Medicamentos y dispositivos almacenados',
-                'Procedimientos de dispensación e indicación farmacéutica',
+                'Procedimientos de dispensacion e indicacion farmaceutica',
             ],
             'procedures' => [
-                'Verificación de la prescripción y de la identidad del usuario',
-                'Selección y preparación del medicamento correcto desde almacenamiento',
-                'Entrega y explicación de uso, dosis, horarios, duración y advertencias',
-                'Registro de dispensaciones y gestión de PQRS relacionadas con el servicio',
+                'Verificacion de la prescripcion y de la identidad del usuario',
+                'Seleccion y preparacion del medicamento correcto desde almacenamiento',
+                'Entrega y explicacion de uso, dosis, horarios, duracion y advertencias',
+                'Registro de dispensaciones y gestion de PQRS relacionadas con el servicio',
             ],
             'outputs' => [
                 'Medicamentos y dispositivos dispensados correctamente',
                 'Usuarios informados sobre el uso adecuado de sus tratamientos',
-                'Registros de dispensación y atención a PQRS',
+                'Registros de dispensacion y atencion a PQRS',
             ],
             'clients' => [
                 'Usuarios y cuidadores',
-                'Procesos de Selección y Adquisición (retroalimentación de demanda y faltantes)',
+                'Procesos de Seleccion y Adquisicion (retroalimentacion de demanda y faltantes)',
+            ],
+            'data'        => [
+                'version'   => '1.0',
+                'vigencia'  => '01-01-2025'
             ],
         ],
-//Devoluciones y Disposición Final
+        //Devoluciones y Disposicion Final
         [
             'process_type_id' => 3,
             'records' => [
                 'Acta de devoluciones',
-                'Acta de disposición final',
+                'Acta de disposicion final',
             ],
             'code' => 'M-DV',
-            'name' => 'Devoluciones y Disposición Final',
-            'description' => 'Gestiona las devoluciones de medicamentos desde los usuarios o desde almacenamiento y asegura la disposición final segura de productos deteriorados, vencidos o no aptos para uso.',
+            'name' => 'Devoluciones y Disposicion Final',
+            'slug' => 'devoluciones-y-disposicion-final',
+            'description' => 'Gestiona las devoluciones de medicamentos desde los usuarios o desde almacenamiento y asegura la disposicion final segura de productos deteriorados, vencidos o no aptos para uso.',
             'suppliers' => [
                 'Proceso de Almacenamiento',
-                'Proceso de Dispensación',
+                'Proceso de Dispensacion',
                 'Usuarios y proveedores',
             ],
             'inputs' => [
                 'Medicamentos devueltos por usuarios o identificados como no aptos',
-                'Procedimientos de devolución y disposición final',
-                'Requisitos legales y ambientales para destrucción y manejo de residuos',
+                'Procedimientos de devolucion y disposicion final',
+                'Requisitos legales y ambientales para destruccion y manejo de residuos',
             ],
             'procedures' => [
-                'Recepción, registro y clasificación de medicamentos devueltos',
-                'Definición del destino: reintegro, cuarentena, devolución a proveedor o destrucción',
-                'Coordinación con gestores autorizados para disposición final de residuos',
-                'Elaboración de actas de devolución y actas de disposición final',
+                'Recepcion, registro y clasificacion de medicamentos devueltos',
+                'Definicion del destino: reintegro, cuarentena, devolucion a proveedor o destruccion',
+                'Coordinacion con gestores autorizados para disposicion final de residuos',
+                'Elaboracion de actas de devolucion y actas de disposicion final',
             ],
             'outputs' => [
                 'Medicamentos devueltos gestionados de forma segura y trazable',
-                'Actas y registros de devoluciones y disposición final',
-                'Reducción de riesgos sanitarios y ambientales asociados a residuos',
+                'Actas y registros de devoluciones y disposicion final',
+                'Reduccion de riesgos sanitarios y ambientales asociados a residuos',
             ],
             'clients' => [
                 'Proveedores',
                 'Autoridades ambientales y sanitarias',
                 'Comunidad y medio ambiente',
             ],
+            'data'        => [
+                'version'   => '1.0',
+                'vigencia'  => '01-01-2025'
+            ],
         ],
-//Gestión de Recursos
+        //Gestion de Recursos
         [
             'process_type_id' => 3,
-            'records' => ['Facturas, órdenes de servicio y contratos'],
+            'records' => ['Facturas, ordenes de servicio y contratos'],
             'code' => 'A-GR',
-            'name' => 'Gestión de Recursos',
-            'description' => 'Administra los recursos financieros, físicos y de servicios no farmacéuticos necesarios para el funcionamiento de la droguería.',
+            'name' => 'Gestion de Recursos',
+            'slug' => 'gestion-de-recursos',
+            'description' => 'Administra los recursos financieros, fisicos y de servicios no farmaceuticos necesarios para el funcionamiento de la drogueria.',
             'suppliers' => [
                 'Todos los procesos (requerimientos de recursos)',
-                'Proveedor de bienes y servicios no farmacéuticos',
+                'Proveedor de bienes y servicios no farmaceuticos',
             ],
             'inputs' => [
-                'Requerimientos de recursos e insumos no farmacéuticos',
+                'Requerimientos de recursos e insumos no farmaceuticos',
                 'Presupuesto disponible y proyecciones financieras',
                 'Cotizaciones de bienes y servicios de apoyo',
             ],
             'procedures' => [
-                'Análisis y priorización de requerimientos de recursos',
-                'Elaboración de presupuestos y programación de compras/contrataciones',
-                'Gestión de compras de insumos generales, servicios y mantenimiento',
+                'Analisis y priorizacion de requerimientos de recursos',
+                'Elaboracion de presupuestos y programacion de compras/contrataciones',
+                'Gestion de compras de insumos generales, servicios y mantenimiento',
                 'Registro y archivo de facturas, contratos y comprobantes',
             ],
             'outputs' => [
@@ -459,69 +520,83 @@ return [
                 'Todos los procesos',
                 'Propietario/gerencia',
             ],
+            'data'        => [
+                'version'   => '1.0',
+                'vigencia'  => '01-01-2025'
+            ],
         ],
-//Gestión de Calidad
+        //Gestion de Calidad
         [
             'process_type_id' => 3,
             'records' => [],
             'code' => 'A-GC',
-            'name' => 'Gestión de Calidad',
-            'description' => 'Diseña, documenta, implementa y mejora el sistema de gestión de calidad del servicio farmacéutico de la droguería.',
+            'name' => 'Gestion de Calidad',
+            'slug' => 'gestion-de-calidad',
+            'description' => 'Disena, documenta, implementa y mejora el sistema de gestion de calidad del servicio farmaceutico de la drogueria.',
             'suppliers' => [
-                'Dirección técnica',
+                'Direccion tecnica',
                 'Todos los procesos',
                 'Entes de control',
             ],
             'inputs' => [
-                'Procesos, procedimientos y productos del servicio farmacéutico',
-                'Requisitos normativos y de certificación',
-                'Resultados de auditorías, indicadores y PQRS',
+                'Procesos, procedimientos y productos del servicio farmaceutico',
+                'Requisitos normativos y de certificacion',
+                'Resultados de auditorias, indicadores y PQRS',
             ],
             'procedures' => [
-                'Elaboración y actualización de manuales, procesos y procedimientos',
+                'Elaboracion y actualizacion de manuales, procesos y procedimientos',
                 'Control de documentos y registros del sistema de calidad',
-                'Coordinación de actividades de auditoría y mejora continua',
+                'Coordinacion de actividades de auditoria y mejora continua',
             ],
             'outputs' => [
-                'Documentación del sistema de gestión de calidad actualizada y controlada',
-                'Registros de implementación y mejora de procesos',
+                'Documentacion del sistema de gestion de calidad actualizada y controlada',
+                'Registros de implementacion y mejora de procesos',
             ],
             'clients' => [
                 'Usuarios internos (todo el personal)',
-                'Procesos de Selección, Adquisición y demás procesos misionales',
+                'Procesos de Seleccion, Adquisicion y demas procesos misionales',
                 'Entes de control',
             ],
+            'data'        => [
+                'version'   => '1.0',
+                'vigencia'  => '01-01-2025'
+            ],
         ],
-//Gestión de Inventarios
+        //Gestion de Inventarios
         [
             'process_type_id' => 3,
             'records' => [],
             'code' => 'A-GI',
-            'name' => 'Gestión de Inventarios',
-            'description' => 'Controla las existencias, movimientos y trazabilidad de medicamentos y dispositivos médicos, garantizando información confiable para la toma de decisiones.',
+            'name' => 'Gestion de Inventarios',
+            'slug' => 'gestion-de-inventarios',
+            'description' => 'Controla las existencias, movimientos y trazabilidad de medicamentos y dispositivos medicos, garantizando informacion confiable para la toma de decisiones.',
             'suppliers' => [
-                'Procesos de Recepción Técnica, Almacenamiento y Dispensación',
+                'Procesos de Recepcion Tecnica, Almacenamiento y Dispensacion',
                 'Usuarios internos',
             ],
             'inputs' => [
                 'Registros de entradas, salidas y ajustes de inventario',
-                'Información de consumos, pérdidas, vencimientos y devoluciones',
-                'Parámetros de stock mínimo, máximo y puntos de reposición',
+                'Informacion de consumos, perdidas, vencimientos y devoluciones',
+                'Parametros de stock minimo, maximo y puntos de reposicion',
             ],
             'procedures' => [
-                'Registro sistemático de movimientos de inventario (entradas y salidas)',
-                'Realización de inventarios físicos y conciliaciones periódicas',
-                'Análisis de rotación, vencimientos, pérdidas y diferencias de inventario',
+                'Registro sistematico de movimientos de inventario (entradas y salidas)',
+                'Realizacion de inventarios fisicos y conciliaciones periodicas',
+                'Analisis de rotacion, vencimientos, perdidas y diferencias de inventario',
             ],
             'outputs' => [
-                'Información actualizada y confiable de existencias y lotes',
-                'Reportes de rotación, vencimientos y diferencias de inventario',
-                'Alertas para procesos de Selección y Adquisición',
+                'Informacion actualizada y confiable de existencias y lotes',
+                'Reportes de rotacion, vencimientos y diferencias de inventario',
+                'Alertas para procesos de Seleccion y Adquisicion',
             ],
             'clients' => [
-                'Selección y Adquisición',
-                'Almacenamiento y Dispensación',
-                'Dirección técnica y gerencia',
+                'Seleccion y Adquisicion',
+                'Almacenamiento y Dispensacion',
+                'Direccion tecnica y gerencia',
+            ],
+            'data'        => [
+                'version'   => '1.0',
+                'vigencia'  => '01-01-2025'
             ],
         ],
 

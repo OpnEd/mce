@@ -16,6 +16,7 @@ class Schedule extends Model
         'team_id',
         'user_id',
         'name',
+        'slug',
         'description',
         'objective',
         'starts_at',

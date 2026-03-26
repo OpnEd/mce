@@ -1,4 +1,9 @@
 # Documentación - MCE / Medicamentos de control especial
+á ├í
+é ├®
+í ├¡
+ó ├│
+ó ├ô
 
 ### Asignación de roles
 
@@ -204,3 +209,83 @@ Con esto, los enlaces operativos (como `document.details`) solo exponen document
 ### 5) Auditoría de cambios
 
 `DocumentObserver` sigue registrando cambios en `document_versions`. Se corrigió un detalle para evitar uso de variable no definida en `comment`.
+
+# Planes de mejora (ImprovementPlan)
+
+## Modelo y relaciones
+- Modelo: `app/Models/Quality/Records/Improvement/ImprovementPlan.php`
+- Relacionado con:
+  - `Team` (equipo)
+  - `ChecklistItemAnswer` (hallazgo que origina el plan)
+  - `Task` (tareas del plan)
+
+## Estados
+El estado del plan usa el enum `app/Enums/ImprovementPlanStatus.php`:
+- `pendiente`
+- `en_progreso_al_dia`
+- `en_progreso_con_retraso`
+- `en_verificacion`
+- `completado`
+- `cancelado`
+
+Labels y colores se definen en el enum.
+
+## Creacion automatica
+Cuando una respuesta de checklist no cumple (apply = true y meets = false), se crea automaticamente un plan de mejora si no existe:
+- Observer: `app/Observers/ChecklistItemAnswerObserver.php`
+- Servicio: `app/Services/Quality/Records/Improvement/ImprovementPlanService.php`
+- FK unica: `improvement_plans.checklist_item_answer_id` (1 a 1)
+
+## Regla de vencimiento
+Si el plan vence (`ends_at` < now), pasa a `en_progreso_con_retraso`.
+Se incluyen `pendiente` y `en_progreso_al_dia`.
+- Metodo: `ImprovementPlan::markOverdue()`
+- Comando: `quality:improvement-plans:mark-overdue`
+- Scheduler: `routes/console.php` (ejecucion cada hora)
+
+## Acciones en Filament
+Recurso: `app/Filament/Resources/Quality/Records/Improvement/ImprovementPlanResource.php`
+- Lista con columnas esenciales: plan, fecha limite, estado, tareas.
+- Filtros: proceso y estado.
+- Accion de descarga PDF desde tabla y vista.
+
+En respuestas de checklist:
+- Crear plan
+- Cerrar plan (completado)
+- Cancelar plan
+- Reabrir plan (vuelve a en_progreso_al_dia)
+
+## Descarga PDF
+- Controlador: `app/Http/Controllers/Quality/ImprovementPlanController.php`
+- Vista PDF: `resources/views/informes/plan-mejora-pdf.blade.php`
+- Ruta: `admin/{tenant}/planes-mejora/{plan}.pdf` (nombre: `improvement.plan.pdf`)
+
+# Matriz de riesgos (ISO 9001)
+
+## Modelo y campos principales
+Modelo: `app/Models/Quality/RiskAssessment/Risk.php`
+Campos clave:
+- Proceso (process_id), equipo (team_id), responsable (owner_id)
+- Riesgo: titulo, actividad, descripcion, causa, consecuencia
+- Clasificacion: tipo de riesgo, area de impacto, controles existentes
+- Evaluacion: probabilidad, impacto, nivel, score
+- Riesgo residual: probabilidad, impacto, nivel, score
+- Plan de tratamiento, estado, fecha de revision
+
+El modelo calcula automaticamente score y nivel al guardar.
+
+## Migracion
+`database/migrations/2026_03_25_223000_create_risks_table.php`
+
+## Recurso Filament
+`app/Filament/Resources/Quality/RiskAssessment/RiskResource.php`
+- Formularios por secciones (contexto, descripcion, evaluacion, residual, seguimiento)
+- Tabla con badges de nivel y filtros por proceso, nivel y estado
+- Pagina alterna "Matriz" (vista tabular): `RiskResource/Pages/RiskMatrix.php`
+- Vista Blade: `resources/views/filament/pages/risk-matrix.blade.php`
+
+## Descarga PDF de la matriz
+- Controlador: `app/Http/Controllers/Quality/RiskMatrixController.php`
+- Vista PDF: `resources/views/informes/matriz-riesgos-pdf.blade.php`
+- Ruta: `admin/{tenant}/matriz-riesgos.pdf` (nombre: `risk.matrix.pdf`)
+- Soporta filtro opcional por `process_id`

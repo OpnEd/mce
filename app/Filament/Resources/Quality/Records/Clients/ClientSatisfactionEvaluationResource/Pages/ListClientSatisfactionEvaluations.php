@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Quality\Records\Clients\ClientSatisfactionEvalu
 
 use App\Filament\Resources\Quality\Records\Clients\ClientSatisfactionEvaluationResource;
 use Filament\Actions;
+use Filament\Facades\Filament;
 use Filament\Resources\Pages\ListRecords;
 
 class ListClientSatisfactionEvaluations extends ListRecords
@@ -13,7 +14,12 @@ class ListClientSatisfactionEvaluations extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+                ->label('Registrar encuesta de satisfacción'),
+            Actions\CreateAction::make()
+                ->label('Generar QR')
+                ->url(fn (): string => route('public.satisfaction.qr', ['team' => Filament::getTenant()->id]))
+                ->openUrlInNewTab(),
         ];
     }
 }

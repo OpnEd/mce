@@ -36,7 +36,8 @@ class ManagementIndicatorTeamResource extends Resource
                 Select::make('management_indicator_id')
                     ->label(__('fields.management_indicator'))
                     ->required()
-                    ->relationship('managementIndicator', 'name'),
+                    ->relationship('managementIndicator', 'name')
+                    ->disabled(),
                 Select::make('role_id')
                     ->label('Responsable')
                     ->required()
@@ -87,9 +88,7 @@ class ManagementIndicatorTeamResource extends Resource
                 ])
             ], position: ActionsPosition::BeforeColumns)
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                //
             ]);
     }
 

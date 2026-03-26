@@ -30,6 +30,22 @@ enum PermissionType: string implements HasLabel
     case RESTORE_CHECKLIST_ITEM      = 'restore-checklist-item';
     case FORCE_DELETE_CHECKLIST_ITEM = 'force-delete-checklist-item';
 
+        // Cleaning Implements
+    case VIEW_CLEANING_IMPLEMENTS         = 'view-cleaning-implements';
+    case CREATE_CLEANING_IMPLEMENTS       = 'create-cleaning-implements';
+    case EDIT_CLEANING_IMPLEMENTS         = 'edit-cleaning-implements';
+    case DELETE_CLEANING_IMPLEMENTS       = 'delete-cleaning-implements';
+    case RESTORE_CLEANING_IMPLEMENTS      = 'restore-cleaning-implements';
+    case FORCE_DELETE_CLEANING_IMPLEMENTS = 'force-delete-cleaning-implements';
+
+        // Desinfectants
+    case VIEW_DESINFECTANTS         = 'view-desinfectants';
+    case CREATE_DESINFECTANTS       = 'create-desinfectants';
+    case EDIT_DESINFECTANTS         = 'edit-desinfectants';
+    case DELETE_DESINFECTANTS       = 'delete-desinfectants';
+    case RESTORE_DESINFECTANTS      = 'restore-desinfectants';
+    case FORCE_DELETE_DESINFECTANTS = 'force-delete-desinfectants';
+
         // Dispatch
     case VIEW_DISPATCH         = 'view-dispatch';
     case CREATE_DISPATCH       = 'create-dispatch';
@@ -258,6 +274,14 @@ enum PermissionType: string implements HasLabel
     case FORCE_DELETE_SALE_ITEM = 'force-delete-sale-item';
 
         // SanitaryRegistry
+    case VIEW_STABLISHMENT_AREAS         = 'view-stablishment-areas';
+    case CREATE_STABLISHMENT_AREAS       = 'create-stablishment-areas';
+    case EDIT_STABLISHMENT_AREAS         = 'edit-stablishment-areas';
+    case DELETE_STABLISHMENT_AREAS       = 'delete-stablishment-areas';
+    case RESTORE_STABLISHMENT_AREAS      = 'restore-stablishment-areas';
+    case FORCE_DELETE_STABLISHMENT_AREAS = 'force-delete-stablishment-areas';
+
+        // SanitaryRegistry
     case VIEW_SANITARY_REGISTRY         = 'view-sanitary-registry';
     case CREATE_SANITARY_REGISTRY       = 'create-sanitary-registry';
     case EDIT_SANITARY_REGISTRY         = 'edit-sanitary-registry';
@@ -330,6 +354,7 @@ enum PermissionType: string implements HasLabel
             self::DELETE_BATCH       => 'Eliminar Batches',
             self::RESTORE_BATCH      => 'Restarurar Batches',
             self::FORCE_DELETE_BATCH => 'Forzar la eliminación de Batches',
+
             // Checklist
             self::VIEW_CHECKLIST         => 'Ver Checklists',
             self::CREATE_CHECKLIST       => 'Crear Checklists',
@@ -345,6 +370,22 @@ enum PermissionType: string implements HasLabel
             self::DELETE_CHECKLIST_ITEM       => 'Eliminar Checklist Items',
             self::RESTORE_CHECKLIST_ITEM      => 'Restaurar Checklist Items',
             self::FORCE_DELETE_CHECKLIST_ITEM => 'Forzar la eliminación de Checklist Items',
+
+            // Cleaning Implements
+            self::VIEW_CLEANING_IMPLEMENTS         => 'Ver Implementos de Limpieza',
+            self::CREATE_CLEANING_IMPLEMENTS       => 'Crear Implementos de Limpieza',
+            self::EDIT_CLEANING_IMPLEMENTS         => 'Editar Implementos de Limpieza',
+            self::DELETE_CLEANING_IMPLEMENTS       => 'Eliminar Implementos de Limpieza',
+            self::RESTORE_CLEANING_IMPLEMENTS      => 'Restaurar Implementos de Limpieza',
+            self::FORCE_DELETE_CLEANING_IMPLEMENTS => 'Forzar la eliminación de Implementos de Limpieza',
+
+            // Desinfectants
+            self::VIEW_DESINFECTANTS         => 'Ver Desinfectantes',
+            self::CREATE_DESINFECTANTS       => 'Crear Desinfectantes',
+            self::EDIT_DESINFECTANTS         => 'Editar Desinfectantes',
+            self::DELETE_DESINFECTANTS       => 'Eliminar Desinfectantes',
+            self::RESTORE_DESINFECTANTS      => 'Restaurar Desinfectantes',
+            self::FORCE_DELETE_DESINFECTANTS => 'Forzar la eliminación de Desinfectantes',
 
             // Dispatch
             self::VIEW_DISPATCH         => 'Ver Despachos',
@@ -580,6 +621,14 @@ enum PermissionType: string implements HasLabel
             self::DELETE_SANITARY_REGISTRY       => 'Eliminar Registros Sanitarios',
             self::RESTORE_SANITARY_REGISTRY      => 'Restaurar Registros Sanitarios',
             self::FORCE_DELETE_SANITARY_REGISTRY => 'Forzar la eliminación de Registros Sanitarios',
+
+            // Stablishment Areas
+            self::VIEW_STABLISHMENT_AREAS         => 'Ver Áreas de Establecimiento',
+            self::CREATE_STABLISHMENT_AREAS       => 'Crear Áreas de Establecimiento',
+            self::EDIT_STABLISHMENT_AREAS         => 'Editar Áreas de Establecimiento',
+            self::DELETE_STABLISHMENT_AREAS       => 'Eliminar Áreas de Establecimiento',
+            self::RESTORE_STABLISHMENT_AREAS      => 'Restaurar Áreas de Establecimiento',
+            self::FORCE_DELETE_STABLISHMENT_AREAS => 'Forzar la eliminación de Áreas de Establecimiento',
 
             // Supplier
             self::VIEW_SUPPLIER         => 'Ver Proveedores',

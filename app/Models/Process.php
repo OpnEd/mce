@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Quality\ProcessTeam;
 use App\Models\Quality\QualityGoal;
+use App\Models\Quality\RiskAssessment\Risk;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -21,12 +22,14 @@ class Process extends Model
         'records',
         'code',
         'name',
+        'slug',
         'description',
         'suppliers',
         'inputs',
         'procedures',
         'outputs',
         'clients',
+        'data',
     ];
 
     protected $casts = [
@@ -36,6 +39,7 @@ class Process extends Model
         'procedures' => 'array',
         'outputs'    => 'array',
         'clients'    => 'array',
+        'data'       => 'array',
     ];
 
     public function checklists(): HasMany
@@ -58,7 +62,7 @@ class Process extends Model
         return $this->belongsToMany(Record::class);
     }
     
-    public function teams(): BelongsTo
+    public function team(): BelongsTo
     {
         return $this->belongsTo(Team::class);
     }
@@ -66,5 +70,10 @@ class Process extends Model
     public function qualityGoals(): HasMany
     {
         return $this->hasMany(QualityGoal::class);
+    }
+
+    public function risks(): HasMany
+    {
+        return $this->hasMany(Risk::class);
     }
 }

@@ -68,6 +68,7 @@ return function ($baseDate = null, array $context = []): array {
     return [
         'schedule' => [
             'name' => 'Cronograma de calibracion y mantenimiento de equipos',
+            'slug' => 'cronograma-de-calibracion-y-mantenimiento-de-equipos',
             'description' => 'Calibraciones y mantenimientos de equipos criticos durante un ano.',
             'objective' => 'Garantizar operacion confiable de equipos y cumplimiento sanitario.',
             'starts_at' => $yearStart->toDateTimeString(),

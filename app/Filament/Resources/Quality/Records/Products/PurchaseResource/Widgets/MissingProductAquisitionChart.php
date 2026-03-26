@@ -2,8 +2,10 @@
 
 namespace App\Filament\Resources\Quality\Records\Products\PurchaseResource\Widgets;
 
+use App\Services\IndicatorService;
 use App\Models\Quality\Records\Products\MissingProduct;
 use App\Services\Quality\Records\Products\MissingProductService;
+use App\Filament\Widgets\Concerns\HasIndicatorTooltip;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\DatePicker;
 use Flowframe\Trend\Trend;
@@ -13,6 +15,7 @@ use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
 class MissingProductAquisitionChart extends ApexChartWidget
 {
+    use HasIndicatorTooltip;
     /**
      * Chart Id
      *
@@ -25,7 +28,7 @@ class MissingProductAquisitionChart extends ApexChartWidget
      *
      * @var string|null
      */
-    protected static ?string $heading = 'Indicador de Adquisición';
+    protected static ?string $heading = 'Adquisición';
 
     /**
      * Chart options (series, labels, types, size, animations...)
@@ -35,11 +38,19 @@ class MissingProductAquisitionChart extends ApexChartWidget
      */
     protected function getOptions(): array
     {
-        $missingProductService = app(MissingProductService::class);
+        $teamId = Filament::getTenant()->id;
         
-        $goal = $missingProductService->calculateProgress();
+        // 1. Obtener configuración dinámica desde la BD (Meta definida en ManagementIndicatorTeam)
+        // Asegúrate de que el nombre coincida con el de la base de datos (populate config)
+        $indicatorName = 'Adquisición'; 
+        $indicatorConfig = app(IndicatorService::class)->getIndicatorConfig($teamId, $indicatorName);
+
+        // 2. Usar la meta de la BD, o fallback a 0 si no existe
+        $metaValue = $indicatorConfig ? (float) $indicatorConfig->pivot->indicator_goal : 0;
         
-        $metaValue = $goal['aquisitionGoal'];
+        // Opcional: Usar descripción de la BD para el tooltip o subtítulo si se desea
+        // $description = $indicatorConfig?->description;
+        
         
         $data = Trend::query(
             MissingProduct::query()
@@ -66,7 +77,7 @@ class MissingProductAquisitionChart extends ApexChartWidget
         return [
             'chart' => [
                 'type' => 'bar',
-                'height' => 300,
+                'height' => 200,
             ],
             'series' => [
                 [
@@ -121,6 +132,11 @@ class MissingProductAquisitionChart extends ApexChartWidget
                 ],
             ],
         ];
+    }
+
+    protected function extraJsOptions(): ?\Filament\Support\RawJs
+    {
+        return $this->indicatorTooltipExtraJsOptionsFromIndicatorName('Adquisición');
     }
 
     protected function getFormSchema(): array

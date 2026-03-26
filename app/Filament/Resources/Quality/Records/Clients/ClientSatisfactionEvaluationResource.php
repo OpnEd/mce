@@ -9,6 +9,7 @@ use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Enums\ActionsPosition;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -75,21 +76,21 @@ class ClientSatisfactionEvaluationResource extends Resource
                                 Forms\Components\TextInput::make('client_name')
                                     ->label('Nombre')
                                     ->maxLength(255)
-                                    ->hidden(fn (Get $get): bool => (bool) $get('is_anonymous')),
+                                    ->hidden(fn(Get $get): bool => (bool) $get('is_anonymous')),
                                 Forms\Components\TextInput::make('client_document')
                                     ->label('Documento')
                                     ->maxLength(100)
-                                    ->hidden(fn (Get $get): bool => (bool) $get('is_anonymous')),
+                                    ->hidden(fn(Get $get): bool => (bool) $get('is_anonymous')),
                                 Forms\Components\TextInput::make('client_phone')
                                     ->label('Telefono')
                                     ->tel()
                                     ->maxLength(50)
-                                    ->hidden(fn (Get $get): bool => (bool) $get('is_anonymous')),
+                                    ->hidden(fn(Get $get): bool => (bool) $get('is_anonymous')),
                                 Forms\Components\TextInput::make('client_email')
                                     ->label('Correo')
                                     ->email()
                                     ->maxLength(255)
-                                    ->hidden(fn (Get $get): bool => (bool) $get('is_anonymous')),
+                                    ->hidden(fn(Get $get): bool => (bool) $get('is_anonymous')),
                             ]),
                     ]),
 
@@ -153,11 +154,11 @@ class ClientSatisfactionEvaluationResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('channel')
                     ->label('Canal')
-                    ->formatStateUsing(fn (?string $state) => ClientSatisfactionEvaluation::getChannels()[$state] ?? $state)
+                    ->formatStateUsing(fn(?string $state) => ClientSatisfactionEvaluation::getChannels()[$state] ?? $state)
                     ->sortable(),
                 Tables\Columns\TextColumn::make('service_area')
                     ->label('Servicio')
-                    ->formatStateUsing(fn (?string $state) => ClientSatisfactionEvaluation::getServiceAreas()[$state] ?? $state)
+                    ->formatStateUsing(fn(?string $state) => ClientSatisfactionEvaluation::getServiceAreas()[$state] ?? $state)
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('overall_score')
                     ->label('General')
@@ -197,9 +198,11 @@ class ClientSatisfactionEvaluationResource extends Resource
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
-            ])
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ])
+            ], position: ActionsPosition::BeforeColumns)
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),

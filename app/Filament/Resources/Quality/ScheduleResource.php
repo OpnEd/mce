@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Quality;
 use App\Filament\Resources\Quality\ScheduleResource\Pages;
 use App\Filament\Resources\Quality\ScheduleResource\RelationManagers;
 use App\Models\Schedule;
+use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Form;
@@ -15,6 +16,10 @@ use Filament\Tables\Enums\ActionsPosition;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Forms\Set;
+use Illuminate\Support\Str;
+use Filament\Forms\Get;
+use Illuminate\Validation\Rules\Unique;
 
 class ScheduleResource extends Resource
 {
@@ -35,7 +40,27 @@ class ScheduleResource extends Resource
                         Forms\Components\TextInput::make('name')
                             ->label('Nombre')
                             ->required()
-                            ->maxLength(255),
+                            ->maxLength(255)
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(function (Get $get, Set $set, ?string $old, ?string $state) {
+                                if (($get('slug') ?? '') !== Str::slug($old)) {
+                                    return;
+                                }
+                                $set('slug', Str::slug($state));
+                            }),
+                        Forms\Components\TextInput::make('slug')
+                            ->label(__('Slug'))
+                            ->required()
+                            ->maxLength(255)
+                            ->unique(
+                                table: Schedule::class,
+                                column: 'slug',
+                                ignoreRecord: true,
+                                modifyRuleUsing: fn(Unique $rule): Unique => $rule->where(
+                                    'team_id',
+                                    Filament::getTenant()?->id
+                                )
+                            ),
                         Forms\Components\TextInput::make('objective')
                             ->label('Objetivo')
                             ->required(),

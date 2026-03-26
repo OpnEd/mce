@@ -4,11 +4,13 @@ namespace App\Filament\Resources\Quality\Records\Clients;
 
 use App\Filament\Resources\Quality\Records\Clients\ClientPqrsRecordResource\Pages;
 use App\Models\Quality\Records\Clients\ClientPqrsRecord;
+use Filament\Actions\Action;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Enums\ActionsPosition;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -116,21 +118,21 @@ class ClientPqrsRecordResource extends Resource
                                 Forms\Components\TextInput::make('client_name')
                                     ->label('Nombre')
                                     ->maxLength(255)
-                                    ->hidden(fn (Get $get): bool => (bool) $get('is_anonymous')),
+                                    ->hidden(fn(Get $get): bool => (bool) $get('is_anonymous')),
                                 Forms\Components\TextInput::make('client_document')
                                     ->label('Documento')
                                     ->maxLength(100)
-                                    ->hidden(fn (Get $get): bool => (bool) $get('is_anonymous')),
+                                    ->hidden(fn(Get $get): bool => (bool) $get('is_anonymous')),
                                 Forms\Components\TextInput::make('client_phone')
                                     ->label('Telefono')
                                     ->tel()
                                     ->maxLength(50)
-                                    ->hidden(fn (Get $get): bool => (bool) $get('is_anonymous')),
+                                    ->hidden(fn(Get $get): bool => (bool) $get('is_anonymous')),
                                 Forms\Components\TextInput::make('client_email')
                                     ->label('Correo')
                                     ->email()
                                     ->maxLength(255)
-                                    ->hidden(fn (Get $get): bool => (bool) $get('is_anonymous')),
+                                    ->hidden(fn(Get $get): bool => (bool) $get('is_anonymous')),
                             ]),
                     ]),
 
@@ -172,12 +174,12 @@ class ClientPqrsRecordResource extends Resource
                 Tables\Columns\TextColumn::make('type')
                     ->label('Tipo')
                     ->badge()
-                    ->formatStateUsing(fn (?string $state) => ClientPqrsRecord::getTypes()[$state] ?? $state),
+                    ->formatStateUsing(fn(?string $state) => ClientPqrsRecord::getTypes()[$state] ?? $state),
                 Tables\Columns\TextColumn::make('status')
                     ->label('Estado')
                     ->badge()
-                    ->formatStateUsing(fn (?string $state) => ClientPqrsRecord::getStatuses()[$state] ?? $state)
-                    ->color(fn (?string $state): string => match ($state) {
+                    ->formatStateUsing(fn(?string $state) => ClientPqrsRecord::getStatuses()[$state] ?? $state)
+                    ->color(fn(?string $state): string => match ($state) {
                         'recibido' => 'gray',
                         'en_analisis' => 'warning',
                         'respondido' => 'info',
@@ -187,8 +189,8 @@ class ClientPqrsRecordResource extends Resource
                 Tables\Columns\TextColumn::make('priority')
                     ->label('Prioridad')
                     ->badge()
-                    ->formatStateUsing(fn (?string $state) => ClientPqrsRecord::getPriorities()[$state] ?? $state)
-                    ->color(fn (?string $state): string => match ($state) {
+                    ->formatStateUsing(fn(?string $state) => ClientPqrsRecord::getPriorities()[$state] ?? $state)
+                    ->color(fn(?string $state): string => match ($state) {
                         'baja' => 'gray',
                         'media' => 'warning',
                         'alta' => 'danger',
@@ -205,7 +207,7 @@ class ClientPqrsRecordResource extends Resource
                 Tables\Columns\TextColumn::make('response_due_at')
                     ->label('Fecha limite')
                     ->dateTime()
-                    ->color(fn (ClientPqrsRecord $record) => $record->is_overdue ? 'danger' : null)
+                    ->color(fn(ClientPqrsRecord $record) => $record->is_overdue ? 'danger' : null)
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\IconColumn::make('is_overdue')
                     ->label('Vencida')
@@ -215,7 +217,7 @@ class ClientPqrsRecordResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('channel')
                     ->label('Canal')
-                    ->formatStateUsing(fn (?string $state) => ClientPqrsRecord::getChannels()[$state] ?? $state)
+                    ->formatStateUsing(fn(?string $state) => ClientPqrsRecord::getChannels()[$state] ?? $state)
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('tracking_code')
                     ->label('Codigo')
@@ -250,9 +252,11 @@ class ClientPqrsRecordResource extends Resource
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
-            ])
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ])
+            ], position: ActionsPosition::BeforeColumns)
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),

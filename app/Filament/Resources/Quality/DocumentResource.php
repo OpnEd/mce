@@ -32,9 +32,9 @@ class DocumentResource extends Resource
 
     protected static ?int $navigationSort = 15;
     protected static ?string $navigationGroup = 'Plataforma Estratégica';
-    protected static ?string $navigationLabel = 'Procesos y procedimientos';
-    protected static ?string $pluralModelLabel = 'Documentos';
-    protected static ?string $modelLabel = 'Documento';
+    protected static ?string $navigationLabel = 'Procedimientos';
+    protected static ?string $pluralModelLabel = 'Procedimientos';
+    protected static ?string $modelLabel = 'Procedimiento';
     protected static ?string $recordTitleAttribute = 'title';
     protected static ?string $slug = 'documentacion-sistema-de-gestion';
 

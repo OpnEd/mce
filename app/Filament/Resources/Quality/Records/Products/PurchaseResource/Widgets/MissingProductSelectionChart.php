@@ -2,8 +2,10 @@
 
 namespace App\Filament\Resources\Quality\Records\Products\PurchaseResource\Widgets;
 
+use App\Services\IndicatorService;
 use App\Models\Quality\Records\Products\MissingProduct;
 use App\Services\Quality\Records\Products\MissingProductService;
+use App\Filament\Widgets\Concerns\HasIndicatorTooltip;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\DatePicker;
 use Flowframe\Trend\Trend;
@@ -13,6 +15,7 @@ use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
 class MissingProductSelectionChart extends ApexChartWidget
 {
+    use HasIndicatorTooltip;
     /**
      * Chart Id
      *
@@ -25,7 +28,7 @@ class MissingProductSelectionChart extends ApexChartWidget
      *
      * @var string|null
      */
-    protected static ?string $heading = 'Indicador de Selección';
+    protected static ?string $heading = 'Selección';
 
     /**
      * Chart options (series, labels, types, size, animations...)
@@ -35,11 +38,15 @@ class MissingProductSelectionChart extends ApexChartWidget
      */
     protected function getOptions(): array
     {
-        $missingProductService = app(MissingProductService::class);
+        $teamId = Filament::getTenant()->id;
 
-        $goal = $missingProductService->calculateProgress();
+        // 1. Obtener configuración dinámica desde la BD
+        // El nombre debe coincidir con el creado en los seeders/populate
+        $indicatorName = 'Selección'; 
+        $indicatorConfig = app(IndicatorService::class)->getIndicatorConfig($teamId, $indicatorName);
         
-        $metaValue = $goal['selectionGoal'];
+        // 2. Usar la meta de la BD
+        $metaValue = $indicatorConfig ? (float) $indicatorConfig->pivot->indicator_goal : 0;
         
         $data = Trend::query(
             MissingProduct::query()
@@ -65,7 +72,7 @@ class MissingProductSelectionChart extends ApexChartWidget
         return [
             'chart' => [
                 'type' => 'bar',
-                'height' => 300,
+                'height' => 200,
             ],
             'series' => [
                 [
@@ -120,6 +127,11 @@ class MissingProductSelectionChart extends ApexChartWidget
                 ],
             ],
         ];
+    }
+
+    protected function extraJsOptions(): ?\Filament\Support\RawJs
+    {
+        return $this->indicatorTooltipExtraJsOptionsFromIndicatorName('Selección');
     }
 
     protected function getFormSchema(): array

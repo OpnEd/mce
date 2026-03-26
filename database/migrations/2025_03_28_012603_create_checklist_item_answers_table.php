@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\ChecklistItem;
+use App\Models\Quality\Records\Improvement\ChecklistItem as ImprovementChecklistItem;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
@@ -18,7 +19,7 @@ return new class extends Migration
             $table->id(); // Primary key
             $table->foreignIdFor(Team::class)->constrained()->onDelete('cascade');
             $table->foreignIdFor(User::class)->constrained()->onDelete('cascade');
-            $table->foreignIdFor(ChecklistItem::class)->constrained()->onDelete('cascade');
+            $table->foreignIdFor(ImprovementChecklistItem::class)->constrained()->onDelete('cascade');
             $table->boolean('meets')->default(true);
             $table->boolean('apply')->default(true);
             $table->json('evidence')->nullable();

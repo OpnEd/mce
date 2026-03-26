@@ -3,7 +3,11 @@
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\ManufacturerController;
 use App\Http\Controllers\Quality\DocumentController;
+use App\Http\Controllers\Quality\ClientPqrsController;
 use App\Http\Controllers\Quality\WasteGenerationReportController;
+use App\Http\Controllers\Quality\ClientSatisfactionController;
+use App\Http\Controllers\Quality\RiskMatrixController;
+use App\Http\Controllers\Quality\ImprovementPlanController;
 use App\Livewire\LandingPage;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
@@ -11,6 +15,10 @@ use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Whatsapp\WhatsAppWebhookController;
 use App\Http\Controllers\ResiduoReportController;
+use App\Models\Team;
+use App\Filament\CustomerPanel\Pages\ClientSatisfactionEvaluation as ClientSatisfactionEvaluationPage;
+use App\Filament\CustomerPanel\Pages\ClientPqrsRecord as ClientPqrsRecordPage;
+use App\Http\Controllers\Quality\ProcessCaracterizationController;
 
 Route::get('/generate-invoice-pdf/{id}', [InvoiceController::class, 'generatePdf'])->name('invoice.download');
 Route::get('/invoice/{id}/print', [InvoiceController::class, 'print'])->name('invoice.print');
@@ -73,6 +81,12 @@ Route::middleware([
 
     Route::get('admin/{tenant}/informes/residuos/{report:numero_informe}.pdf', [WasteGenerationReportController::class, 'downloadLastYear'])->name('informe.residuos');
 
+    Route::get('admin/{tenant}/processes/{process:slug}.pdf', [ProcessCaracterizationController::class, 'generateCharacterization'])->name('generate.characterization');
+
+    Route::get('admin/{tenant}/matriz-riesgos.pdf', [RiskMatrixController::class, 'download'])->name('risk.matrix.pdf');
+
+    Route::get('admin/{tenant}/planes-mejora/{plan}.pdf', [ImprovementPlanController::class, 'download'])->name('improvement.plan.pdf');
+
 });
 
 /* Route::get('/debug/lesson-template', function () {
@@ -88,6 +102,28 @@ Route::middleware([
 }); */
 
 Route::get('/', LandingPage::class);
+
+// Encuesta de satisfaccion por QR (publica)
+Route::get('/satisfaccion/{team}/qr', [ClientSatisfactionController::class, 'showQr'])
+    ->name('public.satisfaction.qr');
+
+// Acceso publico al formulario (redirige al panel CustomerPanel)
+Route::get('/satisfaccion/{team}', function (Team $team) {
+    return redirect()->to(
+        ClientSatisfactionEvaluationPage::getUrl(['team' => $team->id], true, 'customerPanel')
+    );
+})->name('public.satisfaction.form');
+
+// PQRS por QR (publica)
+Route::get('/pqrs/{team}/qr', [ClientPqrsController::class, 'showQr'])
+    ->name('public.pqrs.qr');
+
+// Acceso publico al formulario PQRS (redirige al panel CustomerPanel)
+Route::get('/pqrs/{team}', function (Team $team) {
+    return redirect()->to(
+        ClientPqrsRecordPage::getUrl(['team' => $team->id], true, 'customerPanel')
+    );
+})->name('public.pqrs.form');
 
 // Página que muestra "por favor verifica tu correo"
 Route::get('/email/verify', function () {

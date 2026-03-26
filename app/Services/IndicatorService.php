@@ -12,6 +12,26 @@ use Illuminate\Support\Collection;
 class IndicatorService
 {
     /**
+     * Recupera la configuración de un indicador específico para un equipo.
+     * Esto permite obtener la meta (indicator_goal), roles y periodicidad desde la BD.
+     */
+    public function getIndicatorConfig(int $teamId, string $indicatorName): ?ManagementIndicator
+    {
+        /** @var Team|null $team */
+        $team = Team::find($teamId);
+
+        if (! $team) {
+            return null;
+        }
+
+        return $team->managementIndicators()
+            ->where('name', $indicatorName)
+            ->with(['qualityGoal']) // Cargar relación con QualityGoal
+            ->withPivot(['indicator_goal', 'periodicity', 'role_id'])
+            ->first();
+    }
+
+    /**
      * Retorna una colección con 12 elementos:
      * [
      *   ['month' => 'Enero',   'percentage' => 72.34],
@@ -30,6 +50,7 @@ class IndicatorService
 
         // 2) Construye la query sobre la relación e inyecta el filtro de nombre
         $indicatorQuery = $team->managementIndicators()
+            ->with('qualityGoal')
             ->when(
                 $indicatorName,
                 fn($query) => $query->where('management_indicators.name', $indicatorName)
@@ -55,7 +76,7 @@ class IndicatorService
             $type = $indicator->type;
 
         // 4a) Extrae el QualityGoal (relación normal)
-        $qualityGoalName = $indicator->qualityGoal->name;
+        $qualityGoalName = $indicator->qualityGoal?->name ?? 'No definido';
 
         // 5) Contamos recepciones y órdenes
         $countRecepcion = ProductReception::where('team_id', $teamId)

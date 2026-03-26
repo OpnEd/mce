@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Schedule;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -13,8 +14,38 @@ class LinkResolver
      * @var array<string, string>
      */
     private const DOCUMENT_SLUG_ALIASES = [
-        'control-integral-de-plagas' => 'procedimiento-control-integral-plagas',
-        'plan-de-contingencia-para-el-suministro-de-agua-potable' => 'procedimiento-plan-contingencia-suministro-agua-potable',
+        'control-integral-de-plagas' => 'control-integral-plagas',
+        'plan-de-contingencia-para-el-suministro-de-agua-potable' => 'plan-contingencia-suministro-agua-potable',
+        'adquisicion-de-medicamentos-y-dispositivos-medicos' => 'adquisicion-de-medicamentos-y-dispositivos-medicos',
+        'almacenamiento-de-medicamentos-y-dispositivos-medicos' => 'almacenamiento-de-medicamentos-y-dispositivos-medicos',
+        'atencion-pqrs' => 'atencion-pqrs',
+        'auditoria-interna' => 'auditoria-interna',
+        'control-integral-plagas' => 'control-integral-plagas',
+        'delegacion-funciones-dt' => 'delegacion-funciones-dt',
+        'devolucion-de-medicamentos-y-dispositivos-medicos' => 'devolucion-de-medicamentos-y-dispositivos-medicos',
+        'dispensacion-de-medicamentos-y-dispositivos-medicos' => 'dispensacion-de-medicamentos-y-dispositivos-medicos',
+        'evaluacion-gestion-riesgos' => 'evaluacion-gestion-riesgos',
+        'gestion-de-devoluciones' => 'gestion-de-devoluciones',
+        'gestion-documental' => 'gestion-documental',
+        'induccion-capacitacion' => 'induccion-capacitacion',
+        'limpieza-sanitazacion-areas' => 'limpieza-sanitazacion-areas',
+        'manejo-productos-refrigerados' => 'manejo-productos-refrigerados',
+        'farmacovigilancia' => 'farmacovigilancia',
+        'medicion-satisfaccion-usuario' => 'medicion-satisfaccion-usuario',
+        'manual-de-funciones' => 'manual-de-funciones',
+        'manual-funciones-dt' => 'manual-funciones-dt',
+        'matriz-riesgos' => 'matriz-riesgos',
+        'mapa-de-procesos' => 'mapa-de-procesos',
+        'planeacion-estrategica' => 'planeacion-estrategica',
+    ];
+
+    private const CHARACTERIZATION_SLUG_ALIASES = [
+        'seleccion' => 'seleccion',
+        'adquisicion' => 'adquisicion',
+        'recepcion' => 'recepcion',
+        'almacenamiento' => 'almacenamiento',
+        'dispensacion' => 'dispensacion',
+        'devolucion' => 'devolucion',
     ];
 
     /**
@@ -60,6 +91,30 @@ class LinkResolver
                 continue;
             }
 
+            if ($linkKey === 'characterization.slug') {
+                $slug = self::normalizeProcessSlug(trim($linkValue));
+
+                if ($slug === '') {
+                    Log::warning('Missing slug for characterization.slug link', ['key' => $linkKey]);
+                    continue;
+                }
+
+                $resolved = $this->buildRouteLink(
+                    'generate.characterization',
+                    ['tenant' => $teamId, 'process' => $slug],
+                    $this->normalizeLinkLabel($label, 'Ver caracterización'),
+                    $linkKey,
+                    $linkValue,
+                    $teamId
+                );
+
+                if ($resolved !== null) {
+                    $out[] = $resolved;
+                }
+
+                continue;
+            }
+
             if ($linkKey === 'page.route' || $linkKey === 'record.route') {
                 $routeName = trim($linkValue);
 
@@ -73,6 +128,30 @@ class LinkResolver
                     $routeName,
                     ['tenant' => $teamId],
                     $this->normalizeLinkLabel($label, $defaultLabel),
+                    $linkKey,
+                    $linkValue,
+                    $teamId
+                );
+
+                if ($resolved !== null) {
+                    $out[] = $resolved;
+                }
+
+                continue;
+            }
+
+            if ($linkKey === 'matriz.riesgos') {
+                $routeName = trim($linkValue);
+
+                if ($routeName === '') {
+                    Log::warning('Missing route name for matriz.riesgos', ['key' => $linkKey]);
+                    continue;
+                }
+
+                $resolved = $this->buildRouteLink(
+                    $routeName,
+                    ['tenant' => $teamId],
+                    $this->normalizeLinkLabel($label, 'Ver matriz de riesgos'),
                     $linkKey,
                     $linkValue,
                     $teamId
@@ -198,6 +277,17 @@ class LinkResolver
         return self::DOCUMENT_SLUG_ALIASES[$slug] ?? $slug;
     }
 
+    public static function normalizeProcessSlug(string $slug): string
+    {
+        $slug = trim($slug);
+
+        if ($slug === '') {
+            return '';
+        }
+
+        return self::CHARACTERIZATION_SLUG_ALIASES[$slug] ?? $slug;
+    }
+
     private function normalizeLinkLabel(string $label, string $fallback): string
     {
         $normalized = Str::lower(trim($label));
@@ -210,26 +300,60 @@ class LinkResolver
     }
 
     private function buildScheduleLink(
-        string $search,
+        string $slug,
         string $label,
         string $linkKey,
         string $linkValue,
         int $teamId
     ): ?array {
-        $params = ['tenant' => $teamId];
+        $slug = trim($slug);
+
+        if ($slug === '') {
+            Log::warning('Missing slug for schedule.route link', [
+                'key' => $linkKey,
+                'team_id' => $teamId,
+            ]);
+
+            return null;
+        }
 
         try {
-            $url = route('filament.admin.resources.quality.schedules.index', $params);
+            $schedule = Schedule::query()
+                ->where('team_id', $teamId)
+                ->where('slug', $slug)
+                ->first();
 
-            if ($search !== '') {
-                $url .= '?' . http_build_query(['tableSearch' => $search]);
+            if ($schedule !== null) {
+                $params = [
+                    'tenant' => $teamId,
+                    'record' => $schedule->getKey(),
+                ];
+
+                $resolvedLabel = $label;
+                if (Str::lower(trim($label)) === 'ver cronograma') {
+                    $resolvedLabel .= ' ' . ($schedule->name ?? $slug);
+                }
+
+                return [
+                    'type' => 'route',
+                    'url' => route('filament.admin.resources.cronogramas.edit', $params),
+                    'label' => $resolvedLabel,
+                    'route' => 'filament.admin.resources.cronogramas.edit',
+                    'params' => $params,
+                    'raw' => ['key' => $linkKey, 'value' => $linkValue],
+                ];
             }
+
+            $params = ['tenant' => $teamId];
+            $url = route('filament.admin.resources.cronogramas.index', $params) .
+                '?' .
+                http_build_query(['tableSearch' => $slug]);
 
             return [
                 'type' => 'route',
                 'url' => $url,
                 'label' => $label,
-                'route' => 'filament.admin.resources.quality.schedules.index',
+                'route' => 'filament.admin.resources.cronogramas.index',
                 'params' => $params,
                 'raw' => ['key' => $linkKey, 'value' => $linkValue],
             ];
@@ -238,8 +362,8 @@ class LinkResolver
                 'error' => $e->getMessage(),
                 'key' => $linkKey,
                 'value' => $linkValue,
+                'slug' => $slug,
                 'team_id' => $teamId,
-                'params' => $params,
             ]);
         }
 

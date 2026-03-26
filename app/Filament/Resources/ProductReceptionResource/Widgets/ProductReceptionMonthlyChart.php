@@ -5,6 +5,7 @@ namespace App\Filament\Resources\ProductReceptionResource\Widgets;
 use App\Models\ProductReception;
 use App\Models\Purchase;
 use App\Services\IndicatorService;
+use App\Filament\Widgets\Concerns\HasIndicatorTooltip;
 use Filament\Facades\Filament;
 use Filament\Widgets\ChartWidget;
 use Filament\Forms\Components\DatePicker;
@@ -15,6 +16,7 @@ use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
 class ProductReceptionMonthlyChart extends ApexChartWidget
 {
+    use HasIndicatorTooltip;
     /**
      * Chart Id
      *
@@ -37,12 +39,7 @@ class ProductReceptionMonthlyChart extends ApexChartWidget
      */
     protected function getOptions(): array
     {
-        $recepcion = app(IndicatorService::class);
         $teamId = Filament::getTenant()->id;
-        $indicator = 'Recepción';
-        $indicador = $recepcion->getMonthlyCompliance($teamId, $indicator);
-
-        $metaValue = $indicador['goal'];
 
         $dataR = Trend::query(
             ProductReception::query()
@@ -78,7 +75,7 @@ class ProductReceptionMonthlyChart extends ApexChartWidget
         return [
             'chart' => [
                 'type' => 'bar',
-                'height' => 300,
+                'height' => 200,
             ],
             'series' => [
                 [
@@ -128,6 +125,11 @@ class ProductReceptionMonthlyChart extends ApexChartWidget
                 ],
             ],
         ];
+    }
+
+    protected function extraJsOptions(): ?\Filament\Support\RawJs
+    {
+        return $this->indicatorTooltipExtraJsOptionsFromIndicatorName('Recepción');
     }
 
     protected function getFormSchema(): array

@@ -45,8 +45,9 @@
     $rowEntryId = is_scalar($key) ? (string) $key : '';
     $rowSection = $rowEntryId !== '' ? Str::before($rowEntryId, '.') : '';
     $tenantFromRoute = request()->route('tenant');
-    $tenantId = Filament::getTenant()?->id
-        ?? (is_object($tenantFromRoute) && method_exists($tenantFromRoute, 'getKey')
+    $tenantId =
+        Filament::getTenant()?->id ??
+        (is_object($tenantFromRoute) && method_exists($tenantFromRoute, 'getKey')
             ? $tenantFromRoute->getKey()
             : $tenantFromRoute);
 
@@ -72,7 +73,11 @@
             if (is_scalar($linkValue['label'] ?? null) && trim((string) $linkValue['label']) !== '') {
                 $resolvedLabel = (string) $linkValue['label'];
             }
-        } elseif (is_array($linkValue) && array_key_exists('key', $linkValue) && array_key_exists('value', $linkValue)) {
+        } elseif (
+            is_array($linkValue) &&
+            array_key_exists('key', $linkValue) &&
+            array_key_exists('value', $linkValue)
+        ) {
             if (is_scalar($linkValue['key'])) {
                 $rawKey = (string) $linkValue['key'];
             }
@@ -103,6 +108,7 @@
 
     // Para ROUTE: arma enlaces clickeables segun key:
     // - document.slug
+    // - matriz.riesgos
     // - page.route
     // - record.route
     // - schedule.route
@@ -130,6 +136,11 @@
                             'document' => $slug,
                         ]);
                         $routeTargetName = $slug;
+                    } elseif ($routeKey === 'matriz.riesgos' && $routeValue !== '') {
+                        if ($routeUrl === null) {
+                            $routeUrl = route($routeValue, ['tenant' => $tenantId]);
+                        }
+                        $routeTargetName = 'matriz de riesgos';
                     } elseif ($routeKey === 'page.route' && $routeValue !== '') {
                         if ($routeUrl === null) {
                             $routeUrl = route($routeValue, ['tenant' => $tenantId]);
@@ -138,12 +149,18 @@
                         if ($routeUrl === null) {
                             $routeUrl = route($routeValue, ['tenant' => $tenantId]);
                         }
-                    } elseif ($routeKey === 'schedule.route') {
+                    } elseif ($routeKey === 'schedule.route' && $routeValue !== '') {
                         if ($routeUrl === null) {
-                            $routeUrl = route('filament.admin.resources.quality.schedules.index', ['tenant' => $tenantId]);
-                            if ($routeValue !== '') {
-                                $routeUrl .= '?' . http_build_query(['tableSearch' => $routeValue]);
-                            }
+                            $routeUrl =
+                                route('filament.admin.resources.cronogramas.index', [
+                                    'tenant' => $tenantId,
+                                ]) .
+                                '?' .
+                                http_build_query(['tableSearch' => $routeValue]);
+                        }
+
+                        if ($routeTargetName === '') {
+                            $routeTargetName = $routeValue;
                         }
                     } elseif (Str::startsWith($routeKey, 'document.') && $routeKey !== 'document.slug') {
                         $slug = LinkResolver::normalizeDocumentSlug(Str::after($routeKey, 'document.'));
@@ -157,6 +174,24 @@
                                 ]);
                             }
                         }
+                    } elseif (Str::startsWith($routeKey, 'characterization.')) {
+                        if ($routeKey === 'characterization.slug') {
+                            $slug = LinkResolver::normalizeProcessSlug($routeValue);
+                            $routeName = 'generate.characterization';
+                        } else {
+                            $slug = LinkResolver::normalizeProcessSlug(Str::after($routeKey, 'characterization.'));
+                            $routeName = $routeValue !== '' ? $routeValue : 'generate.characterization';
+                        }
+
+                        $routeTargetName = $slug;
+                        if ($slug !== '') {
+                            if ($routeUrl === null) {
+                                $routeUrl = route($routeName, [
+                                    'tenant' => $tenantId,
+                                    'process' => $slug,
+                                ]);
+                            }
+                        }
                     }
                 } catch (\Throwable $e) {
                     $routeUrl = null;
@@ -165,14 +200,21 @@
 
             if ($isGenericRouteLabel) {
                 $routeBaseLabel = 'Ver';
-                if ($routeKey === 'document.slug' || (Str::startsWith($routeKey, 'document.') && $routeKey !== 'document.slug')) {
+                if (
+                    $routeKey === 'document.slug' ||
+                    (Str::startsWith($routeKey, 'document.') && $routeKey !== 'document.slug')
+                ) {
                     $routeBaseLabel = 'Ver documento';
                     if ($routeTargetName === '' && $routeValue !== '') {
                         $routeTargetName = $routeValue;
                     }
+                } elseif ($routeKey === 'matriz.riesgos') {
+                    $routeBaseLabel = 'Ver matriz de riesgos';
                 } elseif ($routeKey === 'schedule.route') {
                     $routeBaseLabel = 'Ver cronograma';
-                    $routeTargetName = $routeValue;
+                    if ($routeTargetName === '' && $routeValue !== '') {
+                        $routeTargetName = $routeValue;
+                    }
                 } elseif ($routeKey === 'record.route') {
                     $routeBaseLabel = 'Ver registro';
                     $routeTargetName = $routeValue;
@@ -181,14 +223,12 @@
                     $routeTargetName = $routeValue;
                 }
 
-                $routeLabel = $routeTargetName !== ''
-                    ? $routeBaseLabel . ' ' . $routeTargetName
-                    : $routeBaseLabel;
+                $routeLabel = $routeTargetName !== '' ? $routeBaseLabel . ' ' . $routeTargetName : $routeBaseLabel;
             }
 
             if ($routeTargetName !== '') {
                 $routeTooltipName = $routeTargetName;
-            } elseif ($routeValue !== '' && ! Str::contains($routeValue, '.')) {
+            } elseif ($routeValue !== '' && !Str::contains($routeValue, '.')) {
                 $routeTooltipName = $routeValue;
             }
 
@@ -223,12 +263,13 @@
                 $fieldKey = Str::after($folderKey, '.');
             }
 
-            $folderMessages[] = 'Este documento se encuentra en la carpeta fisica, en la seccion '
-                . $section
-                . ', bajo la '
-                . $fieldKey
-                . ' numero '
-                . ($folderValue !== '' ? $folderValue : 'N/D');
+            $folderMessages[] =
+                'Este documento se encuentra en la carpeta fisica, en la seccion ' .
+                $section .
+                ', bajo la ' .
+                $fieldKey .
+                ' numero ' .
+                ($folderValue !== '' ? $folderValue : 'N/D');
         }
     }
 
@@ -243,7 +284,7 @@
                 $uploadLinks[] = $answerPath;
             } elseif (Str::startsWith($answerPath, '/')) {
                 $uploadLinks[] = $answerPath;
-            } elseif (! empty($normalizedLinks)) {
+            } elseif (!empty($normalizedLinks)) {
                 foreach ($normalizedLinks as $link) {
                     $uploadUrl = null;
                     $uploadKey = strtolower(trim($link['key']));
@@ -261,7 +302,7 @@
                         $uploadUrl = null;
                     }
 
-                    if ($uploadUrl !== null && ! in_array($uploadUrl, $uploadLinks, true)) {
+                    if ($uploadUrl !== null && !in_array($uploadUrl, $uploadLinks, true)) {
                         $uploadLinks[] = $uploadUrl;
                     }
                 }
@@ -275,7 +316,7 @@
     $criticalityColors = [
         'critico' => 'danger',
         'Critico' => 'danger',
-        'CrÃ­tico' => 'danger',
+        'CrÃƒÂ­tico' => 'danger',
         'Mayor' => 'warning',
         'menor' => 'info',
     ];
@@ -299,7 +340,7 @@
         @if ($type === EntryType::TEXT)
             <span class="text-sm">{{ $value !== '' && $value !== null ? $value : '-' }}</span>
         @elseif ($type === EntryType::FOLDER)
-            @if (! empty($folderMessages))
+            @if (!empty($folderMessages))
                 <div class="space-y-1 text-sm">
                     @foreach ($folderMessages as $folderMessage)
                         <p class="text-sm">{{ $folderMessage }}</p>
@@ -309,13 +350,16 @@
                 <span class="text-gray-500">Sin referencia de carpeta</span>
             @endif
         @elseif ($type === EntryType::UPLOAD)
-            @if (! empty($uploadLinks))
+            @if (!empty($uploadLinks))
                 <div class="space-y-1 text-sm">
                     @foreach ($uploadLinks as $uploadUrl)
                         @php
-                            $uploadName = urldecode(pathinfo(parse_url($uploadUrl, PHP_URL_PATH) ?? '', PATHINFO_BASENAME));
+                            $uploadName = urldecode(
+                                pathinfo(parse_url($uploadUrl, PHP_URL_PATH) ?? '', PATHINFO_BASENAME),
+                            );
                         @endphp
-                        <a href="{{ $uploadUrl }}" target="_blank" class="underline block" @if ($uploadName !== '') title="{{ $uploadName }}" @endif>
+                        <a href="{{ $uploadUrl }}" target="_blank" class="underline block"
+                            @if ($uploadName !== '') title="{{ $uploadName }}" @endif>
                             Ver documento{{ $uploadName !== '' ? ' ' . $uploadName : '' }}
                         </a>
                     @endforeach
@@ -324,10 +368,11 @@
                 <span class="text-gray-500">Sin archivo</span>
             @endif
         @elseif ($type === EntryType::ROUTE)
-            @if (! empty($routeLinks))
+            @if (!empty($routeLinks))
                 <div class="space-y-1 text-sm">
                     @foreach ($routeLinks as $link)
-                        <a href="{{ $link['url'] }}" target="_blank" class="underline block" @if (($link['tooltip'] ?? '') !== '') title="{{ $link['tooltip'] }}" @endif>
+                        <a href="{{ $link['url'] }}" target="_blank" class="underline block"
+                            @if (($link['tooltip'] ?? '') !== '') title="{{ $link['tooltip'] }}" @endif>
                             {{ $link['label'] }}
                         </a>
                     @endforeach

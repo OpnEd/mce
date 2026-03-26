@@ -10,6 +10,24 @@ class MinutesIvcSectionEntry extends Model
 {
     use SoftDeletes;
     
+    protected $fillable = [
+        'team_id',
+        'minutes_ivc_section_id',
+        'apply', 
+        'entry_id',
+        'criticality', //Critical, Major, Minor
+        'question',
+        'answer',
+        'entry_type',//informativo, evidencia
+        'links',
+        'compliance',
+    ];
+
+    protected $casts = [
+        'links' => 'array',
+        'compliance' => 'boolean',
+    ];
+    
     public const TEXT = 'text';
     public const UPLOAD = 'upload';
     public const ROUTE = 'route';
@@ -84,24 +102,6 @@ class MinutesIvcSectionEntry extends Model
     {
         return self::normalizeLinksForFormState($state);
     }
-    
-    protected $fillable = [
-        'team_id',
-        'minutes_ivc_section_id',
-        'apply', 
-        'entry_id',
-        'criticality', //Critical, Major, Minor
-        'question',
-        'answer',
-        'entry_type',//informativo, evidencia
-        'links',
-        'compliance',
-    ];
-
-    protected $casts = [
-        'links' => 'array',
-        'compliance' => 'boolean',
-    ];
 
     public function setEntryTypeAttribute(mixed $value): void
     {

@@ -6,8 +6,10 @@ use App\Filament\Resources\EnvironmentalRecordResource;
 use App\Mail\MedicationInfoMail;
 use Filament\Actions;
 use Filament\Actions\Action;
+use Filament\Actions\CreateAction as PageCreateAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Tables\Actions\CreateAction as TableCreateAction;
 use Illuminate\Support\Facades\Mail;
 
 class ListEnvironmentalRecords extends ListRecords
@@ -17,7 +19,17 @@ class ListEnvironmentalRecords extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+                ->label('Registrar temperatura y humedad')
+                ->icon('phosphor-thermometer-hot')
+                ->modalHeading('Registrar temperatura y humedad')
+                ->modalWidth('md')
+                ->createAnother(false)
+                ->mutateFormDataUsing(function (array $data): array {
+                    $data['user_id'] = auth()->id();
+
+                    return $data;
+                }),
             /* Action::make('Enviar correo de prueba')
                 ->icon('heroicon-o-paper-airplane')
                 ->action(function () {
@@ -30,11 +42,13 @@ class ListEnvironmentalRecords extends ListRecords
         ];
     }
 
-    protected function getHeaderWidgets(): array
+    protected function configureCreateAction(PageCreateAction | TableCreateAction $action): void
     {
-        return [
-            \App\Filament\Resources\EnvironmentalRecordResource\Widgets\TempChart::class,
-            \App\Filament\Resources\EnvironmentalRecordResource\Widgets\HumChart::class,
-        ];
+        parent::configureCreateAction($action);
+
+        // Evita el redirect a la página de creación y fuerza el modal.
+        if ($action instanceof PageCreateAction) {
+            $action->url(null);
+        }
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\EnvironmentalRecordResource\Widgets;
 
 use App\Models\EnvironmentalRecord;
+use App\Filament\Widgets\Concerns\HasIndicatorTooltip;
 use Filament\Forms\Components\DatePicker;
 use Flowframe\Trend\Trend;
 use Illuminate\Support\Carbon;
@@ -11,6 +12,7 @@ use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
 class HumChart extends ApexChartWidget
 {
+    //use HasIndicatorTooltip;
     /**
      * Chart Id
      *
@@ -44,7 +46,7 @@ class HumChart extends ApexChartWidget
         return [
             'chart' => [
                 'type' => 'line',
-                'height' => 300,
+                'height' => 200,
             ],
             'series' => [
                 [
@@ -73,6 +75,11 @@ class HumChart extends ApexChartWidget
             ],
         ];
     }
+
+    /* protected function extraJsOptions(): ?\Filament\Support\RawJs
+    {
+        return $this->indicatorTooltipExtraJsOptionsFromIndicatorName('Almacenamiento - VAMT');
+    } */
 
     protected function getFormSchema(): array
     {

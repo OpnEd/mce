@@ -5,6 +5,7 @@ return [
     App\Providers\AuthServiceProvider::class,
     App\Providers\EventServiceProvider::class,
     App\Providers\Filament\AdminPanelProvider::class,
+    App\Providers\Filament\CustomerPanelPanelProvider::class,
     App\Providers\Filament\PosPanelProvider::class,
     App\Providers\Filament\TenantManagerPanelProvider::class,
     App\Providers\TrainingServiceProvider::class,

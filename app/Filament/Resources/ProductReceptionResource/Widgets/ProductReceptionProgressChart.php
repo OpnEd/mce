@@ -2,13 +2,16 @@
 
 namespace App\Filament\Resources\ProductReceptionResource\Widgets;
 
-use App\Services\IndicatorService;
+use App\Models\ProductReception;
+use App\Models\Purchase;
+use App\Filament\Widgets\Concerns\HasIndicatorTooltip;
 use Filament\Facades\Filament;
 use Filament\Widgets\ChartWidget;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
 class ProductReceptionProgressChart extends ApexChartWidget
 {
+    use HasIndicatorTooltip;
     /**
      * Chart Id
      *
@@ -32,15 +35,13 @@ class ProductReceptionProgressChart extends ApexChartWidget
 
     protected function getOptions(): array
     {
-        $recepcion = app(IndicatorService::class);
         $teamId = Filament::getTenant()->id;
-        $progress = $recepcion->getMonthlyCompliance($teamId);
+        $progressData = $this->calculateMonthlyProgress($teamId);
 
-        $progressData = $progress['progress'];
         return [
             'chart' => [
                 'type' => 'radialBar',
-                'height' => 300,
+                'height' => 200,
             ],
             'series' => [$progressData],
             'plotOptions' => [
@@ -70,5 +71,28 @@ class ProductReceptionProgressChart extends ApexChartWidget
             'labels' => ['Progreso mes presente'],
             'colors' => ['#f59e0b'],
         ];
+    }
+
+    protected function extraJsOptions(): ?\Filament\Support\RawJs
+    {
+        return $this->indicatorTooltipExtraJsOptionsFromIndicatorName('Recepción');
+    }
+
+    protected function calculateMonthlyProgress(int $teamId): int
+    {
+        $startDate = now()->startOfMonth();
+        $endDate = now()->endOfMonth();
+
+        $countRecepcion = ProductReception::where('team_id', $teamId)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->count();
+
+        $countOrden = Purchase::where('team_id', $teamId)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->count();
+
+        return $countOrden > 0
+            ? intval(($countRecepcion / $countOrden) * 100)
+            : 0;
     }
 }

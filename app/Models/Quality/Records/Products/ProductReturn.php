@@ -64,6 +64,7 @@ class ProductReturn extends Model
     {
         return [
             'vencimiento' => 'Vencimiento',
+            'deterioro_almacenamiento' => 'Deterioro durante almacenamiento',
             'defecto_calidad' => 'Defecto de calidad',
             'error_despacho' => 'Error de despacho',
             'retiro_sanitario' => 'Retiro sanitario',
