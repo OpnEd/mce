@@ -2,8 +2,11 @@
 
 namespace App\Policies;
 
+use App\Helpers\CanCreateHelper;
+use App\Helpers\CanUpdateHelper;
 use App\Models\Quality\Training\Module;
 use App\Models\User;
+use Filament\Facades\Filament;
 use Illuminate\Auth\Access\Response;
 
 class ModulePolicy
@@ -13,7 +16,8 @@ class ModulePolicy
      */
     public function viewAny(User $user): bool
     {
-        return true;
+        // Si el usuario está dentro de un Tenant, puede ver la lista
+        return Filament::getTenant() !== null;
     }
 
     /**
@@ -21,7 +25,16 @@ class ModulePolicy
      */
     public function view(User $user, Module $module): bool
     {
-        return true;
+        $course = $module->course;
+
+        // Aplicamos la misma lógica del curso:
+        // Si el curso padre es global, puede ver el módulo.
+        if ($course->team_id === null) {
+            return true;
+        }
+
+        // Si el curso es propio, solo si el team_id coincide.
+        return $course->team_id === Filament::getTenant()->id;
     }
 
     /**
@@ -29,7 +42,8 @@ class ModulePolicy
      */
     public function create(User $user): bool
     {
-        return true;
+        // Only admins and instructors can create modules
+        return CanCreateHelper::canCreate($user, 'create-modules') && ($user->isAdmin() || $user->isInstructor());
     }
 
     /**
@@ -37,7 +51,8 @@ class ModulePolicy
      */
     public function update(User $user, Module $module): bool
     {
-        return true;
+        // Instructors can only update modules in their own courses
+        return CanUpdateHelper::canUpdate($user, $module, 'edit-modules') && $user->id === $module->course->instructor_id;
     }
 
     /**
@@ -45,7 +60,8 @@ class ModulePolicy
      */
     public function delete(User $user, Module $module): bool
     {
-        return true;
+        // Instructors cannot delete modules (they can only rearrange them)
+        return false;
     }
 
     /**

@@ -208,4 +208,3 @@ class ImprovementPlanResource extends Resource
             ]);
     }
 }
-

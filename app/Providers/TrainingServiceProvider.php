@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Repositories\CourseRepository;
 use App\Repositories\Interfaces\CourseInterface;
+use App\Services\Quality\EnrollmentLessonService;
 use App\Services\Quality\TrainingService;
 use Illuminate\Support\ServiceProvider;
 
@@ -34,7 +35,8 @@ class TrainingServiceProvider extends ServiceProvider
 
         $this->app->singleton(TrainingService::class, function ($app) {
             return new TrainingService(
-                $app->make(CourseInterface::class)
+                $app->make(CourseInterface::class),
+                $app->make(EnrollmentLessonService::class)
             );
         });
     }

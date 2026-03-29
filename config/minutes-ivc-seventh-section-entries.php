@@ -121,11 +121,11 @@ return [
         'criticality' => 'menor',
         'question' => 'Los proveedores están autorizados por la autoridad sanitaria para comercializar, fabricar o importar productos. Se cuenta con copia de la autorización, con fecha de visita inferior a un año, cuyo concepto no sea desfavorable',
         'answer' => 'Sí',
-        'entry_type' => EntryType::UPLOAD,
+        'entry_type' => EntryType::FOLDER,
         'links' => [
             [
-                'key' => 'path',
-                'value' => 'public'
+                'key' => 'etiqueta',
+                'value' => '7.8'
             ]
         ],
         'compliance' => true,
@@ -211,7 +211,7 @@ return [
         'criticality' => 'Crítico',
         'question' => '¿Los sitios donde se almacenan medicamentos cuentan con condiciones que garanticen la temperatura y humedad relativa recomendadas por el fabricante?',
         'answer' => '',
-        'entry_type' => EntryType::TEXT,
+        'entry_type' => EntryType::ROUTE,
         'links' => [
             [
                 'key' => 'record.route',
@@ -359,7 +359,7 @@ return [
         'links' => [
             [
                 'key' => 'record.route',
-                'value' => 'filament.admin.resources.indicadores-de-gestion.create'
+                'value' => 'filament.admin.resources.devoluciones-proveedor.index'
             ]
         ],
         'compliance' => true,

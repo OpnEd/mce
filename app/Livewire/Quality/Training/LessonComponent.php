@@ -2,12 +2,18 @@
 
 namespace App\Livewire\Quality\Training;
 
+use App\Filament\Resources\Quality\Training\EnrollmentResource;
+use App\Helpers\Training\BreadcrumbHelper;
+use App\Models\Quality\Training\Assessment;
 use App\Models\Quality\Training\AssessmentAttempt;
+use App\Models\Quality\Training\Enrollment;
+use App\Models\Quality\Training\EnrollmentLesson;
 use App\Models\Quality\Training\Lesson;
-use App\Models\Quality\Training\Module;
+use App\Services\Quality\AssessmentService;
+use App\Services\Quality\EnrollmentLessonService;
 use Filament\Facades\Filament;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+use Filament\Notifications\Notification;
+use Illuminate\Support\Collection;
 use Livewire\Component;
 
 class LessonComponent extends Component
@@ -24,178 +30,247 @@ class LessonComponent extends Component
     public $teamId;
     public $record;
     public $content = [];
+    public Enrollment $enrollment;
+    public Lesson $lesson;
     public $hasPreviousLesson;
     public $hasNextLesson;
     public $totalLessons;
+    public $currentLessonPosition;
     public array $lessonStatus = [];
-    /** @var Lesson */
+    
+    // FASE 2: Propiedades nuevas
+    public ?Assessment $assessment = null;
+    public ?int $remainingAttempts = null;
+    public bool $lessonConsumed = false;
+    public array $breadcrumbs = [];
+    public ?AssessmentAttempt $latestAttempt = null;
+    public bool $showAssessment = false;
 
-    /** @var \Illuminate\Database\Eloquent\Collection */
-    public $modules;
-
-    /**
-     * Recibe el parámetro lessonId al montar el componente.
-     */
-    public function mount(Lesson $record)
+    public function mount(Enrollment $enrollment, Lesson $lesson): void
     {
-        //dd($record);
-        $this->record = $record->load(['module.course', 'assessment']);
+        $this->enrollment = $enrollment->loadMissing('course.modules.lessons');
+        $this->lesson = $lesson->load(['module.course', 'assessment']);
+
+        abort_unless($this->lesson->module->course_id === $this->enrollment->course_id, 404);
+
+        $this->record = $this->lesson;
         $this->teamId = Filament::getTenant()->id;
-
-        $module = Module::withCount('lessons')->find($this->record->module_id);
-        $this->totalLessons = $module->lessons_count;
-
         $this->updateNavigationState();
+
+        $service = app(EnrollmentLessonService::class);
+        $service->touchAccess($service->getOrCreate($this->enrollment, $this->lesson));
+
         $this->loadLessonStatus();
+        
+        // FASE 2: Cargar datos de evaluación
+        $this->loadAssessmentData();
+        
+        // FASE 2: Cargar breadcrumbs
+        $this->breadcrumbs = BreadcrumbHelper::getTrainingBreadcrumbs(
+            $this->enrollment,
+            $this->lesson->module,
+            $this->lesson
+        );
     }
 
     public function render()
     {
         return view('livewire.quality.training.lesson-component');
     }
-    /**
-     * Detecta el tipo de video y devuelve un arreglo con la info necesaria.
-     * Retorna null si no hay video.
-     *
-     * @return array|null
-     */
-    /* public function getVideoTypeProperty()
+
+    public function previous(): void
     {
-        $url = $this->record->video_url;
-        if (! $url) {
-            return null;
-        }
-
-        // YouTube short link y query param
-        if (
-            preg_match('/youtu\.be\/([^\?&\/]+)/i', $url, $m) ||
-            preg_match('/youtube\.com.*v=([^&\/]+)/i', $url, $m)
-        ) {
-            $id = $m[1];
-            return [
-                'type' => 'youtube',
-                'embed' => "https://www.youtube.com/embed/{$id}"
-            ];
-        }
-
-        // Vimeo (simple)
-        if (preg_match('/vimeo\.com\/(\d+)/', $url, $m)) {
-            $id = $m[1];
-            return [
-                'type' => 'vimeo',
-                'embed' => "https://player.vimeo.com/video/{$id}"
-            ];
-        }
-
-        // Si es un archivo de video directo (mp4, webm, ogg, mov)
-        $path = parse_url($url, PHP_URL_PATH) ?? '';
-        $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-        if (in_array($ext, ['mp4', 'webm', 'ogg', 'mov'])) {
-            return [
-                'type' => 'file',
-                'src' => $url
-            ];
-        }
-
-        // Por defecto: iframe genérico (ej: embed de otras plataformas)
-        return [
-            'type' => 'iframe',
-            'src' => $url
-        ];
-    } */
-
-    /**
-     * Navegar a la lección anterior dentro del mismo módulo (por campo `order`).
-     */
-    public function previous()
-    {
-        $previousLesson = Lesson::where('module_id', $this->record->module_id)
-            ->where('order', '<', $this->record->order)
-            ->orderBy('order', 'desc')
-            ->first();
+        $previousLesson = $this->getAdjacentLesson(-1);
 
         if ($previousLesson) {
-            $this->record = $previousLesson->loadMissing('module');
-            $this->updateNavigationState();
+            $this->redirect(EnrollmentResource::getUrl('lesson', [
+                'record' => $this->enrollment,
+                'lesson' => $previousLesson,
+            ]), navigate: true);
         }
     }
 
-    /**
-     * Navegar a la siguiente lección dentro del mismo módulo (por campo `order`).
-     */
-    public function next()
+    public function next(): void
     {
-        $nextLesson = Lesson::where('module_id', $this->record->module_id)
-            ->where('order', '>', $this->record->order)
-            ->orderBy('order', 'asc')
-            ->first();
+        $nextLesson = $this->getAdjacentLesson(1);
 
         if ($nextLesson) {
-            $this->record = $nextLesson->loadMissing('module');
-            $this->updateNavigationState();
+            $this->redirect(EnrollmentResource::getUrl('lesson', [
+                'record' => $this->enrollment,
+                'lesson' => $nextLesson,
+            ]), navigate: true);
         }
     }
 
     private function updateNavigationState(): void
     {
-        $this->hasPreviousLesson = Lesson::where('module_id', $this->record->module_id)->where('order', '<', $this->record->order)->exists();
-        $this->hasNextLesson = Lesson::where('module_id', $this->record->module_id)->where('order', '>', $this->record->order)->exists();
+        $lessons = $this->getOrderedLessons();
+        $currentIndex = $lessons->search(fn (Lesson $lesson) => $lesson->id === $this->lesson->id);
+
+        $this->totalLessons = $lessons->count();
+        $this->currentLessonPosition = $currentIndex === false ? 0 : $currentIndex + 1;
+        $this->hasPreviousLesson = $currentIndex !== false && $currentIndex > 0;
+        $this->hasNextLesson = $currentIndex !== false && $currentIndex < ($lessons->count() - 1);
+    }
+
+    protected function loadLessonStatus(): void
+    {
+        $progress = $this->enrollment->enrollmentLessons()
+            ->where('lesson_id', $this->lesson->id)
+            ->first();
+
+        $latestAttempt = AssessmentAttempt::query()
+            ->where('enrollment_id', $this->enrollment->id)
+            ->where('lesson_id', $this->lesson->id)
+            ->where('status', 'completed')
+            ->latest('id')
+            ->first();
+
+        $this->lessonStatus = $this->resolveLessonStatus($progress, $latestAttempt);
+    }
+
+    protected function resolveLessonStatus(
+        ?EnrollmentLesson $progress,
+        ?AssessmentAttempt $latestAttempt
+    ): array {
+        if (! $progress) {
+            return ['text' => 'No cursada', 'color' => 'gray'];
+        }
+
+        if ($progress->status === EnrollmentLesson::STATUS_IN_PROGRESS) {
+            return ['text' => 'En progreso', 'color' => 'warning'];
+        }
+
+        if ($this->lesson->isConsumptionOnly() && in_array($progress->status, [
+            EnrollmentLesson::STATUS_CONSUMED,
+            EnrollmentLesson::STATUS_PASSED,
+        ], true)) {
+            return ['text' => 'Vista', 'color' => 'success'];
+        }
+
+        if ($progress->status === EnrollmentLesson::STATUS_PASSED || $latestAttempt?->passed) {
+            return ['text' => 'Aprobada', 'color' => 'success'];
+        }
+
+        if ($progress->status === EnrollmentLesson::STATUS_CONSUMED && $latestAttempt && ! $latestAttempt->passed) {
+            return ['text' => 'Reprobada', 'color' => 'danger'];
+        }
+
+        if ($progress->status === EnrollmentLesson::STATUS_CONSUMED) {
+            return ['text' => 'Pendiente evaluacion', 'color' => 'info'];
+        }
+
+        return ['text' => 'No cursada', 'color' => 'gray'];
+    }
+
+    protected function getOrderedLessons(): Collection
+    {
+        return $this->enrollment->course->modules
+            ->sortBy('order')
+            ->flatMap(fn ($module) => $module->lessons->sortBy('order')->values())
+            ->values();
+    }
+
+    protected function getAdjacentLesson(int $offset): ?Lesson
+    {
+        $lessons = $this->getOrderedLessons();
+        $currentIndex = $lessons->search(fn (Lesson $lesson) => $lesson->id === $this->lesson->id);
+
+        if ($currentIndex === false) {
+            return null;
+        }
+
+        return $lessons->get($currentIndex + $offset);
     }
 
     /**
-     * Carga el estado de la lección actual para el usuario autenticado.
+     * FASE 2: Cargar datos de evaluación y intentos restantes.
      */
-    protected function loadLessonStatus(): void
+    protected function loadAssessmentData(): void
     {
-        $user = Auth::user();
-        if (!$user) {
-            $this->lessonStatus = ['text' => 'No disponible', 'color' => 'gray'];
+        $this->assessment = $this->lesson->assessment;
+
+        if (! $this->assessment) {
             return;
         }
 
-        // Estado por defecto
-        $status = ['text' => 'No cursada', 'color' => 'gray'];
+        $assessmentService = app(AssessmentService::class);
+        
+        // Contar intentos restantes
+        $this->remainingAttempts = $assessmentService->getRemainingAttempts(
+            $this->assessment,
+            $this->enrollment,
+            auth()->user()
+        );
 
-        // Buscar la inscripción del usuario al curso al que pertenece esta lección
-        $enrollment = $user->enrollments()
-            ->where('course_id', $this->record->module->course_id)
+        // Cargar último intento completado
+        $this->latestAttempt = AssessmentAttempt::query()
+            ->where('assessment_id', $this->assessment->id)
+            ->where('enrollment_id', $this->enrollment->id)
+            ->where('user_id', auth()->id())
+            ->where('status', 'completed')
+            ->latest('id')
             ->first();
 
-        if ($enrollment) {
-            // Verificar el progreso en la tabla pivote
-            $progress = DB::table('enrollment_lesson')
-                ->where('enrollment_id', $enrollment->id)
-                ->where('lesson_id', $this->record->id)
-                ->first();
+        // Verificar si lección está consumida
+        $enrollmentLesson = $this->enrollment->enrollmentLessons()
+            ->where('lesson_id', $this->lesson->id)
+            ->first();
 
-            if ($progress) {
-                if ($progress->status === 'in_progress') {
-                    $status = ['text' => 'En progreso', 'color' => 'warning'];
-                } elseif ($progress->status === 'completed') {
-                    // Si está completada, verificar el resultado de la evaluación si existe
-                    $assessment = $this->record->assessment;
-                    if ($assessment) {
-                        $latestAttempt = AssessmentAttempt::query()
-                            ->where('user_id', $user->id)
-                            ->where('assessment_id', $assessment->id)
-                            ->where('status', 'completed')
-                            ->latest()
-                            ->first();
+        $this->lessonConsumed = $enrollmentLesson?->status === EnrollmentLesson::STATUS_CONSUMED
+            || $enrollmentLesson?->status === EnrollmentLesson::STATUS_PASSED;
+    }
 
-                        if ($latestAttempt) {
-                            $status = $latestAttempt->passed
-                                ? ['text' => 'Aprobada', 'color' => 'success']
-                                : ['text' => 'Reprobada', 'color' => 'danger'];
-                        } else {
-                            $status = ['text' => 'Completada', 'color' => 'primary'];
-                        }
-                    } else {
-                        $status = ['text' => 'Completada', 'color' => 'primary'];
-                    }
-                }
-            }
+    /**
+     * FASE 2: Marcar lección como consumida (visualizada).
+     */
+    #[\Livewire\Attributes\On('markLessonConsumed')]
+    public function markLessonConsumed(): void
+    {
+        $service = app(EnrollmentLessonService::class);
+        $enrollmentLesson = $service->getOrCreate($this->enrollment, $this->lesson);
+        $service->markConsumed($enrollmentLesson);
+
+        $this->lessonConsumed = true;
+        $this->loadLessonStatus();
+        $this->loadAssessmentData();
+
+        Notification::make()
+            ->title('✓ Lección marcada como vista')
+            ->body('Ahora puedes pasar a la siguiente lección.')
+            ->success()
+            ->send();
+
+        $this->dispatch('lesson-consumed', lessonId: $this->lesson->id);
+    }
+
+    /**
+     * FASE 2: Verificar si se puede iniciar evaluación.
+     */
+    public function canStartAssessment(): array
+    {
+        if (! $this->assessment) {
+            return [false, 'La evaluación no está configurada.'];
         }
 
-        $this->lessonStatus = $status;
+        if (! $this->lessonConsumed && $this->lesson->requiresAssessment()) {
+            return [false, 'Debes marcar el contenido como revisado antes de evaluar.'];
+        }
+
+        $assessmentService = app(AssessmentService::class);
+        return $assessmentService->canStartAttempt(
+            $this->assessment,
+            $this->enrollment,
+            auth()->user()
+        );
+    }
+
+    /**
+     * FASE 2: Mostrar/ocultar formulario de evaluación.
+     */
+    #[\Livewire\Attributes\On('toggleAssessmentForm')]
+    public function toggleAssessmentForm(): void
+    {
+        $this->showAssessment = ! $this->showAssessment;
     }
 }

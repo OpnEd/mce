@@ -1,0 +1,63 @@
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   README.md
+        modified:   app/Enums/PermissionType.php
+        modified:   app/Enums/RoleType.php
+        modified:   app/Filament/Resources/Quality/Training/EnrollmentResource.php
+        modified:   app/Filament/Resources/Quality/Training/EnrollmentResource/Pages/Lessonview.php
+        modified:   app/Filament/Resources/Quality/Training/LessonResource.php
+        modified:   app/Livewire/Quality/Training/LessonComponent.php
+        modified:   app/Models/Quality/Training/Assessment.php
+        modified:   app/Models/Quality/Training/Course.php
+        modified:   app/Models/Quality/Training/Enrollment.php
+        modified:   app/Models/Quality/Training/Lesson.php
+        modified:   app/Models/Quality/Training/Module.php
+        modified:   app/Models/Team.php
+        modified:   app/Models/User.php
+        modified:   app/Policies/CoursePolicy.php
+        modified:   app/Policies/EnrollmentPolicy.php
+        modified:   app/Policies/LessonPolicy.php
+        modified:   app/Policies/ModulePolicy.php
+        modified:   app/Providers/Filament/AdminPanelProvider.php
+        modified:   app/Services/Quality/AssessmentService.php
+        modified:   resources/views/livewire/quality/training/lesson-component.blade.php
+        modified:   routes/web.php
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        app/Events/Quality/
+        app/Filament/Exporters/
+        app/Filament/Pages/Quality/Training/
+        app/Filament/Resources/Quality/Training/AssessmentResource.php
+        app/Filament/Resources/Quality/Training/AssessmentResource/
+        app/Filament/Resources/Quality/Training/AuditLogResource.php
+        app/Filament/Resources/Quality/Training/AuditLogResource/
+        app/Filament/Resources/Quality/Training/CertificateResource.php
+        app/Filament/Resources/Quality/Training/CertificateResource/
+        app/Filament/Resources/Quality/Training/CourseResource.php
+        app/Filament/Resources/Quality/Training/CourseResource/
+        app/Filament/Resources/Quality/Training/ModuleResource.php
+        app/Filament/Resources/Quality/Training/ModuleResource/
+        app/Helpers/Training/
+        app/Http/Controllers/Quality/Training/
+        app/Http/Requests/Quality/
+        app/Listeners/Quality/
+        app/Livewire/Quality/Training/AssessmentComponent.php
+        app/Models/Quality/Training/AuditLog.php
+        app/Models/Quality/Training/Certificate.php
+        app/Notifications/Quality/
+        app/Services/Quality/AuditService.php
+        app/Services/Quality/CertificateService.php
+        database/factories/Quality/Training/CertificateFactory.php
+        database/migrations/2026_03_27_000004_add_attempt_limits_to_assessments_table.php
+        database/migrations/2026_03_27_000005_create_certificates_table.php
+        database/migrations/2026_03_27_000006_create_audit_logs_table.php
+        database/migrations/2026_03_28_085809_add_team_id_to_courses_table.php
+        "fases desarrollo m\303\263dulo capacitaci\303\263n.txt"
+        resources/views/certificates/
+        resources/views/filament/pages/quality/training/
+        resources/views/livewire/quality/training/assessment-component.blade.php
+        tests/Feature/Quality/
+
+PS C:\Users\PAOLA\Herd\d-origin2.0.0>

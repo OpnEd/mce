@@ -83,10 +83,12 @@ class LessonView extends ViewRecord
                         }
                         return $formSchema;
                     })
-                    ->action(function (array $data) use ($user, $assessment) {
-                        \Illuminate\Support\Facades\DB::transaction(function () use ($data, $user, $assessment) {
+                    ->action(function (array $data) use ($user, $assessment, $enrollment) {
+                        \Illuminate\Support\Facades\DB::transaction(function () use ($data, $user, $assessment, $enrollment) {
                             $attempt = AssessmentAttempt::create([
                                 'assessment_id' => $assessment->id,
+                                'enrollment_id' => $enrollment->id,
+                                'lesson_id' => $assessment->lesson_id,
                                 'user_id' => $user->id,
                                 'status' => 'in_progress',
                                 'started_at' => now(),
@@ -150,6 +152,7 @@ class LessonView extends ViewRecord
                                 'status' => 'completed',
                                 'completed_at' => now(),
                                 'passed' => $passed,
+                                'passed_at' => $passed ? now() : null,
                             ]);
 
                             Notification::make()

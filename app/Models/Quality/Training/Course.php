@@ -16,6 +16,7 @@ class Course extends Model
     use HasFactory;
 
     protected $fillable = [
+        'team_id',
         'title',
         'objective',
         'description',
@@ -160,5 +161,17 @@ class Course extends Model
           ->withActiveStatus()
           ->withProgress()
           ->withStatus();
+    }
+    
+    public function teams(): BelongsToMany
+    {
+        return $this->belongsToMany(Team::class)
+                    ->withTimestamps();
+    }
+
+    // El creador (si es null, es Global)
+    public function owner(): BelongsTo
+    {
+        return $this->belongsTo(Team::class, 'team_id');
     }
 }

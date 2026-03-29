@@ -6,6 +6,7 @@ use App\Helpers\CanCreateHelper;
 use App\Helpers\CanUpdateHelper;
 use App\Models\Quality\Training\Enrollment;
 use App\Models\User;
+use Filament\Facades\Filament;
 use Illuminate\Auth\Access\Response;
 
 class EnrollmentPolicy
@@ -15,7 +16,8 @@ class EnrollmentPolicy
      */
     public function viewAny(User $user): bool
     {
-        return true;
+        // Si el usuario está dentro de un Tenant, puede ver la lista
+        return Filament::getTenant() !== null;
     }
 
     /**
@@ -23,7 +25,22 @@ class EnrollmentPolicy
      */
     public function view(User $user, Enrollment $enrollment): bool
     {
-        return true;
+        // Admin can view any enrollment
+        if ($user->isAdmin() || $user->isInstructor()) {
+            return true;
+        }
+
+        // Users can view their own enrollment
+        if ($user->id === $enrollment->user_id) {
+            return true;
+        }
+
+        // Instructors can view enrollments in their courses
+        if ($user->can('view-enrollments') && $user->id === $enrollment->course->instructor_id) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -39,7 +56,8 @@ class EnrollmentPolicy
      */
     public function update(User $user, Enrollment $model): bool
     {
-        return CanUpdateHelper::canUpdate($user, $model, 'edit-enrollment');
+        // Default behavior with helper
+        return CanUpdateHelper::canUpdate($user, $model, 'edit-enrollments') && $user->id === $model->course->instructor_id;
     }
 
     /**

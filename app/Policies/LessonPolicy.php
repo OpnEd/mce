@@ -3,9 +3,11 @@
 namespace App\Policies;
 
 use App\Helpers\CanCreateHelper;
+use App\Helpers\CanDeleteHelper;
 use App\Helpers\CanUpdateHelper;
 use App\Models\Quality\Training\Lesson;
 use App\Models\User;
+use Filament\Facades\Filament;
 use Illuminate\Auth\Access\Response;
 
 class LessonPolicy
@@ -15,7 +17,8 @@ class LessonPolicy
      */
     public function viewAny(User $user): bool
     {
-        return true;
+        // Si el usuario está dentro de un Tenant, puede ver la lista
+        return Filament::getTenant() !== null;
     }
 
     /**
@@ -23,7 +26,16 @@ class LessonPolicy
      */
     public function view(User $user, Lesson $lesson): bool
     {
-        return true;
+        $module = $lesson->module;
+
+        // Aplicamos la misma lógica del curso:
+        // Si el curso padre es global, puede ver el módulo.
+        if ($module->course->team_id === null) {
+            return true;
+        }
+
+        // Si el curso es propio, solo si el team_id coincide.
+        return $module->course->team_id === Filament::getTenant()->id;
     }
 
     /**
@@ -31,17 +43,16 @@ class LessonPolicy
      */
     public function create(User $user): bool
     {
-        return true;
-        //return CanCreateHelper::canCreate($user, 'create-lesson');
+        // Only admins and instructors can create lessons
+        return CanCreateHelper::canCreate($user, 'create-lessons') && ($user->isAdmin() || $user->isInstructor());
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Lesson $model): bool
+    public function update(User $user, Lesson $lesson): bool
     {
-        return true;
-        //return CanUpdateHelper::canUpdate($user, $model, 'edit-lesson');
+        return CanUpdateHelper::canUpdate($user, $lesson, 'edit-lessons') && $user->id === $lesson->instructor_id;
     }
 
     /**
@@ -49,7 +60,7 @@ class LessonPolicy
      */
     public function delete(User $user, Lesson $lesson): bool
     {
-        return false;
+        return CanDeleteHelper::canDelete($user, $lesson, 'delete-lessons') && $user->id === $lesson->instructor_id;
     }
 
     /**

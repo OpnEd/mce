@@ -20,7 +20,9 @@ class Assessment extends Model
         'type',             // Tipo: quiz, examen, tarea, etc.
         'max_score',        // Puntaje máximo
         'passing_score',    // Puntaje mínimo para aprobar
-        'duration',         // Duración en minutos
+        'max_attempts',     // Número máximo de intentos (null = ilimitados)
+        'duration_minutes', // Duración máxima en minutos (null = sin límite)
+        'show_feedback',    // Mostrar respuestas correctas después de evaluar
         'active',
     ];
 
@@ -29,6 +31,9 @@ class Assessment extends Model
         'duration' => 'integer',  // Duración en minutos
         'max_score' => 'float',   // Puntaje máximo
         'passing_score' => 'float', // Puntaje mínimo para aprobar
+        'max_attempts' => 'integer', // Número máximo de intentos
+        'duration_minutes' => 'integer', // Duración en minutos
+        'show_feedback' => 'boolean', // Mostrar feedback
     ];
 
     public function module()

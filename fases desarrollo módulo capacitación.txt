@@ -1,0 +1,721 @@
+**Mapa Objetivo**
+
+La idea base sería esta:
+
+- `Enrollment` = cursada del curso.
+- `EnrollmentLesson` = seguimiento real por lección dentro de esa cursada.
+- `AssessmentAttempt` = intento de evaluación de una lección dentro de esa cursada.
+- `LessonCertificate` o constancia en `enrollment_lesson` = evidencia emitida por lección.
+
+Así el flujo queda:
+
+1. Usuario se inscribe en un curso.
+2. Se crean sus filas por lección.
+3. Entra a una lección desde su matrícula.
+4. Marca consumo o presenta evaluación.
+5. Si corresponde, se emite constancia de esa lección.
+6. La matrícula recalcula su avance global.
+
+**Tablas**
+
+`enrollments`
+Mantén esta tabla como resumen de la cursada, como ya existe en [Enrollment.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Models/Quality/Training/Enrollment.php).
+
+Campos útiles:
+- `id`
+- `team_id`
+- `user_id`
+- `course_id`
+- `status`
+- `progress`
+- `started_at`
+- `completed_at`
+- `last_accessed_at`
+
+Estados sugeridos:
+- `not_started`
+- `in_progress`
+- `completed`
+
+`enrollment_lesson`
+Te conviene volverla explícita como pieza central.
+
+Campos sugeridos:
+- `id`
+- `enrollment_id`
+- `lesson_id`
+- `status`
+- `started_at`
+- `last_accessed_at`
+- `consumed_at`
+- `passed`
+- `passed_at`
+- `approved_attempt_id`
+- `certificate_issued_at`
+- `certificate_url`
+- `certificate_code`
+- `created_at`
+- `updated_at`
+
+Estados sugeridos:
+- `not_started`
+- `in_progress`
+- `consumed`
+- `passed`
+
+Reglas:
+- `consumption_only`: estado final válido = `consumed`
+- `assessment_required`: estado final válido = `passed`
+
+`lessons`
+Añadir o formalizar:
+- `completion_mode`
+  Valores:
+  - `consumption_only`
+  - `assessment_required`
+
+Esto es mejor que inferir desde “si tiene assessment”.
+
+`assessment_attempts`
+Actualmente existe, pero le falta contexto de matrícula. El diseño objetivo sería:
+
+- `id`
+- `assessment_id`
+- `enrollment_id`
+- `lesson_id`
+- `user_id`
+- `score`
+- `status`
+- `started_at`
+- `completed_at`
+- `responses`
+- `passed`
+- `feedback`
+
+Estados:
+- `in_progress`
+- `completed`
+
+`lesson_certificates` opcional
+Si quieres historial limpio y reemisiones, mejor tabla aparte.
+
+Campos:
+- `id`
+- `enrollment_id`
+- `lesson_id`
+- `user_id`
+- `assessment_attempt_id` nullable
+- `type` (`consumption`, `approval`)
+- `issued_at`
+- `certificate_code`
+- `file_path` o `url`
+- `data` json
+
+Si quieres algo más simple, puedes guardar solo una constancia por lección en `enrollment_lesson`.
+
+**Relaciones**
+
+Objetivo de relaciones:
+
+- `Enrollment hasMany EnrollmentLesson`
+- `EnrollmentLesson belongsTo Enrollment`
+- `EnrollmentLesson belongsTo Lesson`
+- `EnrollmentLesson hasMany AssessmentAttempt`
+- `AssessmentAttempt belongsTo Enrollment`
+- `AssessmentAttempt belongsTo Lesson`
+- `AssessmentAttempt belongsTo Assessment`
+- `Lesson belongsTo Module`
+- `Module belongsTo Course`
+
+Hoy la relación más frágil es que la UI del alumno abre la lección por `LessonResource` y no por matrícula, visible en [course-overview-component.blade.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/resources/views/livewire/quality/training/course-overview-component.blade.php#L40). Eso debería cambiar.
+
+**Rutas**
+
+Te sugiero separar administración de contenido y experiencia del alumno.
+
+Administración:
+- `/admin/{tenant}/lessons`
+- `/admin/{tenant}/assessments`
+- `/admin/{tenant}/questions`
+
+Alumno:
+- `/admin/{tenant}/enrollments/{enrollment}`
+  Resumen de curso
+- `/admin/{tenant}/enrollments/{enrollment}/lessons/{lesson}`
+  Vista de lección
+- `/admin/{tenant}/enrollments/{enrollment}/lessons/{lesson}/assessment`
+  Evaluación
+- `/admin/{tenant}/enrollments/{enrollment}/lessons/{lesson}/certificate`
+  Descargar constancia
+
+Eso corrige el problema actual de contexto perdido entre matrícula y lección.
+
+**Pantallas**
+
+`CourseList`
+Mantenerla como entrada a inscripción.
+Archivo actual: [CourseList.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Livewire/Quality/CourseList.php)
+
+`EnrollmentOverviewPage`
+Reemplaza el overview actual como tablero del alumno.
+Archivo base actual: [CourseOverview.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Filament/Resources/Quality/Training/EnrollmentResource/Pages/CourseOverview.php)
+
+Debe mostrar por lección:
+- título
+- tipo de cierre: `Solo lectura` o `Requiere evaluación`
+- estado
+- fecha de consumo
+- fecha de aprobación
+- botón entrar
+- botón descargar constancia si existe
+
+`EnrollmentLessonPage`
+Nueva página centrada en una lección dentro de una matrícula.
+
+Debe:
+- marcar acceso
+- actualizar `started_at` / `last_accessed_at`
+- mostrar contenido
+- mostrar CTA correcto según `completion_mode`
+
+CTA:
+- `Marcar como vista` si `consumption_only`
+- `Presentar evaluación` si `assessment_required`
+
+`EnrollmentAssessmentPage`
+Pantalla dedicada de evaluación.
+No modal.
+
+Debe:
+- crear intento
+- persistir respuestas
+- corregir autoevaluables
+- ignorar `free_text` en el puntaje automático
+- actualizar `EnrollmentLesson`
+- emitir constancia si aprueba
+
+`LessonCertificatePage`
+Vista o descarga PDF de constancia por lección.
+
+**Métodos**
+
+`TrainingService`
+Déjalo como coordinador de matrícula.
+
+Métodos sugeridos:
+- `enroll(teamId, userId, courseId): Enrollment`
+- `initializeEnrollmentLessons(Enrollment $enrollment): void`
+- `recalculateEnrollmentProgress(Enrollment $enrollment): void`
+- `completeEnrollmentIfEligible(Enrollment $enrollment): void`
+
+`EnrollmentLessonService`
+Este sería el centro del flujo.
+
+Métodos sugeridos:
+- `start(Enrollment $enrollment, Lesson $lesson): EnrollmentLesson`
+- `touchAccess(EnrollmentLesson $enrollmentLesson): void`
+- `markConsumed(EnrollmentLesson $enrollmentLesson): EnrollmentLesson`
+- `markPassed(EnrollmentLesson $enrollmentLesson, AssessmentAttempt $attempt): EnrollmentLesson`
+- `canBeConsumed(EnrollmentLesson $enrollmentLesson): bool`
+- `canBeAssessed(EnrollmentLesson $enrollmentLesson): bool`
+- `statusLabel(EnrollmentLesson $enrollmentLesson): string`
+
+Reglas:
+- `markConsumed()`:
+  - si estaba `not_started`, pasa a `consumed`
+  - setea `started_at` si falta
+  - setea `consumed_at`
+  - si es `consumption_only`, emite constancia
+- `markPassed()`:
+  - fuerza `consumed_at` si falta
+  - `passed = true`
+  - `passed_at = now()`
+  - `approved_attempt_id = attempt.id`
+  - `status = passed`
+  - emite constancia
+
+`AssessmentService`
+Debe quedar alineado con el diseño real, no con la versión híbrida actual de [AssessmentService.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Services/Quality/AssessmentService.php).
+
+Métodos sugeridos:
+- `startAttempt(Enrollment $enrollment, Lesson $lesson): AssessmentAttempt`
+- `submitAttempt(AssessmentAttempt $attempt, array $answers): AssessmentResultDto`
+- `calculateAutomaticScore(Assessment $assessment, array $answers): float`
+- `resolvePass(Assessment $assessment, float $score): bool`
+
+Reglas:
+- preguntas `free_text`:
+  - se guardan
+  - no puntúan
+  - no afectan el aprobado automático
+- preguntas autoevaluables:
+  - sí suman al puntaje
+- si aprueba:
+  - llamar `EnrollmentLessonService::markPassed()`
+  - recalcular progreso de matrícula
+- si reprueba:
+  - no bajar estado a `not_started`
+  - la lección queda al menos en `consumed`
+
+`LessonCertificateService`
+Métodos sugeridos:
+- `issueForConsumption(EnrollmentLesson $enrollmentLesson): void`
+- `issueForApproval(EnrollmentLesson $enrollmentLesson, ?AssessmentAttempt $attempt = null): void`
+- `generatePdf(...)`
+- `buildCertificateCode(...)`
+
+Regla:
+- una sola constancia activa por lección y matrícula
+- si ya existe, no duplicar salvo que quieras versionado
+
+**Reglas De Negocio**
+
+Lección `consumption_only`
+- entrar => `in_progress`
+- marcar vista => `consumed`
+- emitir constancia
+- progreso del curso suma 1 lección resuelta
+
+Lección `assessment_required`
+- entrar => `in_progress`
+- terminar consumo => `consumed`
+- presentar evaluación:
+  - si aprueba => `passed`, emitir constancia
+  - si reprueba => sigue `consumed`
+- progreso del curso solo suma cuando quede `passed`
+
+Curso completo
+- `completed` cuando todas las lecciones estén resueltas:
+  - `consumed` en las de solo consumo
+  - `passed` en las de evaluación
+
+**Estados De UI**
+
+Badge sugerido por lección:
+- `No iniciada`
+- `En progreso`
+- `Vista`
+- `Pendiente evaluación`
+- `Reprobada`
+- `Aprobada`
+- `Constancia emitida`
+
+Mapeo:
+- `not_started` => `No iniciada`
+- `in_progress` => `En progreso`
+- `consumed + consumption_only` => `Vista`
+- `consumed + assessment_required + sin intentos` => `Pendiente evaluación`
+- `consumed + assessment_required + último intento fallido` => `Reprobada`
+- `passed` => `Aprobada`
+- si hay constancia, puedes mostrar un badge secundario `Constancia emitida`
+
+**Qué Reemplaza Qué**
+
+- `Progress` deja de ser fuente de verdad.
+- `LessonCompletion` deja de ser fuente de verdad.
+- `enrollment_lesson` absorbe:
+  - inicio
+  - consumo
+  - aprobación
+  - acceso
+  - constancia
+
+**Orden Recomendado De Implementación**
+
+1. Crear modelo explícito `EnrollmentLesson`.
+2. Añadir `completion_mode` a `Lesson`.
+3. Enlazar `AssessmentAttempt` con `Enrollment` y `Lesson`.
+4. Crear página de lección por matrícula.
+5. Mover la evaluación a página dedicada.
+6. Implementar `EnrollmentLessonService`.
+7. Implementar emisión de constancia por lección.
+8. Rehacer el overview para leer solo `EnrollmentLesson`.
+
+Si quieres, el siguiente paso te lo puedo convertir en un plan técnico por fases con archivos exactos a tocar y dependencias entre cambios.
+
+**Fases**
+
+1. **Fase 1: Unificar el modelo de seguimiento por lección**
+- Crear un modelo explícito `EnrollmentLesson` sobre `enrollment_lesson`, para dejar de usar `DB::table(...)` disperso.
+- Añadir a `Lesson` un campo `completion_mode` con valores `consumption_only` y `assessment_required`.
+- Extender `assessment_attempts` para guardar `enrollment_id` y `lesson_id`, porque hoy el intento no queda amarrado a una cursada concreta.
+- Archivos a tocar: [app/Models/Quality/Training/Enrollment.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Models/Quality/Training/Enrollment.php), [app/Models/Quality/Training/Lesson.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Models/Quality/Training/Lesson.php), [app/Models/Quality/Training/AssessmentAttempt.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Models/Quality/Training/AssessmentAttempt.php), nueva clase [app/Models/Quality/Training/EnrollmentLesson.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Models/Quality/Training/EnrollmentLesson.php), migraciones nuevas en [database/migrations](/c:/Users/PAOLA/Herd/d-origin2.0.0/database/migrations).
+- Dependencia: esta fase debe ir primero; todas las siguientes dependen de tener una fuente de verdad única.
+
+2. **Fase 2: Corregir inscripción e inicialización**
+- Hacer que al inscribirse se creen correctamente los registros por lección con `status = not_started`.
+- Normalizar estados de matrícula para usar siempre `in_progress`, no `in progress`.
+- Eliminar dependencia conceptual de `Progress` y `LessonCompletion` del flujo activo.
+- Archivos a tocar: [app/Services/Quality/TrainingService.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Services/Quality/TrainingService.php), [app/Models/Quality/Training/Enrollment.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Models/Quality/Training/Enrollment.php), [app/Livewire/Quality/CourseList.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Livewire/Quality/CourseList.php).
+- Dependencia: requiere que `EnrollmentLesson` ya exista.
+
+3. **Fase 3: Rediseñar la navegación del alumno**
+- Dejar de abrir lecciones por `LessonResource` suelta y pasar a una ruta contextual: `Enrollment -> Lesson`.
+- Reemplazar la página `lesson` de `EnrollmentResource`, que hoy está desalineada con el componente que espera un `Lesson`.
+- Mantener `LessonResource` para administración, no para consumo del alumno.
+- Archivos a tocar: [app/Filament/Resources/Quality/Training/EnrollmentResource.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Filament/Resources/Quality/Training/EnrollmentResource.php), [app/Filament/Resources/Quality/Training/EnrollmentResource/Pages/CourseOverview.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Filament/Resources/Quality/Training/EnrollmentResource/Pages/CourseOverview.php), [app/Filament/Resources/Quality/Training/EnrollmentResource/Pages/Lessonview.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Filament/Resources/Quality/Training/EnrollmentResource/Pages/Lessonview.php), [resources/views/filament/pages/quality/course-overview.blade.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/resources/views/filament/pages/quality/course-overview.blade.php), [resources/views/filament/pages/quality/lesson-view.blade.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/resources/views/filament/pages/quality/lesson-view.blade.php).
+- Dependencia: mejor hacerla después de Fase 1 para que la nueva pantalla ya consuma `EnrollmentLesson`.
+
+4. **Fase 4: Implementar el flujo de consumo**
+- Crear un `EnrollmentLessonService` con operaciones: iniciar lección, registrar acceso, marcar consumo, recalcular progreso.
+- En la vista de lección, al entrar: `started_at` y `last_accessed_at`.
+- Para `consumption_only`, botón `Marcar como vista` que deje la lección en `consumed` y emita constancia.
+- Archivos a tocar: nueva clase [app/Services/Quality/EnrollmentLessonService.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Services/Quality/EnrollmentLessonService.php), [app/Livewire/Quality/Training/LessonComponent.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Livewire/Quality/Training/LessonComponent.php), [resources/views/livewire/quality/training/lesson-component.blade.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/resources/views/livewire/quality/training/lesson-component.blade.php).
+- Dependencia: requiere Fase 3 para que la pantalla ya conozca `Enrollment` y `Lesson`.
+
+5. **Fase 5: Rehacer evaluación y aprobación**
+- Mover la lógica de aprobación fuera de [LessonView.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Filament/Resources/Quality/Training/LessonResource/Pages/LessonView.php) a un servicio único.
+- Crear o adaptar una página de evaluación por matrícula y lección.
+- Calificar automáticamente solo preguntas autoevaluables; `free_text` se guarda pero no cuenta para aprobar.
+- Si aprueba: `passed = true`, `passed_at`, `approved_attempt_id`, emisión de constancia y recálculo de progreso.
+- Archivos a tocar: [app/Services/Quality/AssessmentService.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Services/Quality/AssessmentService.php), [app/Filament/Resources/Quality/Training/LessonResource/Pages/LessonView.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Filament/Resources/Quality/Training/LessonResource/Pages/LessonView.php) o una nueva página específica en `EnrollmentResource/Pages`, [app/Models/Quality/Training/AssessmentAttempt.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Models/Quality/Training/AssessmentAttempt.php), [app/Models/Quality/Training/UserAnswer.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Models/Quality/Training/UserAnswer.php).
+- Dependencia: requiere Fases 1, 3 y 4.
+
+6. **Fase 6: Emitir constancia por lección**
+- Implementar `LessonCertificateService`.
+- Decidir si la constancia vive directamente en `enrollment_lesson` o en una tabla nueva `lesson_certificates`.
+- Generar `certificate_code`, `issued_at` y `certificate_url`.
+- Mostrar descarga desde la vista de lección y desde el overview del curso.
+- Archivos a tocar: nueva clase [app/Services/Quality/LessonCertificateService.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Services/Quality/LessonCertificateService.php), posible modelo nuevo [app/Models/Quality/Training/LessonCertificate.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Models/Quality/Training/LessonCertificate.php), nuevas vistas PDF en [resources/views](/c:/Users/PAOLA/Herd/d-origin2.0.0/resources/views), posible controlador en [app/Http/Controllers](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Http/Controllers).
+- Dependencia: requiere Fase 4 para consumo-only y Fase 5 para assessment-required.
+
+7. **Fase 7: Rehacer overview y métricas**
+- Hacer que el overview lea solo `EnrollmentLesson`.
+- Mostrar estados reales: `No iniciada`, `En progreso`, `Vista`, `Pendiente evaluación`, `Reprobada`, `Aprobada`, `Constancia emitida`.
+- Hacer que `Enrollment.progress` se derive de lecciones resueltas, no de tablas paralelas.
+- Archivos a tocar: [app/Livewire/Quality/Training/CourseOverviewComponent.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Livewire/Quality/Training/CourseOverviewComponent.php), [resources/views/livewire/quality/training/course-overview-component.blade.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/resources/views/livewire/quality/training/course-overview-component.blade.php), [app/Models/Quality/Training/Enrollment.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Models/Quality/Training/Enrollment.php).
+- Dependencia: mejor dejarla casi al final, cuando consumo, aprobación y constancias ya estén firmes.
+
+**Limpieza**
+
+- Sacar el `dd()` de [ModuleList.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Livewire/Quality/Training/ModuleList.php#L23).
+- Decidir si [app/Models/Quality/Training/Progress.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Models/Quality/Training/Progress.php) y [app/Models/Quality/Training/LessonCompletion.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Models/Quality/Training/LessonCompletion.php) se eliminan o quedan solo como legado.
+- Dejar `LessonResource` como administración de contenido y no como puerta principal del alumno.
+
+**Orden recomendado real**
+- `1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7`
+
+Si quieres, el siguiente paso te lo puedo convertir en una propuesta de implementación concreta para la `Fase 1`, con migraciones objetivo, relaciones Eloquent y contratos de servicio.
+**Fase 1**
+
+El objetivo de esta fase sería dejar una base de datos y un modelo Eloquent coherentes para que todo lo demás sea simple: una sola fuente de verdad por lección, contexto explícito de matrícula, y reglas claras para consumo vs evaluación.
+
+No ejecuté cambios; esto es una propuesta técnica concreta para implementar.
+
+**1. Migraciones objetivo**
+
+No tocaría migraciones viejas como [2025_08_12_114527_rename_and_add_fields_to_progress_table.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/database/migrations/2025_08_12_114527_rename_and_add_fields_to_progress_table.php), porque ya están inconsistentes y el `up()` está comentado. Haría migraciones nuevas de normalización.
+
+Migración A: `add_completion_mode_to_lessons_table`
+- Tabla: `lessons`
+- Campo nuevo: `completion_mode`
+- Tipo: `string` o `enum`
+- Valores:
+  - `consumption_only`
+  - `assessment_required`
+- Default recomendado:
+  - `assessment_required` si hoy la mayoría de lecciones tienen evaluación
+  - `consumption_only` si quieres ser conservador
+- Índice opcional en `completion_mode`
+
+Migración B: `normalize_enrollment_lesson_table`
+- Tabla: `enrollment_lesson`
+- Asegurar columnas:
+  - `id`
+  - `enrollment_id`
+  - `lesson_id`
+  - `status`
+  - `started_at`
+  - `last_accessed_at`
+  - `consumed_at`
+  - `passed`
+  - `passed_at`
+  - `approved_attempt_id`
+  - `certificate_issued_at`
+  - `certificate_url`
+  - `certificate_code`
+  - timestamps
+- Restricciones:
+  - unique `enrollment_id + lesson_id`
+  - FK `enrollment_id -> enrollments.id`
+  - FK `lesson_id -> lessons.id`
+  - FK `approved_attempt_id -> assessment_attempts.id` nullable
+- Valores iniciales:
+  - `status = not_started`
+  - `passed = false`
+
+Migración C: `add_enrollment_context_to_assessment_attempts_table`
+- Tabla: `assessment_attempts`
+- Campos nuevos:
+  - `enrollment_id`
+  - `lesson_id`
+- FKs:
+  - `enrollment_id -> enrollments.id`
+  - `lesson_id -> lessons.id`
+- Índices:
+  - `assessment_id, user_id`
+  - `enrollment_id, lesson_id`
+- Esto alinea el esquema con lo que hoy conceptualmente intenta hacer [AssessmentService.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Services/Quality/AssessmentService.php), aunque ahora esté desfasado.
+
+Migración D opcional: `create_lesson_certificates_table`
+Solo si quieres historial y reemisiones.
+Si quieres algo simple, esta fase puede omitirla y guardar la constancia en `enrollment_lesson`.
+
+**2. Reglas de datos**
+
+`enrollment_lesson.status`
+- `not_started`
+- `in_progress`
+- `consumed`
+- `passed`
+
+Reglas:
+- `consumption_only` termina en `consumed`
+- `assessment_required` termina en `passed`
+
+`assessment_attempts`
+- `status`
+  - `in_progress`
+  - `completed`
+
+Regla de compatibilidad:
+- `free_text` se guarda en `responses`, pero no afecta `score`
+
+**3. Modelos Eloquent**
+
+Nuevo modelo: [EnrollmentLesson.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Models/Quality/Training/EnrollmentLesson.php)
+
+Propiedades sugeridas:
+```php
+protected $table = 'enrollment_lesson';
+
+protected $fillable = [
+    'enrollment_id',
+    'lesson_id',
+    'status',
+    'started_at',
+    'last_accessed_at',
+    'consumed_at',
+    'passed',
+    'passed_at',
+    'approved_attempt_id',
+    'certificate_issued_at',
+    'certificate_url',
+    'certificate_code',
+];
+
+protected $casts = [
+    'started_at' => 'datetime',
+    'last_accessed_at' => 'datetime',
+    'consumed_at' => 'datetime',
+    'passed_at' => 'datetime',
+    'certificate_issued_at' => 'datetime',
+    'passed' => 'boolean',
+];
+```
+
+Relaciones:
+- `belongsTo(Enrollment::class)`
+- `belongsTo(Lesson::class)`
+- `belongsTo(AssessmentAttempt::class, 'approved_attempt_id')`
+
+Métodos útiles:
+- `isNotStarted()`
+- `isInProgress()`
+- `isConsumed()`
+- `isPassed()`
+- `requiresAssessment()`
+- `isResolved()`
+- `canIssueCertificate()`
+
+Cambios en [Enrollment.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Models/Quality/Training/Enrollment.php)
+- Mantener `course()`, `user()`, `team()`
+- Reemplazar protagonismo de `progress()` y `lessonsCompleted()`
+- Agregar:
+  - `hasMany(EnrollmentLesson::class)`
+  - `belongsToMany(Lesson::class, 'enrollment_lesson')->withPivot(...)` solo si aún quieres acceso rápido
+- Reescribir `updateProgress()` para contar lecciones resueltas desde `EnrollmentLesson`
+- Reescribir `percentageCompleted()` con la misma fuente
+
+Cambios en [Lesson.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Models/Quality/Training/Lesson.php)
+- Agregar `completion_mode` a `fillable`
+- Agregar cast/string si quieres
+- Agregar:
+  - `hasMany(EnrollmentLesson::class)`
+- Métodos:
+  - `isConsumptionOnly(): bool`
+  - `requiresAssessment(): bool`
+
+Cambios en [AssessmentAttempt.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Models/Quality/Training/AssessmentAttempt.php)
+- Agregar a `fillable`:
+  - `enrollment_id`
+  - `lesson_id`
+- Relaciones:
+  - `belongsTo(Enrollment::class)`
+  - `belongsTo(Lesson::class)`
+- Mantener `assessment()`, `user()`, `userAnswers()`
+
+**4. Contratos de servicio**
+
+Yo definiría dos servicios ya desde Fase 1, aunque la lógica completa se implemente después.
+
+`EnrollmentLessonService`
+Archivo sugerido:
+[app/Services/Quality/EnrollmentLessonService.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Services/Quality/EnrollmentLessonService.php)
+
+Contrato sugerido:
+```php
+interface EnrollmentLessonServiceInterface
+{
+    public function initializeForEnrollment(Enrollment $enrollment): void;
+
+    public function getOrCreate(Enrollment $enrollment, Lesson $lesson): EnrollmentLesson;
+
+    public function touchAccess(EnrollmentLesson $enrollmentLesson): EnrollmentLesson;
+
+    public function markInProgress(EnrollmentLesson $enrollmentLesson): EnrollmentLesson;
+
+    public function markConsumed(EnrollmentLesson $enrollmentLesson): EnrollmentLesson;
+
+    public function markPassed(
+        EnrollmentLesson $enrollmentLesson,
+        AssessmentAttempt $attempt
+    ): EnrollmentLesson;
+
+    public function recalculateEnrollmentProgress(Enrollment $enrollment): Enrollment;
+}
+```
+
+`AssessmentWorkflowService`
+Archivo sugerido:
+[app/Services/Quality/AssessmentWorkflowService.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Services/Quality/AssessmentWorkflowService.php)
+
+Contrato sugerido:
+```php
+interface AssessmentWorkflowServiceInterface
+{
+    public function startAttempt(
+        Enrollment $enrollment,
+        Lesson $lesson,
+        Assessment $assessment,
+        User $user
+    ): AssessmentAttempt;
+
+    public function submitAttempt(
+        AssessmentAttempt $attempt,
+        array $answers
+    ): AssessmentAttempt;
+
+    public function calculateAutomaticScore(
+        Assessment $assessment,
+        array $answers
+    ): float;
+
+    public function resolvePass(
+        Assessment $assessment,
+        float $score
+    ): bool;
+}
+```
+
+**5. Regla de cálculo de progreso**
+
+En Fase 1 dejaría esta regla cerrada:
+
+Una lección suma al progreso si:
+- `completion_mode = consumption_only` y `status = consumed`
+- `completion_mode = assessment_required` y `status = passed`
+
+Fórmula:
+```php
+resolved_lessons / total_lessons * 100
+```
+
+Y `Enrollment.status`:
+- `not_started` si todas están `not_started`
+- `in_progress` si al menos una inició pero no todas están resueltas
+- `completed` si todas están resueltas
+
+**6. Compatibilidad con lo actual**
+
+Archivos hoy conflictivos que esta fase debería dejar listos para la siguiente:
+- [Enrollment.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Models/Quality/Training/Enrollment.php)
+- [AssessmentAttempt.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Models/Quality/Training/AssessmentAttempt.php)
+- [Lesson.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Models/Quality/Training/Lesson.php)
+- [TrainingService.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Services/Quality/TrainingService.php)
+- [AssessmentService.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Services/Quality/AssessmentService.php)
+
+Y piezas que en esta fase no eliminaría todavía, pero sí dejaría marcadas como legado:
+- [Progress.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Models/Quality/Training/Progress.php)
+- [LessonCompletion.php](/c:/Users/PAOLA/Herd/d-origin2.0.0/app/Models/Quality/Training/LessonCompletion.php)
+
+**7. Criterios de aceptación de Fase 1**
+
+La fase estaría bien cerrada si:
+- existe un modelo `EnrollmentLesson`
+- `Lesson` ya distingue `consumption_only` vs `assessment_required`
+- `AssessmentAttempt` ya sabe a qué `Enrollment` y `Lesson` pertenece
+- `Enrollment.updateProgress()` ya no depende de `Progress`
+- `enrollment_lesson` ya soporta consumo, aprobación y futura constancia
+- no hace falta consultar `DB::table('enrollment_lesson')` directamente para lógica de negocio
+
+Si quieres, el siguiente paso te lo convierto en un “diff lógico” de Fase 1: qué clases crear, qué propiedades añadir y qué métodos mover exactamente, archivo por archivo.
+
+Sí. Lo más seguro es hacerlo por fases y yo me encargo de implementarlo de punta a punta, validando cada paso antes de seguir.
+
+Te propongo este orden:
+
+1. `Fase 1: Base de datos y modelos`
+- Crear `EnrollmentLesson`
+- Normalizar `assessment_attempts`
+- Añadir `completion_mode` a `Lesson`
+- Unificar reglas de estado y progreso
+
+2. `Fase 2: Servicios de dominio`
+- `EnrollmentLessonService`
+- Rehacer `TrainingService`
+- Rehacer `AssessmentService` para consumo/aprobación reales
+
+3. `Fase 3: Flujo del alumno`
+- Overview por matrícula
+- Vista de lección con contexto `Enrollment + Lesson`
+- Marcar consumo
+- Evaluación por lección
+
+4. `Fase 4: Constancias`
+- Emisión de constancia por lección
+- Descarga y visualización
+- Actualización de progreso global del curso
+
+5. `Fase 5: Limpieza`
+- Retirar dependencias de `Progress` y `LessonCompletion`
+- Eliminar rutas/páginas ambiguas
+- Ajustar resources y Livewire restantes
+
+La ventaja de hacerlo así es que no rompemos todo de una vez: dejamos el sistema funcionando y consistente al final de cada fase.
+
+Mi recomendación es empezar ya con la `Fase 1`, porque desbloquea todo lo demás. Después sigo con las siguientes sin que tengas que ir microgestionando cada archivo. Si quieres, arranco en el siguiente mensaje con implementación real de `Fase 1`.
+
+⏱️ FASE 0: Seguridad (2-3h) ⚡ CRÍTICO
+   └─ Validar permisos + auth antes de todo
+
+⏱️ FASE 1: Control de Intentos (2-3h) 
+   └─ max_attempts, duración, intento limitado
+
+⏱️ FASE 2: Flujo Estudiante (4-5h)
+   └─ Vistas completas, breadcrumbs, integración evaluación
+
+⏱️ FASE 3: Certificados (3-4h) 🏆 CORE FEATURE
+   └─ PDF, Queue jobs, Event-driven, descarga pública
+
+⏱️ FASE 4: Admin UI (4-5h)
+   └─ CourseResource, AssessmentResource, Dashboard instructor
+
+⏱️ FASE 5: Eventos & Auditoría (3-4h)
+   └─ Events, Listeners, Notifications, AuditLog
+
+⏱️ FASE 6: Reportes (3-4h)
+   └─ Analytics service, Dashboard reportes, Excel export
+
+⏱️ FASE 7: Tests & Deploy (2-3h)
+   └─ Tests, cleanup, documentación, índices BD

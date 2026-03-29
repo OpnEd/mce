@@ -11,6 +11,7 @@ enum RoleType: string implements HasLabel
     case DIRECTOR       = 'Director Técnico';
     case CLIENTE        = 'Cliente';
     case COMERCIAL      = 'Auxiliar de Farmacia';
+    case INSTRUCTOR     = 'Instructor';
 
     public function getLabel(): ?string
     {
@@ -20,6 +21,7 @@ enum RoleType: string implements HasLabel
             self::DIRECTOR       => 'Director',
             self::CLIENTE        => 'Cliente',
             self::COMERCIAL      => 'Auxiliar de Farmacia',
+            self::INSTRUCTOR     => 'Instructor',
         };
     }
 

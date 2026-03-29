@@ -2,8 +2,12 @@
 
 namespace App\Policies;
 
+use App\Helpers\CanCreateHelper;
+use App\Helpers\CanDeleteHelper;
+use App\Helpers\CanUpdateHelper;
 use App\Models\Quality\Training\Course;
 use App\Models\User;
+use Filament\Facades\Filament;
 use Illuminate\Auth\Access\Response;
 
 class CoursePolicy
@@ -13,7 +17,8 @@ class CoursePolicy
      */
     public function viewAny(User $user): bool
     {
-        return true;
+        // Si el usuario está dentro de un Tenant, puede ver la lista
+        return Filament::getTenant() !== null;
     }
 
     /**
@@ -29,15 +34,16 @@ class CoursePolicy
      */
     public function create(User $user): bool
     {
-        return true;
+        // Only admins and instructors can create courses
+        return CanCreateHelper::canCreate($user, 'create-course') && ($user->isAdmin() || $user->isInstructor());
     }
 
     /**
      * Determine whether the user can update the model.
      */
     public function update(User $user, Course $course): bool
-    {
-        return true;
+    {   // Instructors can only update their own courses
+        return CanUpdateHelper::canUpdate($user, $course, 'edit-course') && $user->id === $course->instructor_id;
     }
 
     /**
@@ -45,7 +51,7 @@ class CoursePolicy
      */
     public function delete(User $user, Course $course): bool
     {
-        return true;
+        return CanDeleteHelper::canDelete($user, $course, 'delete-course') && $user->id === $course->instructor_id;
     }
 
     /**
@@ -53,7 +59,7 @@ class CoursePolicy
      */
     public function restore(User $user, Course $course): bool
     {
-        return true;
+        return false;
     }
 
     /**
@@ -61,6 +67,6 @@ class CoursePolicy
      */
     public function forceDelete(User $user, Course $course): bool
     {
-        return true;
+        return false;
     }
 }

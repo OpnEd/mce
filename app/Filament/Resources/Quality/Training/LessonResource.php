@@ -22,8 +22,14 @@ class LessonResource extends Resource
 
     protected static bool $isScopedToTenant = false;
 
-    //protected static ?string $navigationGroup = 'Universidad';
-    //protected static ?string $navigationLabel = 'Lecciones';
+    protected static ?string $navigationLabel = 'Lecciones';
+
+    protected static ?string $modelLabel = 'Lección';
+
+    protected static ?string $pluralModelLabel = 'Lecciones';
+
+    protected static ?int $navigationSort = 30;
+
     public static function shouldRegisterNavigation(): bool
     {
         return false;
@@ -51,10 +57,23 @@ class LessonResource extends Resource
                     ->required()
                     ->numeric()
                     ->default(0),
+                Forms\Components\Select::make('completion_mode')
+                    ->label('Modo de cierre')
+                    ->options([
+                        Lesson::COMPLETION_MODE_CONSUMPTION_ONLY => 'Solo consumo',
+                        Lesson::COMPLETION_MODE_ASSESSMENT_REQUIRED => 'Requiere evaluación',
+                    ])
+                    ->default(Lesson::COMPLETION_MODE_ASSESSMENT_REQUIRED)
+                    ->required(),
                 Forms\Components\Textarea::make('content')
                     ->columnSpanFull(),
                 Forms\Components\TextInput::make('video_url')
+                    ->label('Video URL')
                     ->maxLength(255),
+                Forms\Components\TextInput::make('iframe')
+                    ->label('Iframe/Embedded Code')
+                    ->maxLength(2000)
+                    ->helperText('Código iframe para embeber videos o contenido externo'),
                 Forms\Components\Toggle::make('active')
                     ->required(),
             ]);
@@ -75,6 +94,14 @@ class LessonResource extends Resource
                 Tables\Columns\TextColumn::make('order')
                     ->numeric()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('completion_mode')
+                    ->label('Modo de cierre')
+                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                        Lesson::COMPLETION_MODE_CONSUMPTION_ONLY => 'Solo consumo',
+                        Lesson::COMPLETION_MODE_ASSESSMENT_REQUIRED => 'Requiere evaluación',
+                        default => $state ?? '-',
+                    })
+                    ->badge(),
                 Tables\Columns\TextColumn::make('video_url')
                     ->searchable(),
                 Tables\Columns\IconColumn::make('active')
@@ -100,6 +127,12 @@ class LessonResource extends Resource
                     ->trueLabel('Sí')
                     ->falseLabel('No')
                     ->native(false),
+                SelectFilter::make('completion_mode')
+                    ->label('Modo de cierre')
+                    ->options([
+                        Lesson::COMPLETION_MODE_CONSUMPTION_ONLY => 'Solo consumo',
+                        Lesson::COMPLETION_MODE_ASSESSMENT_REQUIRED => 'Requiere evaluaciÃ³n',
+                    ]),
                 Filter::make('created_at')
                     ->form([
                         Forms\Components\DatePicker::make('created_from')->label('Creado desde'),

@@ -38,6 +38,14 @@ enum PermissionType: string implements HasLabel
     case RESTORE_CLEANING_IMPLEMENTS      = 'restore-cleaning-implements';
     case FORCE_DELETE_CLEANING_IMPLEMENTS = 'force-delete-cleaning-implements';
 
+        // Courses
+    case VIEW_COURSE         = 'view-course';
+    case CREATE_COURSE       = 'create-course';
+    case EDIT_COURSE         = 'edit-course';
+    case DELETE_COURSE       = 'delete-course';
+    case RESTORE_COURSE      = 'restore-course';
+    case FORCE_DELETE_COURSE = 'force-delete-course';
+
         // Desinfectants
     case VIEW_DESINFECTANTS         = 'view-desinfectants';
     case CREATE_DESINFECTANTS       = 'create-desinfectants';
@@ -78,6 +86,14 @@ enum PermissionType: string implements HasLabel
     case RESTORE_ENVIRONMENTAL_RECORD      = 'restore-environmental-record';
     case FORCE_DELETE_ENVIRONMENTAL_RECORD = 'force-delete-environmental-record';
 
+        // EnvironmentalRecord
+    case VIEW_ENROLLMENTS         = 'view-enrollments';
+    case CREATE_ENROLLMENTS       = 'create-enrollments';
+    case EDIT_ENROLLMENTS         = 'edit-enrollments';
+    case DELETE_ENROLLMENTS       = 'delete-enrollments';
+    case RESTORE_ENROLLMENTS      = 'restore-enrollments';
+    case FORCE_DELETE_ENROLLMENTS = 'force-delete-enrollments';
+
         // EvaluationRecord
     case VIEW_EVALUATION_RECORD         = 'view-evaluation-record';
     case CREATE_EVALUATION_RECORD       = 'create-evaluation-record';
@@ -117,6 +133,22 @@ enum PermissionType: string implements HasLabel
     case DELETE_INVOICE_ITEMS       = 'delete-invoice-items';
     case RESTORE_INVOICE_ITEMS      = 'restore-invoice-items';
     case FORCE_DELETE_INVOICE_ITEMS = 'force-delete-invoice-items';
+
+        // Lessons
+    case VIEW_LESSONS         = 'view-lessons';
+    case CREATE_LESSONS       = 'create-lessons';
+    case EDIT_LESSONS         = 'edit-lessons';
+    case DELETE_LESSONS       = 'delete-lessons';
+    case RESTORE_LESSONS      = 'restore-lessons';
+    case FORCE_DELETE_LESSONS = 'force-delete-lessons';
+
+        // Modules
+    case VIEW_MODULES         = 'view-modules';
+    case CREATE_MODULES       = 'create-modules';
+    case EDIT_MODULES         = 'edit-modules';
+    case DELETE_MODULES       = 'delete-modules';
+    case RESTORE_MODULES      = 'restore-modules';
+    case FORCE_DELETE_MODULES = 'force-delete-modules';
 
         // Management Indicator Team
     case VIEW_MANAGEMENT_INDICATOR_TEAM         = 'view-management-indicator-team';
@@ -379,6 +411,14 @@ enum PermissionType: string implements HasLabel
             self::RESTORE_CLEANING_IMPLEMENTS      => 'Restaurar Implementos de Limpieza',
             self::FORCE_DELETE_CLEANING_IMPLEMENTS => 'Forzar la eliminación de Implementos de Limpieza',
 
+            // Courses
+            self::VIEW_COURSE         => 'Ver Cursos',
+            self::CREATE_COURSE       => 'Crear Cursos',
+            self::EDIT_COURSE         => 'Editar Cursos',
+            self::DELETE_COURSE       => 'Eliminar Cursos',
+            self::RESTORE_COURSE      => 'Restaurar Cursos',
+            self::FORCE_DELETE_COURSE => 'Forzar la eliminación de Cursos',
+
             // Desinfectants
             self::VIEW_DESINFECTANTS         => 'Ver Desinfectantes',
             self::CREATE_DESINFECTANTS       => 'Crear Desinfectantes',
@@ -419,6 +459,14 @@ enum PermissionType: string implements HasLabel
             self::RESTORE_ENVIRONMENTAL_RECORD      => 'Restaurar Registros Ambientales',
             self::FORCE_DELETE_ENVIRONMENTAL_RECORD => 'Forzar la eliminación de Registros Ambientales',
 
+            // Enrollments
+            self::VIEW_ENROLLMENTS         => 'Ver Inscripciones',
+            self::CREATE_ENROLLMENTS       => 'Crear Inscripciones',
+            self::EDIT_ENROLLMENTS         => 'Editar Inscripciones',
+            self::DELETE_ENROLLMENTS       => 'Eliminar Inscripciones',
+            self::RESTORE_ENROLLMENTS      => 'Restaurar Inscripciones',
+            self::FORCE_DELETE_ENROLLMENTS => 'Forzar la eliminación de Inscripciones',
+
             // EvaluationRecord
             self::VIEW_EVALUATION_RECORD         => 'Ver Registros de Evaluación',
             self::CREATE_EVALUATION_RECORD       => 'Crear Registros de Evaluación',
@@ -458,6 +506,23 @@ enum PermissionType: string implements HasLabel
             self::DELETE_INVOICE_ITEMS       => 'Eliminar ítems de Facturas',
             self::RESTORE_INVOICE_ITEMS      => 'Restaurar ítems de Facturas',
             self::FORCE_DELETE_INVOICE_ITEMS => 'Forzar la eliminación de ítems de Facturas',
+
+            // Lessons
+            self::VIEW_LESSONS         => 'Ver Lecciones',
+            self::CREATE_LESSONS       => 'Crear Lecciones',
+            self::EDIT_LESSONS         => 'Editar Lecciones',
+            self::DELETE_LESSONS       => 'Eliminar Lecciones',
+            self::RESTORE_LESSONS      => 'Restaurar Lecciones',
+            self::FORCE_DELETE_LESSONS => 'Forzar la eliminación de Lecciones',
+
+            // Modules
+            self::VIEW_MODULES         => 'Ver Módulos',
+            self::CREATE_MODULES       => 'Crear Módulos',
+            self::EDIT_MODULES         => 'Editar Módulos',
+            self::DELETE_MODULES       => 'Eliminar Módulos',
+            self::RESTORE_MODULES      => 'Restaurar Módulos',
+            self::FORCE_DELETE_MODULES => 'Forzar la eliminación de Módulos',
+
 
             // Management Indicator Team
             self::VIEW_MANAGEMENT_INDICATOR_TEAM         => 'Ver Indicadores de Gestión del Equipo',

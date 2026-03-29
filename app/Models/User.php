@@ -6,6 +6,7 @@ use App\Enums\RoleType;
 use App\Models\Quality\Records\Clients\ClientPqrsRecord;
 use App\Models\Quality\Records\Clients\ClientSatisfactionEvaluation;
 use App\Models\Quality\Records\Cleaning\CleaningRecord;
+use App\Models\Quality\Records\Improvement\Task;
 use App\Models\Quality\Residuo;
 use App\Models\Quality\Training\Enrollment;
 use App\Traits\MultiTenantHasRoles;
@@ -345,16 +346,21 @@ class User extends Authenticatable implements FilamentUser, HasTenants, HasAvata
 
     public function isAdmin(): bool
     {
-        return $this->hasRole('admin');
+        return $this->hasRole('Administrador');
     }
 
     public function isSuperAdmin(): bool
     {
         return $this->hasRole('super-admin');
     }
+
+    public function isInstructor(): bool
+    {
+        return $this->hasRole('Instructor');
+    }
 }
 
-/* $teamId = session('team_id'); // ⚠️ Este es el valor que se usa para filtrar roles
+/* $teamId = session('team_id'); // Este es el valor que se usa para filtrar roles
 
         if (!$teamId) {
             return false; // Si no hay team en sesión, denegamos acceso

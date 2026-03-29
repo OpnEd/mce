@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Filament\Pages\CustomLogin;
 use App\Filament\Pages\Setting;
+use App\Filament\Pages\Quality\Training\StudentDashboard;
 use App\Filament\Pages\Tenancy\EditTeamProfile;
 use App\Filament\Pages\Tenancy\RegisterTeam;
 use App\Models\Team;
@@ -34,6 +35,7 @@ use Filament\View\PanelsRenderHook;
 use Filament\Support\Facades\FilamentView;
 use Illuminate\Support\Facades\Blade;
 use App\Http\Middleware\EnsureTeamContext;
+use Filament\Facades\Filament;
 use Leandrocfe\FilamentApexCharts\FilamentApexChartsPlugin;
 
 class AdminPanelProvider extends PanelProvider
@@ -54,6 +56,7 @@ class AdminPanelProvider extends PanelProvider
             ->pages([
                 //Pages\Dashboard::class,
                 Setting::class,
+                StudentDashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
@@ -132,8 +135,27 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
                 fn(): string => Blade::render('<meta name="team-id" content="{{ \Filament\Facades\Filament::getTenant()?->id }}">'),
+            )->renderHook(
+                'panels::user-menu.before',
+                fn(): string => $this->syncCurrentTeam(),
             )
             ->spa()
             ->favicon(asset('storage/landing-page-images/logo.png'));
+    }
+
+    protected function syncCurrentTeam(): string
+    {
+        $user = auth()->user();
+        $tenant = Filament::getTenant();
+
+        // Si hay un usuario y un equipo seleccionado en Filament,
+        // y no coinciden con el de la base de datos, actualizamos.
+        if ($user && $tenant && $user->current_team_id !== $tenant->id) {
+            $user->forceFill([
+                'current_team_id' => $tenant->id,
+            ])->save();
+        }
+
+        return ''; // Los hooks de renderizado deben devolver un string
     }
 }

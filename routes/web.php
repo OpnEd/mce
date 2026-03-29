@@ -167,3 +167,14 @@ Route::get('/login', function () {
 //Route::match(['get', 'post'], '/webhook/whatsapp', WhatsAppWebhookController::class);
 Route::get('webhook/whatsapp', [WhatsAppWebhookController::class, 'verifyWebhook']);
 Route::post('webhook/whatsapp', [WhatsAppWebhookController::class, 'handleIncomingMessage']);
+
+/**
+ * Rutas para descargar y ver certificados
+ */
+use App\Http\Controllers\Quality\Training\CertificateDownloadController;
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/certificates/{certificate}/download', [CertificateDownloadController::class, 'download'])->name('certificates.download');
+    Route::get('/certificates/{certificate}/preview', [CertificateDownloadController::class, 'preview'])->name('certificates.preview');
+    Route::get('/certificates/{certificate}/url', [CertificateDownloadController::class, 'getDownloadUrl'])->name('certificates.url');
+});

@@ -30,7 +30,7 @@ class RiskMatrix extends Page
             Action::make('volver')
                 ->label('Volver a lista')
                 ->icon('heroicon-o-arrow-left')
-                ->url(fn () => RiskResource::getUrl('index'))
+                ->url(fn () => RiskResource::getUrl('index', tenant: Filament::getTenant()))
                 ->color('gray'),
             Action::make('descargarPdf')
                 ->label('Descargar PDF')

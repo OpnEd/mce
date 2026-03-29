@@ -6,14 +6,18 @@ use App\Models\Team;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Facades\DB;
 
 class Enrollment extends Model
 {
     /** @use HasFactory<\Database\Factories\Quality\Training\EnrollmentFactory> */
     use HasFactory;
+
+    public const STATUS_NOT_STARTED = 'not_started';
+    public const STATUS_IN_PROGRESS = 'in_progress';
+    public const STATUS_COMPLETED = 'completed';
 
     protected $fillable = [
         'team_id', // Optional: if the enrollment is associated with a team
@@ -44,40 +48,83 @@ class Enrollment extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function assessmentAttempts()
+    public function assessmentAttempts(): HasMany
     {
         return $this->hasMany(AssessmentAttempt::class);
     }
 
-    public function lessons()
+    public function enrollmentLessons(): HasMany
     {
-        // pivot enrollment_lesson
+        return $this->hasMany(EnrollmentLesson::class);
+    }
+
+    public function lessons(): BelongsToMany
+    {
         return $this->belongsToMany(Lesson::class, 'enrollment_lesson')
-            ->withPivot(['passed', 'passed_at'])
+            ->withPivot([
+                'status',
+                'started_at',
+                'completed_at',
+                'last_accessed_at',
+                'consumed_at',
+                'passed',
+                'passed_at',
+                'approved_attempt_id',
+                'certificate_issued_at',
+                'certificate_url',
+                'certificate_code',
+            ])
             ->withTimestamps();
     }
+
     /**
-     * Actualiza y guarda el campo progress (0-100) basado en lecciones aprobadas del curso.
+     * Alias legacy para el seguimiento por lección.
+     */
+    public function progress(): HasMany
+    {
+        return $this->enrollmentLessons();
+    }
+
+    public function lessonsCompleted(): HasMany
+    {
+        return $this->enrollmentLessons()->where(function ($query) {
+            $query->where('status', EnrollmentLesson::STATUS_PASSED)
+                ->orWhere(function ($subQuery) {
+                    $subQuery->where('status', EnrollmentLesson::STATUS_CONSUMED)
+                        ->whereHas('lesson', function ($lessonQuery) {
+                            $lessonQuery->where('completion_mode', Lesson::COMPLETION_MODE_CONSUMPTION_ONLY);
+                        });
+                });
+        });
+    }
+
+    /**
+     * Actualiza y guarda el campo progress (0-100) basado en lecciones resueltas del curso.
      */
     public function updateProgress(): void
     {
-        // total de lecciones del curso
-        $totalLessons = $this->course->modules()->withCount('lessons')->get()
-            ->sum(fn($m) => $m->lessons_count);
+        $totalLessons = $this->course?->lessons()->count() ?? 0;
+
         if ($totalLessons === 0) {
             $this->progress = 0;
+            $this->status = self::STATUS_NOT_STARTED;
+            $this->completed_at = null;
             $this->saveQuietly();
             return;
         }
 
-        // lecciones aprobadas por este enrollment (pivot passed = true)
-        $approved = DB::table('enrollment_lesson')
-            ->where('enrollment_id', $this->id)
-            ->where('passed', true)
-            ->count();
+        $resolvedLessons = $this->lessonsCompleted()->count();
+        $percent = intval(round(($resolvedLessons / $totalLessons) * 100));
 
-        $percent = intval(round(($approved / $totalLessons) * 100));
         $this->progress = $percent;
+
+        if ($resolvedLessons >= $totalLessons) {
+            $this->status = self::STATUS_COMPLETED;
+            $this->completed_at ??= now();
+        } elseif ($resolvedLessons > 0 || $this->enrollmentLessons()->where('status', '!=', EnrollmentLesson::STATUS_NOT_STARTED)->exists()) {
+            $this->status = self::STATUS_IN_PROGRESS;
+        }
+
         $this->saveQuietly();
     }
 
@@ -89,16 +136,6 @@ class Enrollment extends Model
     public function team(): BelongsTo
     {
         return $this->belongsTo(Team::class);
-    }
-
-    public function progress(): HasMany
-    {
-        return $this->hasMany(Progress::class);
-    }
-
-    public function lessonsCompleted()
-    {
-        return $this->progress()->where('status', 'completed');
     }
 
     public function percentageCompleted(): float
@@ -116,7 +153,7 @@ class Enrollment extends Model
     {
         if (!$this->started_at) {
             $this->started_at = now();
-            $this->status = 'in_progress';
+            $this->status = self::STATUS_IN_PROGRESS;
             $this->save();
         }
     }
@@ -127,8 +164,11 @@ class Enrollment extends Model
     public function markAsCompleted()
     {
         $this->completed_at = now();
-        $this->status = 'completed';
+        $this->status = self::STATUS_COMPLETED;
         $this->save();
+
+        // Disparar evento para generar certificado
+        \App\Events\Quality\Training\EnrollmentCompleted::dispatch($this, $this->score_final);
     }
 
     /**
@@ -136,7 +176,7 @@ class Enrollment extends Model
      */
     public function isCompleted(): bool
     {
-        return $this->status === 'completed';
+        return $this->status === self::STATUS_COMPLETED;
     }
 
     /**
@@ -144,7 +184,10 @@ class Enrollment extends Model
      */
     public function lastLessonAccessed()
     {
-        return $this->progress()->orderByDesc('last_accessed_at')->first();
+        return $this->enrollmentLessons()
+            ->whereNotNull('last_accessed_at')
+            ->orderByDesc('last_accessed_at')
+            ->first();
     }
 
     /**
@@ -156,15 +199,36 @@ class Enrollment extends Model
     }
 
     /**
+     * Relación con Certificados
+     */
+    public function certificates(): HasMany
+    {
+        return $this->hasMany(Certificate::class);
+    }
+
+    /**
+     * Obtener el certificado válido más reciente
+     */
+    public function getLatestCertificate(): ?Certificate
+    {
+        return $this->certificates()
+            ->where('status', 'issued')
+            ->orderByDesc('issued_at')
+            ->first();
+    }
+
+    /**
      * Reiniciar el progreso de la inscripción.
      */
     public function resetProgress()
     {
-        $this->progress()->delete();
+        $this->assessmentAttempts()->delete();
+        $this->enrollmentLessons()->delete();
         $this->progress = 0;
-        $this->status = 'not_started';
+        $this->status = self::STATUS_NOT_STARTED;
         $this->started_at = null;
         $this->completed_at = null;
+        $this->last_accessed_at = null;
         $this->certificated_at = null;
         $this->certificate_url = null;
         $this->score_final = null;

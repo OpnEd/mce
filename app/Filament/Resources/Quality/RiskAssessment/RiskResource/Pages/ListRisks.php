@@ -18,7 +18,7 @@ class ListRisks extends ListRecords
             Actions\Action::make('verMatriz')
                 ->label('Ver matriz')
                 ->icon('heroicon-o-table-cells')
-                ->url(fn () => RiskResource::getUrl('matrix'))
+                ->url(fn () => RiskResource::getUrl('matrix', tenant: Filament::getTenant()))
                 ->color('info'),
             Actions\Action::make('descargarPdf')
                 ->label('Descargar PDF')

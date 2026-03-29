@@ -16,9 +16,15 @@ use App\Models\Quality\Records\Cleaning\StablishmentArea;
 use App\Models\Quality\Records\Cleaning\CleaningImplement;
 use App\Models\Quality\Records\Cleaning\CleaningRecord;
 use App\Models\Quality\Records\Cleaning\Desinfectant;
+use App\Models\Quality\Records\Improvement\Checklist;
+use App\Models\Quality\Records\Improvement\ChecklistItem;
+use App\Models\Quality\Records\Improvement\ChecklistItemAnswer;
+use App\Models\Quality\Records\Improvement\ImprovementPlan;
+use App\Models\Quality\Records\Improvement\Task;
 use App\Models\Quality\Records\Products\DispenseRecord;
 use App\Models\Quality\Records\Products\MissingProduct;
 use App\Models\Quality\RiskAssessment\Risk;
+use App\Models\Quality\Training\Course;
 use App\Models\Quality\Training\Enrollment;
 use App\Models\Quality\Training\Question;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -116,6 +122,12 @@ class Team extends Model
     public function clientPqrsRecords(): HasMany
     {
         return $this->hasMany(ClientPqrsRecord::class);
+    }
+    
+    public function courses(): BelongsToMany
+    {
+        return $this->belongsToMany(Course::class)
+                    ->withTimestamps(); 
     }
 
     public function desinfectants(): HasMany

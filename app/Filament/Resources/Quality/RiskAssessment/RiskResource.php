@@ -288,9 +288,9 @@ class RiskResource extends Resource
         return [
             'index' => Pages\ListRisks::route('/'),
             'create' => Pages\CreateRisk::route('/create'),
+            'matrix' => Pages\RiskMatrix::route('/matriz'),
             'view' => Pages\ViewRisk::route('/{record}'),
             'edit' => Pages\EditRisk::route('/{record}/edit'),
-            'matrix' => Pages\RiskMatrix::route('/matriz'),
         ];
     }
 

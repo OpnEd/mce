@@ -124,6 +124,11 @@ class EnrollmentResource extends Resource
             ->filters([
                 //
             ])
+            ->headerActions([
+                Tables\Actions\ExportAction::make()
+                    ->label('Exportar CSV')
+                    ->exporter(class: \App\Filament\Exporters\EnrollmentExporter::class),
+            ])
             ->actions([
                 Tables\Actions\EditAction::make(),
             ])
@@ -150,7 +155,7 @@ class EnrollmentResource extends Resource
             'create' => Pages\CreateEnrollment::route('/create'),
             'edit' => Pages\EditEnrollment::route('/{record}/edit'),
             'view' => Pages\CourseOverview::route('/{record}'),
-            'lesson' => Pages\Lessonview::route('/{record}/lesson')
+            'lesson' => Pages\Lessonview::route('/{record}/lessons/{lesson}')
         ];
     }
 }

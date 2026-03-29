@@ -153,5 +153,3 @@ class ChecklistResource extends Resource
     }
 }
 
-
-

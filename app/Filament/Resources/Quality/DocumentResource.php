@@ -452,4 +452,3 @@ class DocumentResource extends Resource
             ]);
     }
 }
-

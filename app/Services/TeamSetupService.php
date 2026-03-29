@@ -18,6 +18,7 @@ use App\Models\Quality\QualityGoal;
 use App\Models\Quality\Records\Cleaning\CleaningImplement;
 use App\Models\Quality\Records\Cleaning\Desinfectant;
 use App\Models\Quality\Records\Cleaning\StablishmentArea;
+use App\Models\Quality\RiskAssessment\Risk;
 use App\Models\Schedule;
 use App\Models\Setting;
 use App\Models\Team;
@@ -48,6 +49,7 @@ class TeamSetupService
                 'minutes-ivc-eighth-section-entries' => 'Entradas IVC - Sección 8',
                 'minutes-ivc-nine-section-entries' => 'Entradas IVC - Sección 9',
                 'processes_templates.default_processes' => 'Plantillas de caracterización de Procesos',
+                'risks.default_risks' => 'Matriz de riesgos base',
                 'document_templates.default_docs' => 'Plantillas de documentos',
                 'training_schedule' => 'Cronograma de capacitación',
                 'cleaning_schedule' => 'Cronograma de limpieza',
@@ -88,6 +90,9 @@ class TeamSetupService
                 break;
             case 'processes_templates.default_processes':
                 $this->populateProcessesTemplatesFromConfig($team);
+                break;
+            case 'risks.default_risks':
+                $this->populateRisksFromConfig($team, $actor);
                 break;
             case 'document_templates.default_docs':
                 $this->populateDocumentsFromConfig($team, $consultant);
@@ -145,6 +150,7 @@ class TeamSetupService
         $this->populateCleaningImplements($team);
         $this->populateDesinfectants($team);
         $this->populateProcessesTemplatesFromConfig($team);
+        $this->populateRisksFromConfig($team, $owner);
         $this->populateDocumentsFromConfig($team, $consultant);
         $this->populateSchedules($team, $owner, $roleAdmin);
         $this->enrollInitialCourse($team, $owner);
@@ -1402,6 +1408,207 @@ class TeamSetupService
      * Fin populate procesos
      */
 
+    public function populateRisksFromConfig(Team $team, ?User $owner = null): void
+    {
+        $defaults = config('risks.default_risks', []);
+
+        if (! is_array($defaults) || empty($defaults)) {
+            Log::warning('No hay riesgos base en config(risks.default_risks).');
+            return;
+        }
+
+        $processes = $team->processes()
+            ->get(['id', 'code', 'name']);
+
+        if ($processes->isEmpty()) {
+            Log::warning('No hay procesos en el team para asociar riesgos base.', [
+                'team_id' => $team->id,
+            ]);
+            return;
+        }
+
+        $fallbackOwnerId = $owner?->id
+            ?? $team->users()->orderBy('users.id')->value('users.id')
+            ?? auth()->id();
+
+        $created = 0;
+        $updated = 0;
+        $skipped = 0;
+
+        foreach ($defaults as $entry) {
+            if (! is_array($entry)) {
+                $skipped++;
+                continue;
+            }
+
+            $code = trim((string) ($entry['code'] ?? ''));
+            $title = trim((string) ($entry['title'] ?? ''));
+
+            if ($code === '' || $title === '') {
+                $skipped++;
+                continue;
+            }
+
+            $process = $this->resolveRiskProcess($processes, $entry);
+
+            if (! $process) {
+                Log::warning('No se encontro proceso para riesgo base.', [
+                    'team_id' => $team->id,
+                    'risk_code' => $code,
+                    'process_code' => $entry['process_code'] ?? null,
+                    'process_name' => $entry['process_name'] ?? null,
+                ]);
+                $skipped++;
+                continue;
+            }
+
+            $risk = Risk::withTrashed()->firstOrNew([
+                'team_id' => $team->id,
+                'code' => $code,
+            ]);
+
+            if ($risk->exists && method_exists($risk, 'trashed') && $risk->trashed()) {
+                $risk->restore();
+            }
+
+            if (
+                $risk->exists
+                && $risk->updated_at
+                && $risk->created_at
+                && $risk->updated_at->gt($risk->created_at)
+            ) {
+                $skipped++;
+                continue;
+            }
+
+            $wasExisting = $risk->exists;
+
+            $risk->fill([
+                'process_id' => $process->id,
+                'owner_id' => $entry['owner_id'] ?? $fallbackOwnerId,
+                'code' => $code,
+                'title' => $title,
+                'activity' => $entry['activity'] ?? null,
+                'description' => $entry['description'] ?? null,
+                'cause' => $entry['cause'] ?? null,
+                'consequence' => $entry['consequence'] ?? null,
+                'risk_type' => $this->normalizeRiskType($entry['risk_type'] ?? null),
+                'impact_area' => $this->normalizeRiskImpactArea($entry['impact_area'] ?? null),
+                'existing_controls' => $entry['existing_controls'] ?? null,
+                'probability' => $this->normalizeRiskScale($entry['probability'] ?? null),
+                'impact' => $this->normalizeRiskScale($entry['impact'] ?? null),
+                'residual_probability' => $this->normalizeRiskScale($entry['residual_probability'] ?? null),
+                'residual_impact' => $this->normalizeRiskScale($entry['residual_impact'] ?? null),
+                'treatment_plan' => $entry['treatment_plan'] ?? null,
+                'status' => $this->normalizeRiskStatus($entry['status'] ?? null),
+                'review_at' => $this->parseDate($entry['review_at'] ?? null),
+                'data' => is_array($entry['data'] ?? null) ? $entry['data'] : [],
+            ]);
+
+            $risk->save();
+
+            if ($wasExisting) {
+                $updated++;
+            } else {
+                $created++;
+            }
+        }
+
+        Log::info('Riesgos base poblados desde config.', [
+            'team_id' => $team->id,
+            'created' => $created,
+            'updated' => $updated,
+            'skipped' => $skipped,
+        ]);
+    }
+
+    private function resolveRiskProcess($processes, array $entry): ?Process
+    {
+        $processCode = trim((string) ($entry['process_code'] ?? ''));
+        if ($processCode !== '') {
+            $process = $processes->first(function (Process $process) use ($processCode) {
+                return is_string($process->code) && strcasecmp($process->code, $processCode) === 0;
+            });
+
+            if ($process) {
+                return $process;
+            }
+        }
+
+        $processName = trim((string) ($entry['process_name'] ?? ''));
+        if ($processName !== '') {
+            return $processes->first(function (Process $process) use ($processName) {
+                return is_string($process->name) && strcasecmp($process->name, $processName) === 0;
+            });
+        }
+
+        return null;
+    }
+
+    private function normalizeRiskScale(mixed $value): ?int
+    {
+        if (! is_numeric($value)) {
+            return null;
+        }
+
+        $scale = (int) $value;
+
+        if ($scale < 1 || $scale > 5) {
+            return null;
+        }
+
+        return $scale;
+    }
+
+    private function normalizeRiskType(mixed $value): ?string
+    {
+        $allowed = [
+            'operacional',
+            'sanitario',
+            'regulatorio',
+            'calidad',
+            'seguridad',
+            'logistico',
+            'tecnologico',
+            'financiero',
+        ];
+
+        $normalized = is_string($value) ? trim($value) : null;
+
+        return in_array($normalized, $allowed, true) ? $normalized : null;
+    }
+
+    private function normalizeRiskImpactArea(mixed $value): ?string
+    {
+        $allowed = [
+            'paciente',
+            'producto',
+            'regulatorio',
+            'operativo',
+            'financiero',
+            'infraestructura',
+            'ambiente',
+        ];
+
+        $normalized = is_string($value) ? trim($value) : null;
+
+        return in_array($normalized, $allowed, true) ? $normalized : null;
+    }
+
+    private function normalizeRiskStatus(mixed $value): string
+    {
+        $allowed = [
+            'abierto',
+            'en_tratamiento',
+            'aceptado',
+            'cerrado',
+        ];
+
+        $normalized = is_string($value) ? trim($value) : '';
+
+        return in_array($normalized, $allowed, true) ? $normalized : 'abierto';
+    }
+
 
     public function populateSchedules(Team $team, ?User $owner = null, ?Role $roleAdmin = null): void
     {
@@ -1789,7 +1996,7 @@ class TeamSetupService
             return;
         }
 
-        Enrollment::firstOrCreate([
+        $enrollment = Enrollment::firstOrCreate([
             'team_id' => $team->id,
             'user_id' => $owner->id,
             'course_id' => $course->id,
@@ -1803,5 +2010,8 @@ class TeamSetupService
             'certificate_url' => null,
             'score_final' => null,
         ]);
+
+        app(\App\Services\Quality\EnrollmentLessonService::class)
+            ->initializeForEnrollment($enrollment, $course->loadMissing('modules.lessons'));
     }
 }

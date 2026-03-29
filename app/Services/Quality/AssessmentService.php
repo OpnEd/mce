@@ -1,94 +1,230 @@
 <?php
+
 namespace App\Services\Quality;
 
 use App\Models\Quality\Training\Assessment;
 use App\Models\Quality\Training\AssessmentAttempt;
 use App\Models\Quality\Training\Enrollment;
-use Carbon\Carbon;
+use App\Models\Quality\Training\EnrollmentLesson;
+use App\Models\Quality\Training\Lesson;
 use Illuminate\Support\Facades\DB;
 
 class AssessmentService
 {
-    /**
-     * Inicia un intento (crea registro) para un assessment y enrollment.
-     */
-    public function startAttempt(Assessment $assessment, Enrollment $enrollment, $user)
+    public function __construct(
+        protected EnrollmentLessonService $enrollmentLessons
+    ) {}
+
+    public function startAttempt(Assessment $assessment, Enrollment $enrollment, $user): AssessmentAttempt
     {
-        // validar que el enrollment corresponde al course de la lesson
-        if ($assessment->lesson->module->course_id !== $enrollment->course_id) {
-            throw new \Exception("Enrollment no corresponde al curso del assessment.");
+        // SEGURIDAD: Validar que el usuario pertenece al enrollment
+        if ($user->id !== $enrollment->user_id) {
+            throw new \RuntimeException('El usuario no está inscrito en esta matrícula.');
         }
 
-        $attempt = AssessmentAttempt::create([
-            'assessment_id' => $assessment->id,
-            'enrollment_id' => $enrollment->id,
-            'user_id' => $user->id,
-            'answers' => null,
-            'score' => null,
-            'passed' => false,
-        ]);
+        $lesson = $assessment->lesson;
 
-        return $attempt;
-    }
+        // VALIDACIÓN: El assessment debe estar asociado a una lección
+        if (! $lesson) {
+            throw new \RuntimeException('El assessment no está asociado a una lección.');
+        }
 
-    /**
-     * Corrige un intento: compara respuestas con las correctas, calcula score y marca passed si aplica.
-     * Answers format expected: ['q0' => 'option_index', ...] o similar, depende de tu JSON.
-     */
-    public function gradeAttempt(AssessmentAttempt $attempt, array $answers): AssessmentAttempt
-    {
-        $assessment = $attempt->assessment;
-        $questions = $assessment->questions ?? [];
+        // SEGURIDAD: Validar que el assessment pertenece al curso del enrollment
+        if ($lesson->module->course_id !== $enrollment->course_id) {
+            throw new \RuntimeException('La matrícula no corresponde al curso del assessment.');
+        }
 
-        $total = count($questions);
-        $correctCount = 0;
+        // VALIDACIÓN: Verificar límite de intentos si está configurado
+        $maxAttempts = $assessment->max_attempts;
+        if ($maxAttempts !== null && $maxAttempts > 0) {
+            $attemptCount = AssessmentAttempt::query()
+                ->where('assessment_id', $assessment->id)
+                ->where('enrollment_id', $enrollment->id)
+                ->where('user_id', $user->id)
+                ->count();
 
-        foreach ($questions as $index => $q) {
-            // define el identificador de la pregunta en el payload
-            $key = "q{$index}";
-            $correct = $q['correct'] ?? null; // asumimos que 'correct' guarda el índice o valor
-            $given = $answers[$key] ?? null;
-
-            if ($given !== null) {
-                // comparación flexible: puede ser índice o valor
-                if ($given == $correct) {
-                    $correctCount++;
-                }
+            if ($attemptCount >= $maxAttempts) {
+                throw new \RuntimeException(
+                    "Se ha alcanzado el límite máximo de intentos ({$maxAttempts}) para esta evaluación."
+                );
             }
         }
 
-        $score = $total > 0 ? intval(round(($correctCount / $total) * 100)) : 0;
-        $passed = $score >= $assessment->pass_percentage;
+        return DB::transaction(function () use ($assessment, $enrollment, $lesson, $user) {
+            $enrollmentLesson = $this->enrollmentLessons->getOrCreate($enrollment, $lesson);
+            $this->enrollmentLessons->touchAccess($enrollmentLesson);
 
-        $attempt->answers = $answers;
-        $attempt->score = $score;
-        $attempt->passed = $passed;
-        if ($passed && !$attempt->passed_at) {
-            $attempt->passed_at = Carbon::now();
+            return AssessmentAttempt::create([
+                'assessment_id' => $assessment->id,
+                'enrollment_id' => $enrollment->id,
+                'lesson_id' => $lesson->id,
+                'user_id' => $user->id,
+                'status' => 'in_progress',
+                'started_at' => now(),
+                'passed' => false,
+            ]);
+        });
+    }
+
+    /**
+     * Save user answers to an attempt without grading yet
+     */
+    public function submitAttempt(AssessmentAttempt $attempt, array $answers): AssessmentAttempt
+    {
+        // Validate that this attempt belongs to the current user
+        if ($attempt->user_id !== auth()->id()) {
+            throw new \RuntimeException('No tienes permiso para enviar esta evaluación.');
         }
+
+        // Validate attempt is still in progress
+        if ($attempt->status !== 'in_progress') {
+            throw new \RuntimeException('Este intento ya ha sido completado.');
+        }
+
+        // Save the responses (answers will be graded in next step)
+        $attempt->responses = $answers;
         $attempt->save();
-
-        if ($passed) {
-            $this->markLessonPassedForEnrollment($assessment->lesson->id, $attempt->enrollment);
-        }
-
-        // actualizar progreso del enrollment
-        $attempt->enrollment->updateProgress();
 
         return $attempt->fresh();
     }
 
     /**
-     * Marca la lección como pasada en el pivot enrollment_lesson.
+     * Grade an assessment attempt
      */
-    protected function markLessonPassedForEnrollment(int $lessonId, Enrollment $enrollment)
+    public function gradeAttempt(AssessmentAttempt $attempt): AssessmentAttempt
     {
-        $now = Carbon::now();
+        return DB::transaction(function () use ($attempt) {
+            $assessment = $attempt->assessment()->with('questions', 'lesson')->firstOrFail();
+            $lesson = $attempt->lesson ?? $assessment->lesson;
 
-        DB::table('enrollment_lesson')->updateOrInsert(
-            ['enrollment_id' => $enrollment->id, 'lesson_id' => $lessonId],
-            ['passed' => true, 'passed_at' => $now, 'updated_at' => $now, 'created_at' => DB::raw('COALESCE(created_at, NOW())')]
-        );
+            if (! $lesson) {
+                throw new \RuntimeException('No se pudo resolver la lección del intento.');
+            }
+
+            // Get answers from the attempt
+            $answers = $attempt->responses ?? [];
+
+            // Calculate score
+            $questions = $assessment->questions()->get();
+            $totalQuestions = $questions->count();
+            $correctAnswers = 0;
+
+            foreach ($questions as $question) {
+                $userAnswer = $answers[$question->id] ?? null;
+
+                if ($this->isAnswerCorrect($question, $userAnswer)) {
+                    $correctAnswers++;
+                }
+            }
+
+            // Calculate percentage score
+            $score = $totalQuestions > 0 ? ($correctAnswers / $totalQuestions) * 100 : 0;
+            $passed = $score >= ($assessment->passing_score ?? 60);
+
+            // Update attempt with results
+            $attempt->status = 'completed';
+            $attempt->completed_at = now();
+            $attempt->score = round($score, 2);
+            $attempt->passed = $passed;
+            $attempt->passed_at = $passed ? now() : null;
+            $attempt->lesson_id ??= $lesson->id;
+            $attempt->save();
+
+            // Update enrollment lesson status
+            if ($attempt->enrollment) {
+                $enrollmentLesson = $this->enrollmentLessons->getOrCreate($attempt->enrollment, $lesson);
+
+                if ($passed) {
+                    $this->enrollmentLessons->markPassed($enrollmentLesson, $attempt);
+                } else {
+                    $this->enrollmentLessons->markConsumed($enrollmentLesson);
+                }
+            }
+
+            return $attempt->fresh();
+        });
+    }
+
+    /**
+     * Check if an answer is correct
+     */
+    private function isAnswerCorrect($question, $answer): bool
+    {
+        if (is_null($answer) || $answer === '') {
+            return false;
+        }
+
+        // Multiple choice
+        if ($question->type === 'multiple_choice') {
+            return $question->correct_answer === $answer;
+        }
+
+        // True/False
+        if ($question->type === 'true_false') {
+            return strtolower((string) $question->correct_answer) === strtolower((string) $answer);
+        }
+
+        // Short answer (case-insensitive)
+        if ($question->type === 'short_answer') {
+            return strtolower(trim((string) $question->correct_answer)) === strtolower(trim((string) $answer));
+        }
+
+        // Essay - always considered for manual review (return true for now)
+        if ($question->type === 'essay') {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Obtener el número de intentos restantes para una evaluación.
+     * Retorna null si es ilimitado.
+     */
+    public function getRemainingAttempts(Assessment $assessment, Enrollment $enrollment, $user): ?int
+    {
+        if ($assessment->max_attempts === null) {
+            return null; // Ilimitados
+        }
+
+        $usedAttempts = AssessmentAttempt::query()
+            ->where('assessment_id', $assessment->id)
+            ->where('enrollment_id', $enrollment->id)
+            ->where('user_id', $user->id)
+            ->count();
+
+        return max(0, $assessment->max_attempts - $usedAttempts);
+    }
+
+    /**
+     * Verificar si un usuario puede iniciar un intento de la evaluación.
+     * Retorna [bool, ?string] - (can_attempt, error_message)
+     */
+    public function canStartAttempt(Assessment $assessment, Enrollment $enrollment, $user): array
+    {
+        // Validar pertenencia
+        if ($user->id !== $enrollment->user_id) {
+            return [false, 'El usuario no está inscrito en esta matrícula.'];
+        }
+
+        // Validar que assessment tiene lección
+        if (! $assessment->lesson) {
+            return [false, 'El assessment no está asociado a una lección.'];
+        }
+
+        // Validar que assessment pertenece al curso
+        if ($assessment->lesson->module->course_id !== $enrollment->course_id) {
+            return [false, 'La matrícula no corresponde al curso del assessment.'];
+        }
+
+        // Validar límite de intentos
+        if ($assessment->max_attempts !== null && $assessment->max_attempts > 0) {
+            $remainingAttempts = $this->getRemainingAttempts($assessment, $enrollment, $user);
+            if ($remainingAttempts === 0) {
+                return [false, "Se ha alcanzado el límite máximo de intentos ({$assessment->max_attempts}) para esta evaluación."];
+            }
+        }
+
+        return [true, null];
     }
 }
-

@@ -6,6 +6,7 @@ use App\Models\Purchase;
 use App\Filament\Resources\Quality\Records\Products\PurchaseResource;
 use Filament\Resources\Components\Tab;
 use Illuminate\Database\Eloquent\Builder;
+use Filament\Actions;
 use App\Filament\Resources\SaleResource;
 use App\Models\CentralProductPrice;
 use App\Models\Customer;
@@ -38,6 +39,49 @@ class ListPurchases extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('quickPurchase')
+                ->label('Crear orden de compra')
+                ->icon('phosphor-shopping-bag')
+                ->modalHeading(__('New Purchase'))
+                ->form([
+
+                    Forms\Components\Select::make('supplier_id')
+                        ->label(__('fields.supplier'))
+                        ->options(
+                            Supplier::all()->pluck('name', 'id')
+                        )
+                        ->searchable()
+                        ->required(),
+                ])
+                ->action(function (array $data, Action $action) {
+
+                    // Crear la compra (Purchase) con los datos proporcionados
+                    $purchase = Purchase::create([
+                        'team_id'       => Filament::getTenant()->id,
+                        'supplier_id'   => $data['supplier_id'],
+                        'code'          => (new Purchase())->generatePurchaseCode(),
+                        'status'        => 'in_progress',
+                        'total'         => $data['total'] ?? 0,
+                        'observations'  => null,
+                        'data'          => [],
+                    ]);
+
+                    Notification::make()
+                        ->title('Orden de compra iniciada!')
+                        ->body('Puedes continuar agragando productos.')
+                        ->icon('phosphor-check')
+                        ->success()
+                        ->send();
+
+                    // Redirigir al formulario de edición de este Sale (donde ItemsRelationManager mostrará el item)
+                    return Redirect::to(
+                        PurchaseResource::getUrl('edit', ['record' => $purchase->id])
+                    );
+                })
+                ->requiresConfirmation()
+                ->visible(fn(): bool => Gate::allows('create', Purchase::class)),
+            /* Actions\CreateAction::make()
+                ->label('Nueva orden de compra'), */
             /* Action::make('create_with_code')
                 ->label('Registro simple')
                 ->icon('phosphor-cursor-click')
