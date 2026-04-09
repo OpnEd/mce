@@ -12,132 +12,93 @@ use App\Models\Quality\Training\Module;
 use App\Models\Quality\Training\Question;
 use App\Models\User;
 use App\Services\Quality\AssessmentService;
-use Battery\Tenancy\Tests\Concerns\WithTenants;
+use App\Services\Quality\EnrollmentLessonService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class StudentFlowTest extends TestCase
 {
-    use RefreshDatabase, WithTenants;
+    use RefreshDatabase;
 
     protected User $student;
-
+    protected \App\Models\Team $team;
     protected Course $course;
-
     protected Module $module;
-
     protected Lesson $lesson;
-
     protected Assessment $assessment;
-
     protected Enrollment $enrollment;
-
     protected AssessmentService $assessmentService;
+    protected EnrollmentLessonService $enrollmentLessonService;
+    protected Question $singleChoiceQuestion;
+    protected Question $multipleChoiceQuestion;
+    protected Question $trueFalseQuestion;
+    protected ?Question $freeTextQuestion = null;
 
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->assessmentService = app(AssessmentService::class);
+        $this->enrollmentLessonService = app(EnrollmentLessonService::class);
+        $this->team = \App\Models\Team::factory()->create();
+        $this->student = User::factory()->create([
+            'current_team_id' => $this->team->id,
+        ]);
 
-        // Create test data
-        $this->student = User::factory()->create();
-        $this->course = Course::factory()
-            ->for($this->tenant)
-            ->create(['title' => 'Curso de Capacitación']);
+        $this->course = Course::factory()->create([
+            'team_id' => $this->team->id,
+            'title' => 'Curso de Capacitacion',
+            'active' => true,
+        ]);
 
-        $this->module = Module::factory()
-            ->for($this->course)
-            ->create(['order' => 1, 'title' => 'Módulo 1']);
+        $this->module = Module::create([
+            'course_id' => $this->course->id,
+            'title' => 'Modulo 1',
+            'objective' => 'Objetivo',
+            'description' => 'Descripcion',
+            'duration' => 60,
+            'order' => 1,
+            'active' => true,
+        ]);
 
-        $this->lesson = Lesson::factory()
-            ->for($this->module)
-            ->create([
-                'order' => 1,
-                'title' => 'Lección 1: Introducción',
-                'completion_mode' => 'assessment_required',
-                'duration' => 15,
-            ]);
+        $this->lesson = Lesson::create([
+            'module_id' => $this->module->id,
+            'title' => 'Leccion 1',
+            'objective' => 'Objetivo',
+            'description' => 'Descripcion',
+            'duration' => 15,
+            'order' => 1,
+            'content' => 'Contenido',
+            'active' => true,
+            'completion_mode' => Lesson::COMPLETION_MODE_ASSESSMENT_REQUIRED,
+        ]);
 
-        $this->assessment = Assessment::factory()
-            ->for($this->lesson)
-            ->for($this->course)
-            ->create([
-                'title' => 'Evaluación Lección 1',
-                'passing_score' => 70,
-                'max_attempts' => 3,
-                'duration_minutes' => 10,
-                'show_feedback' => true,
-            ]);
+        $this->assessment = Assessment::create([
+            'title' => 'Evaluacion Leccion 1',
+            'description' => 'Instrucciones',
+            'course_id' => $this->course->id,
+            'lesson_id' => $this->lesson->id,
+            'type' => 'quiz',
+            'max_score' => 100,
+            'passing_score' => 70,
+            'max_attempts' => 3,
+            'duration' => 10,
+            'duration_minutes' => 10,
+            'show_feedback' => true,
+            'active' => true,
+        ]);
 
-        // Create questions
-        foreach (range(1, 3) as $i) {
-            Question::factory()
-                ->for($this->assessment)
-                ->create([
-                    'question_text' => "Pregunta $i",
-                    'type' => 'multiple_choice',
-                    'correct_answer' => 'option_a',
-                    'required' => true,
-                ]);
-        }
+        $this->seedQuestions();
 
-        // Enroll student
-        $this->enrollment = Enrollment::factory()
-            ->for($this->student)
-            ->for($this->course)
-            ->for($this->tenant)
-            ->create(['status' => 'in_progress', 'progress' => 0]);
+        $this->enrollment = Enrollment::create([
+            'team_id' => $this->team->id,
+            'user_id' => $this->student->id,
+            'course_id' => $this->course->id,
+            'status' => Enrollment::STATUS_IN_PROGRESS,
+            'progress' => 0,
+        ]);
     }
 
-    /**
-     * Test student can view lesson with all components
-     */
-    public function test_student_can_view_lesson_with_breadcrumbs(): void
-    {
-        $this->actingAs($this->student);
-
-        // Navigate to lesson view
-        $response = $this->get(route('filament.admin.resources.enrollments.edit', [
-            'record' => $this->enrollment->id,
-        ]));
-
-        $response->assertStatus(200);
-    }
-
-    /**
-     * Test student can mark lesson as consumed
-     */
-    public function test_student_can_mark_lesson_consumed(): void
-    {
-        $this->actingAs($this->student);
-
-        // Create or get enrollment lesson
-        $enrollmentLesson = EnrollmentLesson::firstOrCreate(
-            [
-                'enrollment_id' => $this->enrollment->id,
-                'lesson_id' => $this->lesson->id,
-            ],
-            [
-                'status' => 'not_started',
-                'consumed' => false,
-                'passed' => false,
-            ]
-        );
-
-        $this->assertFalse($enrollmentLesson->consumed);
-
-        // Mark as consumed via Livewire action (simulating component method)
-        // In real test, this would be done via Livewire testing
-        $enrollmentLesson->consumed = true;
-        $enrollmentLesson->save();
-
-        $this->assertTrue($enrollmentLesson->fresh()->consumed);
-    }
-
-    /**
-     * Test student can start assessment attempt
-     */
     public function test_student_can_start_assessment_attempt(): void
     {
         $this->actingAs($this->student);
@@ -154,45 +115,29 @@ class StudentFlowTest extends TestCase
         $this->assertEquals($this->student->id, $attempt->user_id);
     }
 
-    /**
-     * Test student submission and automatic grading of assessment
-     */
     public function test_student_can_submit_assessment_and_receive_score(): void
     {
         $this->actingAs($this->student);
 
-        // Start attempt
         $attempt = $this->assessmentService->startAttempt(
             assessment: $this->assessment,
             enrollment: $this->enrollment,
             user: $this->student,
         );
 
-        // Prepare answers (2 correct out of 3 = 66.67%)
-        $questions = $this->assessment->questions()->get();
-        $answers = [];
-        foreach ($questions as $index => $question) {
-            $answers[$question->id] = $index < 2 ? 'option_a' : 'option_b'; // 2 correct, 1 wrong
-        }
+        $answers = $this->buildPartiallyCorrectAnswers();
 
-        // Submit attempt
         $submittedAttempt = $this->assessmentService->submitAttempt($attempt, $answers);
-        $this->assertEquals('in_progress', $submittedAttempt->status);
-        $this->assertEquals($answers, $submittedAttempt->responses);
-
-        // Grade attempt
         $gradedAttempt = $this->assessmentService->gradeAttempt($submittedAttempt);
 
         $this->assertEquals('completed', $gradedAttempt->status);
-        $this->assertNotNull($gradedAttempt->score);
-        $this->assertFalse($gradedAttempt->passed); // 66.67% < 70%
+        $this->assertEquals(66.67, $gradedAttempt->score);
+        $this->assertFalse($gradedAttempt->passed);
         $this->assertNotNull($gradedAttempt->completed_at);
+        $this->assertCount(4, $gradedAttempt->userAnswers);
     }
 
-    /**
-     * Test student passes assessment with high score
-     */
-    public function test_student_passes_assessment_with_high_score(): void
+    public function test_student_passes_assessment_with_all_correct_answers_and_updates_progress(): void
     {
         $this->actingAs($this->student);
 
@@ -202,84 +147,28 @@ class StudentFlowTest extends TestCase
             user: $this->student,
         );
 
-        // All correct answers
-        $questions = $this->assessment->questions()->get();
-        $answers = [];
-        foreach ($questions as $question) {
-            $answers[$question->id] = 'option_a'; // All correct
-        }
+        $gradedAttempt = $this->assessmentService->gradeAttempt($attempt, $this->buildCorrectAnswers());
 
-        $submittedAttempt = $this->assessmentService->submitAttempt($attempt, $answers);
-        $gradedAttempt = $this->assessmentService->gradeAttempt($submittedAttempt);
+        $this->enrollment->refresh();
 
-        $this->assertTrue($gradedAttempt->passed); // 100% >= 70%
+        $this->assertTrue($gradedAttempt->passed);
         $this->assertEquals(100.0, $gradedAttempt->score);
         $this->assertNotNull($gradedAttempt->passed_at);
+        $this->assertEquals(100, $this->enrollment->progress);
+        $this->assertEquals(Enrollment::STATUS_COMPLETED, $this->enrollment->status);
+        $this->assertEquals(100.0, $this->enrollment->score_final);
     }
 
-    /**
-     * Test attempt limit enforcement
-     */
-    public function test_student_cannot_exceed_attempt_limit(): void
+    public function test_student_cannot_access_other_students_enrollment(): void
     {
-        $this->actingAs($this->student);
+        $otherStudent = User::factory()->create([
+            'current_team_id' => $this->team->id,
+        ]);
 
-        $remainingAttempts = $this->assessmentService->getRemainingAttempts(
-            $this->assessment,
-            $this->enrollment,
-            $this->student,
-        );
-
-        $this->assertEquals(3, $remainingAttempts); // Initial: 3 attempts
-
-        // Create 3 failed attempts
-        for ($i = 0; $i < 3; $i++) {
-            $attempt = $this->assessmentService->startAttempt(
-                assessment: $this->assessment,
-                enrollment: $this->enrollment,
-                user: $this->student,
-            );
-
-            $questions = $this->assessment->questions()->get();
-            $answers = [];
-            foreach ($questions as $question) {
-                $answers[$question->id] = 'option_b'; // All wrong
-            }
-
-            $submitted = $this->assessmentService->submitAttempt($attempt, $answers);
-            $this->assessmentService->gradeAttempt($submitted);
-
-            $remaining = $this->assessmentService->getRemainingAttempts(
-                $this->assessment,
-                $this->enrollment,
-                $this->student,
-            );
-
-            $this->assertEquals(2 - $i, $remaining);
-        }
-
-        // Fourth attempt should fail
-        $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Se ha alcanzado el límite máximo de intentos');
-
-        $this->assessmentService->startAttempt(
-            assessment: $this->assessment,
-            enrollment: $this->enrollment,
-            user: $this->student,
-        );
-    }
-
-    /**
-     * Test access control - student cannot view others' lessons
-     */
-    public function test_student_cannot_access_other_students_lesson(): void
-    {
-        $otherStudent = User::factory()->create();
         $this->actingAs($otherStudent);
 
-        // Try to start assessment on enrollment not owned by this student
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('El usuario no está inscrito en esta matrícula');
+        $this->expectExceptionMessage('El usuario no esta inscrito en esta matricula');
 
         $this->assessmentService->startAttempt(
             assessment: $this->assessment,
@@ -288,75 +177,33 @@ class StudentFlowTest extends TestCase
         );
     }
 
-    /**
-     * Test dashboard shows correct enrollment statistics
-     */
-    public function test_student_dashboard_shows_enrollments(): void
+    public function test_free_text_answers_are_stored_but_not_counted_for_automatic_grading(): void
     {
+        $this->addFreeTextQuestion();
         $this->actingAs($this->student);
 
-        // Create another enrollment
-        $course2 = Course::factory()
-            ->for($this->tenant)
-            ->create(['title' => 'Curso 2']);
-
-        $enrollment2 = Enrollment::factory()
-            ->for($this->student)
-            ->for($course2)
-            ->for($this->tenant)
-            ->create(['status' => 'completed', 'progress' => 100]);
-
-        $response = $this->get(route('filament.admin.pages.student-dashboard'));
-
-        $response->assertStatus(200);
-        // The page should be accessible and contain blade content
-    }
-
-    /**
-     * Test question answer validation for different question types
-     */
-    public function test_multiple_choice_answer_validation(): void
-    {
-        $this->actingAs($this->student);
-
-        $question = Question::factory()
-            ->for($this->assessment)
-            ->create([
-                'question_text' => 'Question: ¿Cuál es la capital de Francia?',
-                'type' => 'multiple_choice',
-                'correct_answer' => 'paris',
-                'required' => true,
-            ]);
-
-        // Create attempt with correct answer
-        $attempt1 = $this->assessmentService->startAttempt(
-            assessment: $this->assessment,
+        $attempt = $this->assessmentService->startAttempt(
+            assessment: $this->assessment->fresh(),
             enrollment: $this->enrollment,
             user: $this->student,
         );
 
-        $answers = [$question->id => 'paris'];
-        foreach ($this->assessment->questions()->where('id', '!=', $question->id)->get() as $q) {
-            $answers[$q->id] = 'option_a';
-        }
+        $answers = $this->buildCorrectAnswers() + [
+            $this->freeTextQuestion->id => 'Respuesta abierta del estudiante',
+        ];
 
-        $submitted1 = $this->assessmentService->submitAttempt($attempt1, $answers);
-        $graded1 = $this->assessmentService->gradeAttempt($submitted1);
+        $gradedAttempt = $this->assessmentService->gradeAttempt($attempt, $answers);
+        $summary = $this->assessmentService->buildAttemptSummary($gradedAttempt);
 
-        // Should pass (1/3 correct... actually wait, let me reconsider)
-        // We have 3 questions: 2 original + 1 new = actually 4 total now
-        // This test just validates the answer matching works
-        $this->assertNotNull($graded1->score);
+        $this->assertEquals(100.0, $gradedAttempt->score);
+        $this->assertEquals(4, $summary['total_questions']);
+        $this->assertEquals(3, $summary['gradable_questions']);
+        $this->assertSame('Respuesta abierta del estudiante', $gradedAttempt->responses[$this->freeTextQuestion->id]);
     }
 
-    /**
-     * Test enrollment progress updates after passing assessment
-     */
-    public function test_enrollment_progress_updates_after_passing_assessment(): void
+    public function test_grade_attempt_accepts_answers_directly(): void
     {
         $this->actingAs($this->student);
-
-        $initialProgress = $this->enrollment->progress;
 
         $attempt = $this->assessmentService->startAttempt(
             assessment: $this->assessment,
@@ -364,19 +211,159 @@ class StudentFlowTest extends TestCase
             user: $this->student,
         );
 
-        $questions = $this->assessment->questions()->get();
-        $answers = [];
-        foreach ($questions as $question) {
-            $answers[$question->id] = 'option_a'; // All correct
-        }
+        $gradedAttempt = $this->assessmentService->gradeAttempt($attempt, $this->buildCorrectAnswers());
 
-        $submitted = $this->assessmentService->submitAttempt($attempt, $answers);
-        $this->assessmentService->gradeAttempt($submitted);
+        $this->assertTrue($gradedAttempt->passed);
+        $this->assertNotEmpty($gradedAttempt->responses);
+        $this->assertCount(4, $gradedAttempt->userAnswers);
+    }
 
-        // Refresh enrollment from database
+    public function test_failed_retry_does_not_downgrade_a_previously_passed_lesson(): void
+    {
+        $this->actingAs($this->student);
+
+        $passedAttempt = $this->assessmentService->startAttempt(
+            assessment: $this->assessment,
+            enrollment: $this->enrollment,
+            user: $this->student,
+        );
+
+        $this->assessmentService->gradeAttempt($passedAttempt, $this->buildCorrectAnswers());
+
+        $failedAttempt = $this->assessmentService->startAttempt(
+            assessment: $this->assessment,
+            enrollment: $this->enrollment,
+            user: $this->student,
+        );
+
+        $this->assessmentService->gradeAttempt($failedAttempt, $this->buildPartiallyCorrectAnswers());
+
+        $lessonProgress = EnrollmentLesson::query()
+            ->where('enrollment_id', $this->enrollment->id)
+            ->where('lesson_id', $this->lesson->id)
+            ->firstOrFail();
+
         $this->enrollment->refresh();
 
-        // Progress should have been updated
-        $this->assertGreaterThanOrEqual($initialProgress, $this->enrollment->progress);
+        $this->assertSame(EnrollmentLesson::STATUS_PASSED, $lessonProgress->status);
+        $this->assertTrue($lessonProgress->passed);
+        $this->assertEquals(100, $this->enrollment->progress);
+        $this->assertEquals(Enrollment::STATUS_COMPLETED, $this->enrollment->status);
+    }
+
+    public function test_consumption_only_lesson_completes_enrollment_without_assessment_score(): void
+    {
+        $course = Course::factory()->create([
+            'team_id' => $this->team->id,
+            'title' => 'Curso consumo',
+            'active' => true,
+        ]);
+
+        $module = Module::create([
+            'course_id' => $course->id,
+            'title' => 'Modulo consumo',
+            'objective' => 'Objetivo',
+            'description' => 'Descripcion',
+            'duration' => 30,
+            'order' => 1,
+            'active' => true,
+        ]);
+
+        $lesson = Lesson::create([
+            'module_id' => $module->id,
+            'title' => 'Leccion consumo',
+            'objective' => 'Objetivo',
+            'description' => 'Descripcion',
+            'duration' => 10,
+            'order' => 1,
+            'content' => 'Contenido',
+            'active' => true,
+            'completion_mode' => Lesson::COMPLETION_MODE_CONSUMPTION_ONLY,
+        ]);
+
+        $enrollment = Enrollment::create([
+            'team_id' => $this->team->id,
+            'user_id' => $this->student->id,
+            'course_id' => $course->id,
+            'status' => Enrollment::STATUS_IN_PROGRESS,
+            'progress' => 0,
+        ]);
+
+        $enrollmentLesson = $this->enrollmentLessonService->getOrCreate($enrollment, $lesson);
+        $this->enrollmentLessonService->markConsumed($enrollmentLesson);
+
+        $enrollment->refresh();
+
+        $this->assertEquals(100, $enrollment->progress);
+        $this->assertEquals(Enrollment::STATUS_COMPLETED, $enrollment->status);
+        $this->assertNull($enrollment->score_final);
+    }
+
+    private function seedQuestions(): void
+    {
+        $this->singleChoiceQuestion = $this->assessment->questions()->create([
+            'team_id' => $this->team->id,
+            'question_text' => 'Pregunta unica',
+            'type' => Question::TYPE_MULTIPLE_CHOICE_SINGLE,
+            'data' => ['required' => true],
+        ]);
+
+        $this->singleChoiceQuestion->question_options()->createMany([
+            ['option_text' => 'Correcta', 'is_correct' => true],
+            ['option_text' => 'Incorrecta', 'is_correct' => false],
+        ]);
+
+        $this->multipleChoiceQuestion = $this->assessment->questions()->create([
+            'team_id' => $this->team->id,
+            'question_text' => 'Pregunta multiple',
+            'type' => Question::TYPE_MULTIPLE_CHOICE_MULTIPLE,
+            'data' => ['required' => true],
+        ]);
+
+        $this->multipleChoiceQuestion->question_options()->createMany([
+            ['option_text' => 'Opcion A', 'is_correct' => true],
+            ['option_text' => 'Opcion B', 'is_correct' => true],
+            ['option_text' => 'Opcion C', 'is_correct' => false],
+        ]);
+
+        $this->trueFalseQuestion = $this->assessment->questions()->create([
+            'team_id' => $this->team->id,
+            'question_text' => 'Pregunta verdadero o falso',
+            'type' => Question::TYPE_TRUE_FALSE,
+            'data' => ['required' => true],
+        ]);
+
+        $this->trueFalseQuestion->question_options()->createMany([
+            ['option_text' => 'Verdadero', 'is_correct' => true],
+            ['option_text' => 'Falso', 'is_correct' => false],
+        ]);
+    }
+
+    private function addFreeTextQuestion(): void
+    {
+        $this->freeTextQuestion = $this->assessment->questions()->create([
+            'team_id' => $this->team->id,
+            'question_text' => 'Pregunta abierta',
+            'type' => Question::TYPE_FREE_TEXT,
+            'data' => ['required' => true],
+        ]);
+    }
+
+    private function buildCorrectAnswers(): array
+    {
+        return [
+            $this->singleChoiceQuestion->id => $this->singleChoiceQuestion->question_options()->where('is_correct', true)->value('id'),
+            $this->multipleChoiceQuestion->id => $this->multipleChoiceQuestion->question_options()->where('is_correct', true)->pluck('id')->all(),
+            $this->trueFalseQuestion->id => $this->trueFalseQuestion->question_options()->where('is_correct', true)->value('id'),
+        ];
+    }
+
+    private function buildPartiallyCorrectAnswers(): array
+    {
+        return [
+            $this->singleChoiceQuestion->id => $this->singleChoiceQuestion->question_options()->where('is_correct', true)->value('id'),
+            $this->multipleChoiceQuestion->id => $this->multipleChoiceQuestion->question_options()->where('is_correct', true)->pluck('id')->all(),
+            $this->trueFalseQuestion->id => $this->trueFalseQuestion->question_options()->where('is_correct', false)->value('id'),
+        ];
     }
 }

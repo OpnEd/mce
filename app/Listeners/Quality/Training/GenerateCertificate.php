@@ -5,6 +5,7 @@ namespace App\Listeners\Quality\Training;
 use App\Events\Quality\Training\EnrollmentCompleted;
 use App\Models\Quality\Training\Certificate;
 use App\Notifications\Quality\Training\CertificateIssuedNotification;
+use App\Services\Quality\AuditService;
 use App\Services\Quality\CertificateService;
 use Filament\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -12,20 +13,19 @@ use Throwable;
 
 class GenerateCertificate implements ShouldQueue
 {
-    /**
-     * Create the event listener.
-     */
+    public int $tries = 3;
+
+    public int $backoff = 60;
+
     public function __construct(
         protected CertificateService $certificateService
     ) {}
 
-    /**
-     * Handle the event.
-     */
     public function handle(EnrollmentCompleted $event): void
     {
         try {
-            // Crear certificado
+            $event->enrollment->loadMissing('user', 'course');
+
             $certificate = $this->certificateService->generateCertificate(
                 enrollment: $event->enrollment,
                 user: $event->enrollment->user,
@@ -34,14 +34,19 @@ class GenerateCertificate implements ShouldQueue
                 templateName: 'default'
             );
 
-            // Actualizar campos legacy en Enrollment
             $event->enrollment->update([
                 'certificated_at' => $certificate->issued_at,
                 'certificate_url' => $certificate->getPdfDownloadUrl(),
                 'score_final' => $event->finalScore,
             ]);
 
-            // Notificar al usuario
+            AuditService::logCreate(
+                $certificate->team_id,
+                'Certificate',
+                $certificate->id,
+                description: "Certificado emitido para '{$event->enrollment->course->title}'",
+            );
+
             $this->notifyUser($event->enrollment, $certificate);
 
             \Log::info('Certificate generated successfully', [
@@ -56,27 +61,20 @@ class GenerateCertificate implements ShouldQueue
                 'error' => $e->getMessage(),
             ]);
 
-            // Re-throw para que el job se reintente
             throw $e;
         }
     }
 
-    /**
-     * Notificar al usuario sobre el certificado emitido
-     */
     private function notifyUser($enrollment, Certificate $certificate): void
     {
         try {
-            // Enviar notificación por email
             $enrollment->user->notify(
                 new CertificateIssuedNotification($certificate, $enrollment->course)
             );
 
-            // También podemos enviar notificación en Filament (si el usuario está logged in)
-            // Esto se mostraría en el dashboard
             if (auth()->check() && auth()->id() === $enrollment->user_id) {
                 Notification::make()
-                    ->title('¡Certificado Emitido!')
+                    ->title('Certificado emitido')
                     ->body("Tu certificado para {$enrollment->course->title} ha sido generado.")
                     ->success()
                     ->send();
@@ -89,21 +87,8 @@ class GenerateCertificate implements ShouldQueue
         }
     }
 
-    /**
-     * Determine if the listener should be queued (ya implementado en la interfaz)
-     */
     public function shouldQueue(): bool
     {
         return true;
     }
-
-    /**
-     * Número de intentos para reintento
-     */
-    public int $tries = 3;
-
-    /**
-     * Tiempo de espera entre reintentos (segundos)
-     */
-    public int $backoff = 60;
 }

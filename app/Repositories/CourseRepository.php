@@ -31,9 +31,14 @@ class CourseRepository implements CourseInterface
         return Course::where('category', $category)->get();
     }
 
-    public function findActivecourses(): Collection
+    public function findActivecourses(int $teamId): Collection
     {
-        return Course::where('active', true)->get();
+        return Course::query()
+            ->active()
+            ->visibleToTeam($teamId)
+            ->with(['instructor'])
+            ->orderBy('title')
+            ->get();
     }
 
     public function findCoursesByInstructor(int $instructorId): Collection

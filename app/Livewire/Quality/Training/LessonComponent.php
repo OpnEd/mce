@@ -37,19 +37,20 @@ class LessonComponent extends Component
     public $totalLessons;
     public $currentLessonPosition;
     public array $lessonStatus = [];
-    
-    // FASE 2: Propiedades nuevas
+
     public ?Assessment $assessment = null;
     public ?int $remainingAttempts = null;
     public bool $lessonConsumed = false;
     public array $breadcrumbs = [];
     public ?AssessmentAttempt $latestAttempt = null;
     public bool $showAssessment = false;
+    public bool $assessmentCanStart = false;
+    public ?string $assessmentStartError = null;
 
     public function mount(Enrollment $enrollment, Lesson $lesson): void
     {
         $this->enrollment = $enrollment->loadMissing('course.modules.lessons');
-        $this->lesson = $lesson->load(['module.course', 'assessment']);
+        $this->lesson = $lesson->load(['module.course', 'assessment.questions.question_options']);
 
         abort_unless($this->lesson->module->course_id === $this->enrollment->course_id, 404);
 
@@ -61,11 +62,7 @@ class LessonComponent extends Component
         $service->touchAccess($service->getOrCreate($this->enrollment, $this->lesson));
 
         $this->loadLessonStatus();
-        
-        // FASE 2: Cargar datos de evaluación
         $this->loadAssessmentData();
-        
-        // FASE 2: Cargar breadcrumbs
         $this->breadcrumbs = BreadcrumbHelper::getTrainingBreadcrumbs(
             $this->enrollment,
             $this->lesson->module,
@@ -100,17 +97,6 @@ class LessonComponent extends Component
                 'lesson' => $nextLesson,
             ]), navigate: true);
         }
-    }
-
-    private function updateNavigationState(): void
-    {
-        $lessons = $this->getOrderedLessons();
-        $currentIndex = $lessons->search(fn (Lesson $lesson) => $lesson->id === $this->lesson->id);
-
-        $this->totalLessons = $lessons->count();
-        $this->currentLessonPosition = $currentIndex === false ? 0 : $currentIndex + 1;
-        $this->hasPreviousLesson = $currentIndex !== false && $currentIndex > 0;
-        $this->hasNextLesson = $currentIndex !== false && $currentIndex < ($lessons->count() - 1);
     }
 
     protected function loadLessonStatus(): void
@@ -163,6 +149,53 @@ class LessonComponent extends Component
         return ['text' => 'No cursada', 'color' => 'gray'];
     }
 
+    protected function loadAssessmentData(): void
+    {
+        $this->assessment = $this->lesson->assessment;
+        $this->assessmentCanStart = false;
+        $this->assessmentStartError = null;
+        $this->remainingAttempts = null;
+
+        $enrollmentLesson = $this->enrollment->enrollmentLessons()
+            ->where('lesson_id', $this->lesson->id)
+            ->first();
+
+        $this->lessonConsumed = $enrollmentLesson?->status === EnrollmentLesson::STATUS_CONSUMED
+            || $enrollmentLesson?->status === EnrollmentLesson::STATUS_PASSED;
+
+        if (! $this->assessment) {
+            $this->assessmentStartError = 'La evaluacion no esta configurada.';
+            return;
+        }
+
+        $assessmentService = app(AssessmentService::class);
+
+        $this->remainingAttempts = $assessmentService->getRemainingAttempts(
+            $this->assessment,
+            $this->enrollment,
+            auth()->user()
+        );
+
+        $this->latestAttempt = AssessmentAttempt::query()
+            ->where('assessment_id', $this->assessment->id)
+            ->where('enrollment_id', $this->enrollment->id)
+            ->where('user_id', auth()->id())
+            ->where('status', 'completed')
+            ->latest('id')
+            ->first();
+
+        if (! $this->lessonConsumed && $this->lesson->requiresAssessment()) {
+            $this->assessmentStartError = 'Debes marcar el contenido como revisado antes de evaluar.';
+            return;
+        }
+
+        [$this->assessmentCanStart, $this->assessmentStartError] = $assessmentService->canStartAttempt(
+            $this->assessment,
+            $this->enrollment,
+            auth()->user()
+        );
+    }
+
     protected function getOrderedLessons(): Collection
     {
         return $this->enrollment->course->modules
@@ -183,47 +216,17 @@ class LessonComponent extends Component
         return $lessons->get($currentIndex + $offset);
     }
 
-    /**
-     * FASE 2: Cargar datos de evaluación y intentos restantes.
-     */
-    protected function loadAssessmentData(): void
+    private function updateNavigationState(): void
     {
-        $this->assessment = $this->lesson->assessment;
+        $lessons = $this->getOrderedLessons();
+        $currentIndex = $lessons->search(fn (Lesson $lesson) => $lesson->id === $this->lesson->id);
 
-        if (! $this->assessment) {
-            return;
-        }
-
-        $assessmentService = app(AssessmentService::class);
-        
-        // Contar intentos restantes
-        $this->remainingAttempts = $assessmentService->getRemainingAttempts(
-            $this->assessment,
-            $this->enrollment,
-            auth()->user()
-        );
-
-        // Cargar último intento completado
-        $this->latestAttempt = AssessmentAttempt::query()
-            ->where('assessment_id', $this->assessment->id)
-            ->where('enrollment_id', $this->enrollment->id)
-            ->where('user_id', auth()->id())
-            ->where('status', 'completed')
-            ->latest('id')
-            ->first();
-
-        // Verificar si lección está consumida
-        $enrollmentLesson = $this->enrollment->enrollmentLessons()
-            ->where('lesson_id', $this->lesson->id)
-            ->first();
-
-        $this->lessonConsumed = $enrollmentLesson?->status === EnrollmentLesson::STATUS_CONSUMED
-            || $enrollmentLesson?->status === EnrollmentLesson::STATUS_PASSED;
+        $this->totalLessons = $lessons->count();
+        $this->currentLessonPosition = $currentIndex === false ? 0 : $currentIndex + 1;
+        $this->hasPreviousLesson = $currentIndex !== false && $currentIndex > 0;
+        $this->hasNextLesson = $currentIndex !== false && $currentIndex < ($lessons->count() - 1);
     }
 
-    /**
-     * FASE 2: Marcar lección como consumida (visualizada).
-     */
     #[\Livewire\Attributes\On('markLessonConsumed')]
     public function markLessonConsumed(): void
     {
@@ -236,41 +239,41 @@ class LessonComponent extends Component
         $this->loadAssessmentData();
 
         Notification::make()
-            ->title('✓ Lección marcada como vista')
-            ->body('Ahora puedes pasar a la siguiente lección.')
+            ->title('Leccion marcada como vista')
+            ->body('Ahora puedes pasar a la siguiente leccion.')
             ->success()
             ->send();
 
         $this->dispatch('lesson-consumed', lessonId: $this->lesson->id);
     }
 
-    /**
-     * FASE 2: Verificar si se puede iniciar evaluación.
-     */
     public function canStartAssessment(): array
     {
-        if (! $this->assessment) {
-            return [false, 'La evaluación no está configurada.'];
-        }
-
-        if (! $this->lessonConsumed && $this->lesson->requiresAssessment()) {
-            return [false, 'Debes marcar el contenido como revisado antes de evaluar.'];
-        }
-
-        $assessmentService = app(AssessmentService::class);
-        return $assessmentService->canStartAttempt(
-            $this->assessment,
-            $this->enrollment,
-            auth()->user()
-        );
+        return [$this->assessmentCanStart, $this->assessmentStartError];
     }
 
-    /**
-     * FASE 2: Mostrar/ocultar formulario de evaluación.
-     */
     #[\Livewire\Attributes\On('toggleAssessmentForm')]
     public function toggleAssessmentForm(): void
     {
+        if (! $this->assessmentCanStart) {
+            Notification::make()
+                ->title('Evaluacion no disponible')
+                ->body($this->assessmentStartError ?? 'No puedes iniciar la evaluacion en este momento.')
+                ->warning()
+                ->send();
+
+            return;
+        }
+
         $this->showAssessment = ! $this->showAssessment;
+    }
+
+    #[\Livewire\Attributes\On('assessment-completed')]
+    public function refreshAfterAssessment(): void
+    {
+        $this->enrollment->refresh();
+        $this->showAssessment = false;
+        $this->loadLessonStatus();
+        $this->loadAssessmentData();
     }
 }

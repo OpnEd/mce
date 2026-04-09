@@ -2,10 +2,11 @@
 
 namespace App\Events\Quality\Training;
 
+use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class EnrollmentDeleted
+class EnrollmentDeleted implements ShouldDispatchAfterCommit
 {
     use Dispatchable, SerializesModels;
 

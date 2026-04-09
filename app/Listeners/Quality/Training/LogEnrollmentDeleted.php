@@ -14,10 +14,10 @@ class LogEnrollmentDeleted implements ShouldQueue
     public function handle(EnrollmentDeleted $event): void
     {
         AuditService::logDelete(
-            team: new \App\Models\Team(['id' => $event->enrollmentData['team_id'] ?? null]),
+            team: $event->enrollmentData['team_id'] ?? null,
             resourceType: 'Enrollment',
             resourceId: $event->enrollmentId,
-            description: "Matrícula eliminada: {$event->enrollmentData['user_name']}", 
+            description: "Matricula eliminada: {$event->enrollmentData['user_name']}",
         );
     }
 }

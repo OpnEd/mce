@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Quality\Training;
 
 use App\Filament\Resources\Quality\Training\AuditLogResource\Pages;
 use App\Models\Quality\Training\AuditLog;
+use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -198,5 +199,12 @@ class AuditLogResource extends Resource
             'index' => Pages\ListAuditLogs::route('/'),
             //'view' => Pages\ViewAuditLog::route('/{record}'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->where('team_id', Filament::getTenant()?->id)
+            ->with(['user']);
     }
 }

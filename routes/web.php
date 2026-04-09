@@ -19,6 +19,7 @@ use App\Models\Team;
 use App\Filament\CustomerPanel\Pages\ClientSatisfactionEvaluation as ClientSatisfactionEvaluationPage;
 use App\Filament\CustomerPanel\Pages\ClientPqrsRecord as ClientPqrsRecordPage;
 use App\Http\Controllers\Quality\ProcessCaracterizationController;
+use App\Http\Controllers\Quality\Training\CertificateDownloadController;
 
 Route::get('/generate-invoice-pdf/{id}', [InvoiceController::class, 'generatePdf'])->name('invoice.download');
 Route::get('/invoice/{id}/print', [InvoiceController::class, 'print'])->name('invoice.print');
@@ -171,7 +172,6 @@ Route::post('webhook/whatsapp', [WhatsAppWebhookController::class, 'handleIncomi
 /**
  * Rutas para descargar y ver certificados
  */
-use App\Http\Controllers\Quality\Training\CertificateDownloadController;
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/certificates/{certificate}/download', [CertificateDownloadController::class, 'download'])->name('certificates.download');

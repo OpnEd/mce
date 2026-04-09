@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Quality\Training;
 
 use App\Filament\Resources\Quality\Training\CertificateResource\Pages;
 use App\Models\Quality\Training\Certificate;
+use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -11,6 +12,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class CertificateResource extends Resource
 {
@@ -230,6 +232,17 @@ class CertificateResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->with(['user', 'course', 'enrollment']);
+        $tenantId = Filament::getTenant()?->id;
+        $user = Auth::user();
+
+        $query = parent::getEloquentQuery()
+            ->with(['user', 'course', 'enrollment'])
+            ->where('team_id', $tenantId);
+
+        if ($user && ! ($user->isAdmin() || $user->isInstructor())) {
+            $query->where('user_id', $user->id);
+        }
+
+        return $query;
     }
 }

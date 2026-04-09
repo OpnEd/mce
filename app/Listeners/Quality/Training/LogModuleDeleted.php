@@ -14,10 +14,10 @@ class LogModuleDeleted implements ShouldQueue
     public function handle(ModuleDeleted $event): void
     {
         AuditService::logDelete(
-            team: new \App\Models\Team(['id' => $event->moduleData['team_id'] ?? null]),
+            team: $event->moduleData['team_id'] ?? null,
             resourceType: 'Module',
             resourceId: $event->moduleId,
-            description: "Módulo '{$event->moduleData['title']}' eliminado",
+            description: "Modulo '{$event->moduleData['title']}' eliminado",
         );
     }
 }

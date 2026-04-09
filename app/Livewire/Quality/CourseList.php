@@ -12,10 +12,13 @@ use Livewire\Component;
 
 class CourseList extends Component
 {
-    /** @var Collection */
+    /** @var \Illuminate\Support\Collection<int, Course> */
     public $courses;
-    public ?int  $selectedCourseId = null;
+
+    public ?int $selectedCourseId = null;
+
     public $userEnrollments;
+
     public $teamId;
 
     protected $training;
@@ -24,72 +27,59 @@ class CourseList extends Component
     {
         $this->teamId = Filament::getTenant()->id;
         $this->training = $training;
-        // Inyectamos el servicio y obtenemos los cursos
-        $this->courses = $this->training->listAvailableCourses();
-        $this->userEnrollments = Enrollment::where('user_id', Auth::user()->id)->where('team_id', $this->teamId)->get()->keyBy('course_id');
-        //dd($this->courses);
+        $this->courses = $this->training->listAvailableCourses($this->teamId);
+        $this->userEnrollments = Enrollment::query()
+            ->where('user_id', Auth::id())
+            ->where('team_id', $this->teamId)
+            ->get()
+            ->keyBy('course_id');
     }
 
-    /**
-     * Ejecuta la inscripción llamando al servicio.
-     */
     public function confirmEnrollment(int $courseId)
     {
         $training = app(TrainingService::class);
         $this->selectedCourseId = $courseId;
 
         if (! $this->selectedCourseId) {
-
             Notification::make()
                 ->title('Error')
-                ->body('No se ha seleccionado ningún curso.')
+                ->body('No se ha seleccionado ningun curso.')
                 ->danger()
                 ->send();
 
             return;
         }
 
-        $teamId   = Filament::getTenant()->id;
-        $userId   = Auth::user()->id;
-        $course = Course::findOrFail($this->selectedCourseId);
+        $teamId = Filament::getTenant()->id;
+        $userId = Auth::id();
+        $course = Course::query()
+            ->visibleToTeam($teamId)
+            ->active()
+            ->findOrFail($this->selectedCourseId);
 
         try {
-
             $enrolled = $training->enroll($teamId, $userId, $courseId);
 
-            if (! $enrolled) {
-                Notification::make()
-                    ->title('Ya inscrito')
-                    ->body("Ya estás inscrito en el curso: {$course->title}")
-                    ->warning()
-                    ->send();
-            } else {
-                Notification::make()
-                    ->title('Inscripción exitosa')
-                    ->body("Te has inscrito en el curso: {$course->title}")
-                    ->success()
-                    ->send();
-            }
-
-            // Cierra el modal después de la acción, sin importar el resultado
-            $this->dispatch('close-modal', id: 'enrollUser');
-//dd($teamId, $enrolled['enrollment']->id);
-            // Rediriges o emites datos para mostrar módulos:
-            return redirect()->route('filament.admin.resources.quality.training.enrollments.view', [
-                $teamId,
-                $enrolled['enrollment']->id,
-            ]);
-
-        } catch (\Exception $e) {
-
             Notification::make()
-                ->title('Error al inscribirse')
-                ->body("No se pudo completar la inscripción: {$e->getMessage()}")
-                ->danger()
+                ->title('Inscripcion exitosa')
+                ->body("Te has inscrito en el curso: {$course->title}")
+                ->success()
                 ->send();
 
             $this->dispatch('close-modal', id: 'enrollUser');
 
+            return redirect()->route('filament.admin.resources.quality.training.enrollments.view', [
+                $teamId,
+                $enrolled['enrollment']->id,
+            ]);
+        } catch (\Throwable $e) {
+            Notification::make()
+                ->title('Error al inscribirse')
+                ->body("No se pudo completar la inscripcion: {$e->getMessage()}")
+                ->danger()
+                ->send();
+
+            $this->dispatch('close-modal', id: 'enrollUser');
         }
     }
 
@@ -100,7 +90,6 @@ class CourseList extends Component
             'record' => $enrollmentId,
         ]);
     }
-
 
     public function render()
     {

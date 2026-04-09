@@ -4,11 +4,13 @@ namespace App\Filament\Resources\Quality\Training;
 
 use App\Filament\Resources\Quality\Training\AssessmentResource\Pages;
 use App\Models\Quality\Training\Assessment;
+use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class AssessmentResource extends Resource
 {
@@ -35,7 +37,14 @@ class AssessmentResource extends Resource
                             ->maxLength(655),
                         Forms\Components\Select::make('lesson_id')
                             ->label('Lección')
-                            ->relationship('lesson', 'title')
+                            ->relationship(
+                                name: 'lesson',
+                                titleAttribute: 'title',
+                                modifyQueryUsing: fn (Builder $query) => $query->whereHas(
+                                    'module.course',
+                                    fn (Builder $courseQuery) => $courseQuery->ownedByTeam(Filament::getTenant()?->id)
+                                )
+                            )
                             ->required()
                             ->searchable(),
                         Forms\Components\Select::make('type')
@@ -153,5 +162,12 @@ class AssessmentResource extends Resource
             'create' => Pages\CreateAssessment::route('/create'),
             'edit' => Pages\EditAssessment::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->ownedByTeam(Filament::getTenant()?->id)
+            ->with(['course', 'module', 'lesson']);
     }
 }

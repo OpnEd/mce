@@ -51,10 +51,12 @@ class EnrollmentLessonService
 
     public function touchAccess(EnrollmentLesson $enrollmentLesson): EnrollmentLesson
     {
-        $enrollmentLesson->last_accessed_at = now();
+        $now = now();
+
+        $enrollmentLesson->last_accessed_at = $now;
 
         if (! $enrollmentLesson->started_at) {
-            $enrollmentLesson->started_at = now();
+            $enrollmentLesson->started_at = $now;
         }
 
         if ($enrollmentLesson->status === EnrollmentLesson::STATUS_NOT_STARTED) {
@@ -62,6 +64,7 @@ class EnrollmentLessonService
         }
 
         $enrollmentLesson->save();
+        $this->touchEnrollment($enrollmentLesson->enrollment, $now);
 
         return $enrollmentLesson->fresh();
     }
@@ -70,13 +73,22 @@ class EnrollmentLessonService
     {
         $now = now();
 
+        if ($enrollmentLesson->status === EnrollmentLesson::STATUS_PASSED) {
+            $this->touchEnrollment($enrollmentLesson->enrollment, $now);
+            return $enrollmentLesson->fresh();
+        }
+
         $enrollmentLesson->started_at ??= $now;
         $enrollmentLesson->last_accessed_at = $now;
         $enrollmentLesson->consumed_at ??= $now;
         $enrollmentLesson->completed_at ??= $now;
+        $enrollmentLesson->passed = false;
+        $enrollmentLesson->passed_at = null;
+        $enrollmentLesson->approved_attempt_id = null;
         $enrollmentLesson->status = EnrollmentLesson::STATUS_CONSUMED;
         $enrollmentLesson->save();
 
+        $this->touchEnrollment($enrollmentLesson->enrollment, $now);
         $this->recalculateEnrollmentProgress($enrollmentLesson->enrollment);
 
         return $enrollmentLesson->fresh();
@@ -96,6 +108,7 @@ class EnrollmentLessonService
         $enrollmentLesson->status = EnrollmentLesson::STATUS_PASSED;
         $enrollmentLesson->save();
 
+        $this->touchEnrollment($enrollmentLesson->enrollment, $now);
         $this->recalculateEnrollmentProgress($enrollmentLesson->enrollment);
 
         return $enrollmentLesson->fresh();
@@ -106,5 +119,17 @@ class EnrollmentLessonService
         $enrollment->updateProgress();
 
         return $enrollment->fresh();
+    }
+
+    protected function touchEnrollment(Enrollment $enrollment, $now): void
+    {
+        $enrollment->started_at ??= $now;
+        $enrollment->last_accessed_at = $now;
+
+        if ($enrollment->status === Enrollment::STATUS_NOT_STARTED) {
+            $enrollment->status = Enrollment::STATUS_IN_PROGRESS;
+        }
+
+        $enrollment->saveQuietly();
     }
 }

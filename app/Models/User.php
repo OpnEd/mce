@@ -351,7 +351,7 @@ class User extends Authenticatable implements FilamentUser, HasTenants, HasAvata
 
     public function isSuperAdmin(): bool
     {
-        return $this->hasRole('super-admin');
+        return $this->hasRole('Super-Admin');
     }
 
     public function isInstructor(): bool

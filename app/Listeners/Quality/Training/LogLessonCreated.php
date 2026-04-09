@@ -13,11 +13,13 @@ class LogLessonCreated implements ShouldQueue
 
     public function handle(LessonCreated $event): void
     {
+        $event->lesson->loadMissing('module.course:id,team_id', 'module:id,title,course_id');
+
         AuditService::logCreate(
-            $event->lesson->module->course->team,
+            $event->lesson->module?->course?->team_id,
             'Lesson',
             $event->lesson->id,
-            description: "Lección '{$event->lesson->title}' creada en módulo '{$event->lesson->module->title}'",
+            description: "Leccion '{$event->lesson->title}' creada en modulo '{$event->lesson->module?->title}'",
         );
     }
 }

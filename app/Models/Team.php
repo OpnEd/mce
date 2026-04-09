@@ -315,11 +315,23 @@ class Team extends Model
         return $this->hasMany(Risk::class);
     }
 
+    /**
+     * @deprecated Relacion legacy de compatibilidad.
+     *
+     * Las nuevas capacidades del modulo deben usar el dominio
+     * App\Models\Quality\Training.
+     */
     public function training_categories(): HasMany
     {
         return $this->hasMany(TrainingCategory::class);
     }
 
+    /**
+     * @deprecated Relacion legacy de compatibilidad.
+     *
+     * Las nuevas capacidades del modulo deben usar el dominio
+     * App\Models\Quality\Training.
+     */
     public function trainings(): HasMany
     {
         return $this->hasMany(Training::class);

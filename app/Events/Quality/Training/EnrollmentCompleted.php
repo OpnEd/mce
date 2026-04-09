@@ -3,11 +3,12 @@
 namespace App\Events\Quality\Training;
 
 use App\Models\Quality\Training\Enrollment;
+use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class EnrollmentCompleted
+class EnrollmentCompleted implements ShouldDispatchAfterCommit
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 

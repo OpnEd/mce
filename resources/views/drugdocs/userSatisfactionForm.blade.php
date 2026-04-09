@@ -1,231 +1,181 @@
-<x-guest-layout>
-    <x-authentication-card>
-        <x-slot name="logo">
-            <x-authentication-card-logo />
-        </x-slot>
+<x-layouts.app :title="'Encuesta de Satisfaccion'">
+    <section class="px-4 py-12 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-4xl">
+            <div class="mb-8 text-center">
+                <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 text-primary-700">
+                    <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6M7 4h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" />
+                    </svg>
+                </div>
+                <h1 class="text-3xl font-bold tracking-tight text-gray-900">
+                    Ayudanos a mejorar
+                </h1>
+                <p class="mt-3 text-base text-gray-600">
+                    Evalua con franqueza el servicio que te hemos prestado.
+                </p>
+            </div>
 
-        <x-validation-errors class="mb-4" />
-        <div class="flex justify-center" style="text-align: center">
-            <h1>!Ayúdanos a mejorar, evalúa con franqueza el servicio que te hemos prestado!</h1>
-        </div>
-        <form method="POST" action="{{ route('user.satisfactionaswer') }}"
-            class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+            @if ($errors->any())
+                <div class="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                    <p class="font-semibold">No pudimos procesar la encuesta.</p>
+                    <ul class="mt-2 list-disc pl-5">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
-            @csrf
+            <form
+                method="POST"
+                action="{{ route('user.satisfactionaswer') }}"
+                class="space-y-6 rounded-2xl bg-white p-6 shadow-lg ring-1 ring-gray-200 sm:p-8"
+            >
+                @csrf
 
-            <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="pregunta1">
-                    1. ¿Cómo te parece la presentación visual de la droguería?
-                </label>
-                <div class="flex flex-row">
-                    <div class="mr-4">
-                        <input type="radio" id="pregunta1_deficiente" name="pregunta1" value="Deficiente"
-                            class="mr-2" required>
-                        <label for="pregunta1_deficiente">Deficiente</label>
+                <div class="space-y-6">
+                    <div>
+                        <label class="mb-3 block text-sm font-semibold text-gray-900" for="pregunta1">
+                            1. ¿Como te parece la presentacion visual de la drogueria?
+                        </label>
+                        <div class="flex flex-wrap gap-4">
+                            @foreach (['Deficiente', 'Regular', 'Bueno', 'Excelente'] as $option)
+                                <label class="inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm text-gray-700">
+                                    <input type="radio" name="pregunta1" value="{{ $option }}" class="text-primary-600" required>
+                                    <span>{{ $option }}</span>
+                                </label>
+                            @endforeach
+                        </div>
                     </div>
-                    <div class="mr-4">
-                        <input type="radio" id="pregunta1_regular" name="pregunta1" value="Regular" class="mr-2"
-                            required>
-                        <label for="pregunta1_regular">Regular</label>
+
+                    <div>
+                        <label class="mb-3 block text-sm font-semibold text-gray-900" for="pregunta2">
+                            2. ¿Como te parece la calidad de los productos adquiridos?
+                        </label>
+                        <div class="flex flex-wrap gap-4">
+                            @foreach (['Deficiente', 'Regular', 'Bueno', 'Excelente'] as $option)
+                                <label class="inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm text-gray-700">
+                                    <input type="radio" name="pregunta2" value="{{ $option }}" class="text-primary-600" required>
+                                    <span>{{ $option }}</span>
+                                </label>
+                            @endforeach
+                        </div>
                     </div>
-                    <div class="mr-4">
-                        <input type="radio" id="pregunta1_bueno" name="pregunta1" value="Bueno" class="mr-2"
-                            required>
-                        <label for="pregunta1_bueno">Bueno</label>
+
+                    <div>
+                        <label class="mb-3 block text-sm font-semibold text-gray-900" for="pregunta3">
+                            3. ¿Como evaluas la disponibilidad de los productos que solicito?
+                        </label>
+                        <div class="flex flex-wrap gap-4">
+                            @foreach (['Deficiente', 'Regular', 'Bueno', 'Excelente'] as $option)
+                                <label class="inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm text-gray-700">
+                                    <input type="radio" name="pregunta3" value="{{ $option }}" class="text-primary-600" required>
+                                    <span>{{ $option }}</span>
+                                </label>
+                            @endforeach
+                        </div>
                     </div>
-                    <div class="mr-4">
-                        <input type="radio" id="pregunta1_excelente" name="pregunta1" value="Excelente" class="mr-2"
-                            required>
-                        <label for="pregunta1_excelente">Excelente</label>
+
+                    <div>
+                        <label class="mb-3 block text-sm font-semibold text-gray-900" for="pregunta4">
+                            4. ¿Como te parece la atencion de la persona que te colaboro?
+                        </label>
+                        <div class="flex flex-wrap gap-4">
+                            @foreach (['Deficiente', 'Regular', 'Bueno', 'Excelente'] as $option)
+                                <label class="inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm text-gray-700">
+                                    <input type="radio" name="pregunta4" value="{{ $option }}" class="text-primary-600" required>
+                                    <span>{{ $option }}</span>
+                                </label>
+                            @endforeach
+                        </div>
                     </div>
-                </div>
-                <label class="block text-gray-700 text-sm font-bold mb-2 mt-4" for="pregunta2">
-                    2. ¿Cómo te parece la calidad de los productos adquiridos?
-                </label>
-                <div class="flex flex-row">
-                    <div class="mr-4">
-                        <input type="radio" id="pregunta2_deficiente" name="pregunta2" value="Deficiente"
-                            class="mr-2" required>
-                        <label for="pregunta2_deficiente">Deficiente</label>
+
+                    <div>
+                        <label class="mb-3 block text-sm font-semibold text-gray-900" for="pregunta5">
+                            5. ¿Como te parece la informacion que la persona que lo atendio te brindo sobre los productos adquiridos?
+                        </label>
+                        <div class="flex flex-wrap gap-4">
+                            @foreach (['Deficiente', 'Regular', 'Bueno', 'Excelente'] as $option)
+                                <label class="inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm text-gray-700">
+                                    <input type="radio" name="pregunta5" value="{{ $option }}" class="text-primary-600" required>
+                                    <span>{{ $option }}</span>
+                                </label>
+                            @endforeach
+                        </div>
                     </div>
-                    <div class="mr-4">
-                        <input type="radio" id="pregunta2_regular" name="pregunta2" value="Regular" class="mr-2"
-                            required>
-                        <label for="pregunta2_regular">Regular</label>
+
+                    <div>
+                        <label class="mb-3 block text-sm font-semibold text-gray-900" for="pregunta6">
+                            6. ¿Como te parece la favorabilidad de los precios de los productos?
+                        </label>
+                        <div class="flex flex-wrap gap-4">
+                            @foreach (['Deficiente', 'Regular', 'Bueno', 'Excelente'] as $option)
+                                <label class="inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm text-gray-700">
+                                    <input type="radio" name="pregunta6" value="{{ $option }}" class="text-primary-600" required>
+                                    <span>{{ $option }}</span>
+                                </label>
+                            @endforeach
+                        </div>
                     </div>
-                    <div class="mr-4">
-                        <input type="radio" id="pregunta2_bueno" name="pregunta2" value="Bueno" class="mr-2"
-                            required>
-                        <label for="pregunta2_bueno">Bueno</label>
+
+                    <div>
+                        <label class="mb-3 block text-sm font-semibold text-gray-900" for="pregunta7">
+                            7. Si has utilizado el servicio de inyectologia, ¿como te parecio?
+                        </label>
+                        <div class="flex flex-wrap gap-4">
+                            @foreach (['N.A.', 'Deficiente', 'Regular', 'Bueno', 'Excelente'] as $option)
+                                <label class="inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm text-gray-700">
+                                    <input type="radio" name="pregunta7" value="{{ $option }}" class="text-primary-600" required>
+                                    <span>{{ $option }}</span>
+                                </label>
+                            @endforeach
+                        </div>
                     </div>
-                    <div class="mr-4">
-                        <input type="radio" id="pregunta2_excelente" name="pregunta2" value="Excelente" class="mr-2"
-                            required>
-                        <label for="pregunta2_excelente">Excelente</label>
+
+                    <div>
+                        <label class="mb-3 block text-sm font-semibold text-gray-900" for="pregunta8_identificacion">
+                            Es valioso para nosotros contar con tu identificacion para que la autoridad sanitaria compruebe que esta respuesta proviene de un usuario. Es opcional.
+                        </label>
+                        <input
+                            type="number"
+                            id="pregunta8_identificacion"
+                            name="pregunta8"
+                            placeholder="Identificacion"
+                            class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                        >
                     </div>
-                </div>
-                <label class="block text-gray-700 text-sm font-bold mb-2 mt-4" for="pregunta3">
-                    3. ¿Cómo evalúas la disponibilidad de los productos que solicitó?
-                </label>
-                <div class="flex flex-row">
-                    <div class="mr-4">
-                        <input type="radio" id="pregunta3_deficiente" name="pregunta3" value="Deficiente"
-                            class="mr-2" required>
-                        <label for="pregunta3_deficiente">Deficiente</label>
-                    </div>
-                    <div class="mr-4">
-                        <input type="radio" id="pregunta3_regular" name="pregunta3" value="Regular" class="mr-2"
-                            required>
-                        <label for="pregunta3_regular">Regular</label>
-                    </div>
-                    <div class="mr-4">
-                        <input type="radio" id="pregunta3_bueno" name="pregunta3" value="Bueno" class="mr-2"
-                            required>
-                        <label for="pregunta3_bueno">Bueno</label>
-                    </div>
-                    <div class="mr-4">
-                        <input type="radio" id="pregunta3_excelente" name="pregunta3" value="Excelente" class="mr-2"
-                            required>
-                        <label for="pregunta3_excelente">Excelente</label>
-                    </div>
-                </div>
-                <label class="block text-gray-700 text-sm font-bold mb-2 mt-4" for="pregunta4">
-                    4. ¿Cómo te parece la atención de la persona que le colaboró?
-                </label>
-                <div class="flex flex-row">
-                    <div class="mr-4">
-                        <input type="radio" id="pregunta4_deficiente" name="pregunta4" value="Deficiente"
-                            class="mr-2" required>
-                        <label for="pregunta4_deficiente">Deficiente</label>
-                    </div>
-                    <div class="mr-4">
-                        <input type="radio" id="pregunta4_regular" name="pregunta4" value="Regular"
-                            class="mr-2" required>
-                        <label for="pregunta4_regular">Regular</label>
-                    </div>
-                    <div class="mr-4">
-                        <input type="radio" id="pregunta4_bueno" name="pregunta4" value="Bueno" class="mr-2"
-                            required>
-                        <label for="pregunta4_bueno">Bueno</label>
-                    </div>
-                    <div class="mr-4">
-                        <input type="radio" id="pregunta4_excelente" name="pregunta4" value="Excelente"
-                            class="mr-2" required>
-                        <label for="pregunta4_excelente">Excelente</label>
-                    </div>
-                </div>
-                <label class="block text-gray-700 text-sm font-bold mb-2 mt-4" for="pregunta5">
-                    5. ¿Cómo te parece la información que la persona que lo atendió le brindó sobre los productos
-                    adquiridos?
-                </label>
-                <div class="flex flex-row">
-                    <div class="mr-4">
-                        <input type="radio" id="pregunta5_deficiente" name="pregunta5" value="Deficiente"
-                            class="mr-2" required>
-                        <label for="pregunta5_deficiente">Deficiente</label>
-                    </div>
-                    <div class="mr-4">
-                        <input type="radio" id="pregunta5_regular" name="pregunta5" value="Regular"
-                            class="mr-2" required>
-                        <label for="pregunta5_regular">Regular</label>
-                    </div>
-                    <div class="mr-4">
-                        <input type="radio" id="pregunta5_bueno" name="pregunta5" value="Bueno" class="mr-2"
-                            required>
-                        <label for="pregunta5_bueno">Bueno</label>
-                    </div>
-                    <div class="mr-4">
-                        <input type="radio" id="pregunta5_excelente" name="pregunta5" value="Excelente"
-                            class="mr-2" required>
-                        <label for="pregunta5_excelente">Excelente</label>
+
+                    <div>
+                        <label class="mb-3 block text-sm font-semibold text-gray-900" for="sugerencias">
+                            Sugerencias
+                        </label>
+                        <textarea
+                            id="sugerencias"
+                            name="sugerencias"
+                            rows="5"
+                            placeholder="Cuéntanos como podemos mejorar"
+                            class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                        ></textarea>
                     </div>
                 </div>
-                <label class="block text-gray-700 text-sm font-bold mb-2 mt-4" for="pregunta6">
-                    6. ¿Cómo te parece la La fovarabilidad de los precios de los productos?
-                </label>
-                <div class="flex flex-row">
-                    <div class="mr-4">
-                        <input type="radio" id="pregunta6_deficiente" name="pregunta6" value="Deficiente"
-                            class="mr-2" required>
-                        <label for="pregunta6_deficiente">Deficiente</label>
-                    </div>
-                    <div class="mr-4">
-                        <input type="radio" id="pregunta6_regular" name="pregunta6" value="Regular"
-                            class="mr-2" required>
-                        <label for="pregunta6_regular">Regular</label>
-                    </div>
-                    <div class="mr-4">
-                        <input type="radio" id="pregunta6_bueno" name="pregunta6" value="Bueno" class="mr-2"
-                            required>
-                        <label for="pregunta6_bueno">Bueno</label>
-                    </div>
-                    <div class="mr-4">
-                        <input type="radio" id="pregunta6_excelente" name="pregunta6" value="Excelente"
-                            class="mr-2" required>
-                        <label for="pregunta6_excelente">Excelente</label>
-                    </div>
-                </div>
-                <label class="block text-gray-700 text-sm font-bold mb-2 mt-4" for="pregunta7">
-                    7. Si has utilizado el servicio de inyectología ¿Cómo te pareció?
-                </label>
-                <div class="flex flex-row">
-                    <div class="mr-4">
-                        <input type="radio" id="pregunta7_na" name="pregunta7" value="N.A."
-                            class="mr-2" required>
-                        <label for="pregunta7_na">N.A.</label>
-                    </div>
-                    <div class="mr-4">
-                        <input type="radio" id="pregunta7_deficiente" name="pregunta7" value="Deficiente"
-                            class="mr-2" required>
-                        <label for="pregunta7_deficiente">Deficiente</label>
-                    </div>
-                    <div class="mr-4">
-                        <input type="radio" id="pregunta7_regular" name="pregunta7" value="Regular"
-                            class="mr-2" required>
-                        <label for="pregunta7_regular">Regular</label>
-                    </div>
-                    <div class="mr-4">
-                        <input type="radio" id="pregunta7_bueno" name="pregunta7" value="Bueno" class="mr-2"
-                            required>
-                        <label for="pregunta7_bueno">Bueno</label>
-                    </div>
-                    <div class="mr-4">
-                        <input type="radio" id="pregunta7_excelente" name="pregunta7" value="Excelente"
-                            class="mr-2" required>
-                        <label for="pregunta7_excelente">Excelente</label>
-                    </div>
-                </div>
-                <label class="block text-gray-700 text-sm font-bold mb-2 mt-4" for="pregunta8">
-                    Es valioso para nosotros poder contar con tu identificación, ya que así la
-                    autoridad sanitaria comprueba que esta respuesta proviene de un usuario (Opcional).
-                </label>
-                <div class="flex flex-row">
-                    <div class="mr-4">
-                        <input type="number" id="pregunta8_identificacion" name="pregunta8" value="Identificacion" placeholder="Identificación"
-                            class="rounded-md p-2 border border-gray-300 focus:outline-none focus:border-blue-500 mr-2 text-gray-300 my-3">
-                    </div>
-                </div>
-                <div class="flex flex-row">
-                    <div class="mr-4">
-                        <textarea id="sugerencias" name="sugerencias" placeholder="Sugerencias"
-                            class="rounded-md p-2 border border-gray-300 focus:outline-none focus:border-blue-500 mr-2 text-gray-300" rows="5" cols="40"></textarea>
-                    </div>
-                </div>
+
                 <div class="flex justify-center">
-                    <button type="submit"
-                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-4">
-                        Enviar Respuestas
+                    <button
+                        type="submit"
+                        class="inline-flex items-center rounded-full bg-primary-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-300"
+                    >
+                        Enviar respuestas
                     </button>
                 </div>
+            </form>
 
-        </form>
-
-        <div id="successModal" class="modal">
-            <div class="modal-content">
-                <p>¡Gracias por ayudarnos a mejorar!</p>
+            <div id="successModal" class="hidden">
+                <div class="rounded-lg bg-white p-6 shadow-lg">
+                    <p class="text-center text-base font-medium text-gray-900">
+                        Gracias por ayudarnos a mejorar.
+                    </p>
+                </div>
             </div>
         </div>
-
-    </x-authentication-card>
-
-</x-guest-layout>
+    </section>
+</x-layouts.app>

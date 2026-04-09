@@ -11,31 +11,18 @@ class LogCourseUpdated implements ShouldQueue
 {
     use InteractsWithQueue;
 
-    public function __construct()
-    {
-        //
-    }
-
     public function handle(CourseUpdated $event): void
     {
-        if (empty($event->changes)) {
+        if ($event->newValues === []) {
             return;
         }
 
-        $oldValues = [];
-        $newValues = [];
-
-        foreach ($event->changes as $field => $newValue) {
-            $newValues[$field] = $newValue;
-            $oldValues[$field] = $event->course->getOriginal($field);
-        }
-
         AuditService::logUpdate(
-            $event->course->team,
+            $event->course->team_id,
             'Course',
             $event->course->id,
-            $oldValues,
-            $newValues,
+            $event->oldValues,
+            $event->newValues,
             description: "Curso '{$event->course->title}' actualizado",
         );
     }

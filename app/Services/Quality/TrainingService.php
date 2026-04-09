@@ -15,9 +15,9 @@ class TrainingService
         protected EnrollmentLessonService $enrollmentLessons
     ) {}
 
-    public function listAvailableCourses(): Collection
+    public function listAvailableCourses(int $teamId): Collection
     {
-        return $this->courses->findActivecourses();
+        return $this->courses->findActivecourses($teamId);
     }
 
     /**
@@ -36,6 +36,12 @@ class TrainingService
         }
 
         return DB::transaction(function () use ($teamId, $userId, $courseId): array {
+            $course = Course::query()
+                ->visibleToTeam($teamId)
+                ->active()
+                ->with('modules.lessons:id,module_id')
+                ->findOrFail($courseId);
+
             $enrollment = Enrollment::create([
                 'team_id' => $teamId,
                 'user_id' => $userId,
@@ -43,10 +49,6 @@ class TrainingService
                 'started_at' => now(),
                 'status' => Enrollment::STATUS_IN_PROGRESS,
             ]);
-
-            $course = Course::query()
-                ->with('modules.lessons:id,module_id')
-                ->findOrFail($courseId);
 
             $this->enrollmentLessons->initializeForEnrollment($enrollment, $course);
 

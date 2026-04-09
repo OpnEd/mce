@@ -1,5 +1,4 @@
 <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-    <!-- Breadcrumb Navigation -->
     @if (!empty($breadcrumbs))
         <nav class="border-b border-gray-200 bg-white px-4 py-3 dark:border-white/10 dark:bg-gray-800 sm:px-6 lg:px-8">
             <ol class="flex items-center space-x-2">
@@ -21,21 +20,20 @@
         </nav>
     @endif
 
-    <!-- Gradient Header -->
     <div class="relative overflow-hidden bg-gradient-to-r from-primary-500 to-primary-700 px-4 py-12 dark:from-primary-600 dark:to-primary-800 sm:px-6 lg:px-8">
         <div class="mx-auto max-w-7xl">
             <div class="flex items-center justify-between">
                 <div>
                     <div class="mb-3 flex items-center gap-2">
                         <span class="inline-flex items-center rounded-full bg-white/20 px-3 py-1 text-sm font-medium text-white">
-                            Módulo {{ $record->module?->order ?? '-' }}
+                            Modulo {{ $record->module?->order ?? '-' }}
                         </span>
                         <span class="inline-flex items-center rounded-full bg-white/20 px-3 py-1 text-sm font-medium text-white">
-                            Lección {{ $currentLessonPosition }}/{{ $totalLessons }}
+                            Leccion {{ $currentLessonPosition }}/{{ $totalLessons }}
                         </span>
                     </div>
                     <h1 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">{{ $record->title }}</h1>
-                    <p class="mt-2 text-primary-100">{{ $record->module?->title ?? 'Sin módulo' }}</p>
+                    <p class="mt-2 text-primary-100">{{ $record->module?->title ?? 'Sin modulo' }}</p>
                 </div>
                 <div class="hidden items-center gap-3 md:flex">
                     @if (!empty($lessonStatus))
@@ -48,12 +46,9 @@
         </div>
     </div>
 
-    <!-- Main Content -->
     <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div class="grid gap-8 lg:grid-cols-3">
-            <!-- Main Content Area -->
             <div class="lg:col-span-2">
-                <!-- Video Section -->
                 <x-filament::section class="mb-6">
                     <x-slot name="heading">
                         <h2 class="text-lg font-semibold">Contenido</h2>
@@ -72,25 +67,24 @@
                                 class="h-16 w-16 text-gray-300 dark:text-gray-600"
                             />
                             <p class="mt-4 text-base font-medium text-gray-600 dark:text-gray-400">
-                                No hay video disponible para esta lección
+                                No hay video disponible para esta leccion
                             </p>
                         </div>
                     @endif
                 </x-filament::section>
 
-                <!-- Lesson Info Grid -->
                 <x-filament::section class="mb-6">
                     <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
                         <div>
-                            <dt class="text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400">Duración</dt>
+                            <dt class="text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400">Duracion</dt>
                             <dd class="mt-2 text-xl font-bold text-gray-900 dark:text-white">{{ $record->duration }}m</dd>
                         </div>
                         <div>
-                            <dt class="text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400">Módulo</dt>
+                            <dt class="text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400">Modulo</dt>
                             <dd class="mt-2 text-xl font-bold text-gray-900 dark:text-white">{{ $record->module?->order ?? '-' }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400">Posición</dt>
+                            <dt class="text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400">Posicion</dt>
                             <dd class="mt-2 text-xl font-bold text-gray-900 dark:text-white">{{ $record->order }}</dd>
                         </div>
                         <div>
@@ -99,14 +93,13 @@
                                 @if ($record->isConsumptionOnly())
                                     <span class="inline-block rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800 dark:bg-blue-900/30 dark:text-blue-200">Consumo</span>
                                 @else
-                                    <span class="inline-block rounded-full bg-purple-100 px-2 py-1 text-xs text-purple-800 dark:bg-purple-900/30 dark:text-purple-200">Evaluación</span>
+                                    <span class="inline-block rounded-full bg-purple-100 px-2 py-1 text-xs text-purple-800 dark:bg-purple-900/30 dark:text-purple-200">Evaluacion</span>
                                 @endif
                             </dd>
                         </div>
                     </div>
                 </x-filament::section>
 
-                <!-- Objective -->
                 @if ($record->objective)
                     <x-filament::section class="mb-6">
                         <x-slot name="heading">
@@ -118,11 +111,10 @@
                     </x-filament::section>
                 @endif
 
-                <!-- Description -->
                 @if ($record->description)
                     <x-filament::section class="mb-6">
                         <x-slot name="heading">
-                            <h3 class="text-base font-semibold">Descripción</h3>
+                            <h3 class="text-base font-semibold">Descripcion</h3>
                         </x-slot>
                         <div class="prose max-w-none dark:prose-invert">
                             {!! nl2br(e($record->description)) !!}
@@ -130,7 +122,6 @@
                     </x-filament::section>
                 @endif
 
-                <!-- Rich Content -->
                 @if ($record->content)
                     <x-filament::section class="mb-6">
                         <x-slot name="heading">
@@ -153,16 +144,14 @@
                 @endif
             </div>
 
-            <!-- Sidebar -->
             <div class="space-y-6">
-                <!-- Consumption Status Card -->
                 <x-filament::section>
                     <x-slot name="heading">
                         <h3 class="text-base font-semibold">Estado de Consumo</h3>
                     </x-slot>
                     <div class="space-y-3">
                         <div class="flex items-center justify-between">
-                            <span class="text-sm font-medium text-gray-600 dark:text-gray-300">Lección consumida</span>
+                            <span class="text-sm font-medium text-gray-600 dark:text-gray-300">Leccion consumida</span>
                             @if ($lessonConsumed)
                                 <x-filament::icon icon="heroicon-o-check-circle" class="h-5 w-5 text-green-600 dark:text-green-400" />
                             @else
@@ -177,19 +166,17 @@
                                 'bg-gray-200 text-gray-600 cursor-not-allowed dark:bg-gray-700 dark:text-gray-400' => $lessonConsumed,
                             ])
                         >
-                            {{ $lessonConsumed ? '✓ Consumida' : 'Marcar como consumida' }}
+                            {{ $lessonConsumed ? 'Consumida' : 'Marcar como consumida' }}
                         </button>
                     </div>
                 </x-filament::section>
 
-                <!-- Assessment Card -->
                 @if ($assessment)
                     <x-filament::section>
                         <x-slot name="heading">
-                            <h3 class="text-base font-semibold">Evaluación</h3>
+                            <h3 class="text-base font-semibold">Evaluacion</h3>
                         </x-slot>
                         <div class="space-y-4">
-                            <!-- Attempts Remaining -->
                             <div class="rounded-lg bg-blue-50 p-4 dark:bg-blue-900/30">
                                 <div class="flex items-center justify-between">
                                     <span class="text-sm font-medium text-blue-900 dark:text-blue-200">
@@ -203,23 +190,21 @@
                                 </div>
                             </div>
 
-                            <!-- Duration Info -->
                             @if ($assessment->duration_minutes)
                                 <div class="rounded-lg bg-amber-50 p-3 dark:bg-amber-900/30">
                                     <p class="text-xs font-medium text-amber-900 dark:text-amber-200">
-                                        ⏱ Tiempo límite: {{ $assessment->duration_minutes }} minutos
+                                        Tiempo limite: {{ $assessment->duration_minutes }} minutos
                                     </p>
                                 </div>
                             @endif
 
-                            <!-- Last Attempt Info -->
                             @if ($latestAttempt)
                                 <div class="space-y-2 border-t border-gray-200 pt-4 dark:border-white/10">
-                                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400">Último intento</p>
+                                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400">Ultimo intento</p>
                                     <div class="rounded-lg bg-gray-50 p-3 dark:bg-gray-800/50">
                                         <div class="flex items-center justify-between">
-                                            <span class="text-sm text-gray-700 dark:text-gray-300">Puntuación</span>
-                                            <span class="text-lg font-bold text-primary-600 dark:text-primary-400">{{ number_format($latestAttempt->score ?? 0, 1) }}%</span>
+                                            <span class="text-sm text-gray-700 dark:text-gray-300">Puntuacion</span>
+                                            <span class="text-lg font-bold text-primary-600 dark:text-primary-400">{{ number_format($latestAttempt->score ?? 0, 1) }}</span>
                                         </div>
                                         @if ($latestAttempt->isPassed())
                                             <span class="mt-2 inline-block rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-800 dark:bg-green-900/30 dark:text-green-200">Aprobada</span>
@@ -230,27 +215,31 @@
                                 </div>
                             @endif
 
-                            <!-- Start Assessment Button -->
                             <button
                                 wire:click="toggleAssessmentForm"
                                 @class([
                                     'w-full rounded-lg px-4 py-3 text-sm font-semibold text-white transition duration-150',
-                                    'bg-primary-600 hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-600' => $canStartAssessment(),
-                                    'bg-gray-400 cursor-not-allowed dark:bg-gray-600' => !$canStartAssessment(),
+                                    'bg-primary-600 hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-600' => $assessmentCanStart,
+                                    'bg-gray-400 cursor-not-allowed dark:bg-gray-600' => !$assessmentCanStart,
                                 ])
-                                :disabled="!$canStartAssessment()"
+                                @disabled(!$assessmentCanStart)
                             >
                                 @if ($showAssessment)
-                                    Cerrar Evaluación
+                                    Cerrar Evaluacion
                                 @else
-                                    {{ $canStartAssessment() ? 'Comenzar Evaluación' : 'Sin intentos disponibles' }}
+                                    {{ $assessmentCanStart ? 'Comenzar Evaluacion' : 'Evaluacion no disponible' }}
                                 @endif
                             </button>
+
+                            @if (!$assessmentCanStart && $assessmentStartError)
+                                <p class="text-xs text-gray-600 dark:text-gray-400">
+                                    {{ $assessmentStartError }}
+                                </p>
+                            @endif
                         </div>
                     </x-filament::section>
 
-                    <!-- Embedded Assessment Component -->
-                    @if ($showAssessment && $canStartAssessment())
+                    @if ($showAssessment && $assessmentCanStart)
                         <x-filament::section>
                             @livewire('quality.training.assessment-component', ['assessment' => $assessment, 'enrollment' => $enrollment], key('assessment-' . $assessment->id))
                         </x-filament::section>
@@ -260,13 +249,12 @@
                         <div class="rounded-lg bg-green-50 p-4 text-center dark:bg-green-900/30">
                             <x-filament::icon icon="heroicon-o-check-circle" class="mx-auto h-8 w-8 text-green-600 dark:text-green-400" />
                             <p class="mt-2 text-sm font-medium text-green-900 dark:text-green-200">
-                                No hay evaluación para esta lección
+                                No hay evaluacion para esta leccion
                             </p>
                         </div>
                     </x-filament::section>
                 @endif
 
-                <!-- Course Progress -->
                 <x-filament::section>
                     <x-slot name="heading">
                         <h3 class="text-base font-semibold">Progreso del Curso</h3>
@@ -287,7 +275,6 @@
             </div>
         </div>
 
-        <!-- Navigation Bar -->
         <div class="mt-12 border-t border-gray-200 pt-8 dark:border-white/10">
             <div class="flex items-center justify-between">
                 <x-filament::button
@@ -297,12 +284,12 @@
                     size="lg"
                     :disabled="!$hasPreviousLesson"
                 >
-                    Lección Anterior
+                    Leccion Anterior
                 </x-filament::button>
 
                 <div class="text-center">
                     <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
-                        Lección <span class="font-bold text-gray-900 dark:text-white">{{ $currentLessonPosition }}</span> de <span class="font-bold text-gray-900 dark:text-white">{{ $totalLessons }}</span>
+                        Leccion <span class="font-bold text-gray-900 dark:text-white">{{ $currentLessonPosition }}</span> de <span class="font-bold text-gray-900 dark:text-white">{{ $totalLessons }}</span>
                     </p>
                 </div>
 
@@ -313,7 +300,7 @@
                     size="lg"
                     :disabled="!$hasNextLesson"
                 >
-                    Lección Siguiente
+                    Leccion Siguiente
                 </x-filament::button>
             </div>
         </div>

@@ -35,7 +35,7 @@ interface CourseInterface
      * 
      * @return Collection<Course>
      */
-    public function findActivecourses(): Collection;
+    public function findActivecourses(int $teamId): Collection;
 
     /**
      * Find courses by instructor ID.

@@ -7,6 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @deprecated Modelo legacy de compatibilidad.
+ *
+ * El dominio activo del modulo de capacitacion vive en App\Models\Quality\Training.
+ * No debe usarse para nuevas funcionalidades.
+ */
 class TrainingCategory extends Model
 {
     use HasFactory, SoftDeletes;

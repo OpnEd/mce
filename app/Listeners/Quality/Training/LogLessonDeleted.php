@@ -14,10 +14,10 @@ class LogLessonDeleted implements ShouldQueue
     public function handle(LessonDeleted $event): void
     {
         AuditService::logDelete(
-            team: new \App\Models\Team(['id' => $event->lessonData['team_id'] ?? null]),
+            team: $event->lessonData['team_id'] ?? null,
             resourceType: 'Lesson',
             resourceId: $event->lessonId,
-            description: "Lección '{$event->lessonData['title']}' eliminada",
+            description: "Leccion '{$event->lessonData['title']}' eliminada",
         );
     }
 }

@@ -57,8 +57,8 @@ class TenantManagerPanelProvider extends PanelProvider
             ->sidebarCollapsibleOnDesktop()
             ->navigationGroups([
                 NavigationGroup::make()
-                     ->label('Productos')
-                     ->icon('phosphor-cube'),
+                    ->label('Productos')
+                    ->icon('phosphor-cube'),
             ])
             ->login();
     }

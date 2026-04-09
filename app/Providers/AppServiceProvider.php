@@ -6,6 +6,11 @@ use App\Models\AnesthesiaSheet;
 use App\Models\Api\ExternalOrder;
 use App\Models\DispatchItems;
 use App\Models\Document;
+use App\Models\Quality\Training\Course as TrainingCourse;
+use App\Models\Quality\Training\Enrollment as TrainingEnrollment;
+use App\Models\Quality\Training\Lesson as TrainingLesson;
+use App\Models\Quality\Training\Module as TrainingModule;
+use Filament\Facades\Filament;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\Quality\Records\Improvement\ChecklistItemAnswer as ImprovementChecklistItemAnswer;
@@ -15,6 +20,10 @@ use App\Models\Team;
 use App\Observers\DispatchItemsObserver;
 use App\Observers\SaleItemObserver;
 use App\Observers\SaleObserver;
+use App\Observers\Quality\Training\CourseObserver as TrainingCourseObserver;
+use App\Observers\Quality\Training\EnrollmentObserver as TrainingEnrollmentObserver;
+use App\Observers\Quality\Training\LessonObserver as TrainingLessonObserver;
+use App\Observers\Quality\Training\ModuleObserver as TrainingModuleObserver;
 use App\Services\CartService;
 use App\Services\InvoiceService;
 use App\Services\SaleService;
@@ -88,13 +97,10 @@ class AppServiceProvider extends ServiceProvider
         // Implicitly grant "Super Admin" role all permissions
         // This works in the app by using gate-related functions like auth()->user->can() and @can()
         Gate::before(function ($user, $ability) {
-            return $user->hasRole('Super-Admin') ? true : null;
+            // Usamos isAdmin() en lugar de hasRole() para el bypass global.
+            // Esto permite que el admin entre a tenantManager sin importar el team_id.
+            return $user->isSuperAdmin() ? true : null;
         });
-
-        // Suponiendo que hay un team seleccionado (ej. en la sesión)
-        /* $teamId = session('team_id', 1); // Asegúrate de que existe
-
-        app(PermissionRegistrar::class)->setPermissionsTeamId($teamId); */
 
         FilamentView::registerRenderHook(
             PanelsRenderHook::FOOTER,
@@ -107,5 +113,9 @@ class AppServiceProvider extends ServiceProvider
         Document::observe(DocumentObserver::class);
         ExternalOrder::observe(ExternalOrderObserver::class);
         ImprovementChecklistItemAnswer::observe(ChecklistItemAnswerObserver::class);
+        TrainingCourse::observe(TrainingCourseObserver::class);
+        TrainingModule::observe(TrainingModuleObserver::class);
+        TrainingLesson::observe(TrainingLessonObserver::class);
+        TrainingEnrollment::observe(TrainingEnrollmentObserver::class);
     }
 }

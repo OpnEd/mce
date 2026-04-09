@@ -5,9 +5,9 @@ namespace App\Livewire\Quality\Training;
 use App\Models\Quality\Training\Assessment;
 use App\Models\Quality\Training\AssessmentAttempt;
 use App\Models\Quality\Training\Enrollment;
+use App\Models\Quality\Training\Question;
 use App\Services\Quality\AssessmentService;
 use Filament\Notifications\Notification;
-use Illuminate\Support\Collection;
 use Livewire\Component;
 
 class AssessmentComponent extends Component
@@ -26,21 +26,20 @@ class AssessmentComponent extends Component
 
     public ?array $results = null;
 
+    public ?int $remainingAttempts = null;
+
     protected AssessmentService $assessmentService;
 
     public function mount(Assessment $assessment, Enrollment $enrollment): void
     {
-        $this->assessment = $assessment;
+        $this->assessment = $assessment->loadMissing('questions.question_options');
         $this->enrollment = $enrollment;
         $this->assessmentService = app(AssessmentService::class);
+        $this->syncRemainingAttempts();
 
-        // Start the attempt
         $this->startAttempt();
     }
 
-    /**
-     * Start a new assessment attempt
-     */
     public function startAttempt(): void
     {
         try {
@@ -53,10 +52,11 @@ class AssessmentComponent extends Component
             $this->userAnswers = [];
             $this->showResults = false;
             $this->results = null;
+            $this->syncRemainingAttempts();
 
             Notification::make()
-                ->title('Evaluación iniciada')
-                ->body('Tienes ' . ($this->assessment->duration_minutes ?? 'sin límite') . ' minutos para completarla.')
+                ->title('Evaluacion iniciada')
+                ->body('Tienes ' . ($this->assessment->duration_minutes ?? 'sin limite') . ' minutos para completarla.')
                 ->success()
                 ->send();
         } catch (\Exception $e) {
@@ -70,29 +70,27 @@ class AssessmentComponent extends Component
         }
     }
 
-    /**
-     * Submit the assessment
-     */
     public function submitAssessment(): void
     {
-        if (!$this->currentAttempt) {
+        if (! $this->currentAttempt) {
             return;
         }
 
         $this->isSubmitting = true;
 
         try {
-            // Validate that all questions are answered
-            $requiredQuestions = $this->assessment->questions()
-                ->where('required', true)
-                ->pluck('id')
-                ->toArray();
+            $requiredQuestions = $this->assessment->questions
+                ->filter(fn (Question $question) => $question->isRequired());
 
-            $unansweredRequired = array_diff($requiredQuestions, array_keys($this->userAnswers));
+            $unansweredRequired = $requiredQuestions
+                ->filter(fn (Question $question) => ! $this->hasAnswerForQuestion(
+                    $question,
+                    $this->userAnswers[$question->id] ?? null
+                ));
 
-            if (!empty($unansweredRequired)) {
+            if ($unansweredRequired->isNotEmpty()) {
                 Notification::make()
-                    ->title('Validación')
+                    ->title('Validacion')
                     ->body('Debes responder todas las preguntas obligatorias.')
                     ->warning()
                     ->send();
@@ -102,44 +100,37 @@ class AssessmentComponent extends Component
                 return;
             }
 
-            // Save answers and grade the attempt
             $this->currentAttempt = $this->assessmentService->submitAttempt(
                 attempt: $this->currentAttempt,
                 answers: $this->userAnswers,
             );
 
-            // Grade the attempt
             $this->currentAttempt = $this->assessmentService->gradeAttempt($this->currentAttempt);
-
-            // Calculate results
-            $this->results = [
-                'score' => $this->currentAttempt->score ?? 0,
-                'passed' => $this->currentAttempt->isPassed(),
-                'total_questions' => $this->assessment->questions()->count(),
-                'correct_answers' => $this->calculateCorrectAnswers(),
-                'duration' => $this->currentAttempt->durationInMinutes(),
-                'feedback' => $this->assessment->show_feedback ? $this->generateFeedback() : null,
-            ];
-
+            $this->results = $this->assessmentService->buildAttemptSummary($this->currentAttempt);
             $this->showResults = true;
+            $this->syncRemainingAttempts();
 
-            // Notify success
             Notification::make()
-                ->title('Evaluación completada')
-                ->body('Tu resultado es: ' . number_format($this->results['score'], 1) . '%')
+                ->title('Evaluacion completada')
+                ->body(
+                    'Tu resultado es: '
+                    . number_format($this->results['score'], 1)
+                    . '/'
+                    . number_format($this->results['max_score'], 1)
+                )
                 ->success()
                 ->send();
 
-            // Dispatch event to refresh parent component
-            $this->dispatch('assessment-completed', [
-                'attempt_id' => $this->currentAttempt->id,
-                'score' => $this->currentAttempt->score,
-                'passed' => $this->currentAttempt->isPassed(),
-            ]);
+            $this->dispatch(
+                'assessment-completed',
+                attemptId: $this->currentAttempt->id,
+                score: $this->currentAttempt->score,
+                passed: $this->currentAttempt->isPassed(),
+            );
         } catch (\Exception $e) {
             Notification::make()
                 ->title('Error')
-                ->body('Error al procesar la evaluación: ' . $e->getMessage())
+                ->body('Error al procesar la evaluacion: ' . $e->getMessage())
                 ->danger()
                 ->send();
         } finally {
@@ -147,90 +138,50 @@ class AssessmentComponent extends Component
         }
     }
 
-    /**
-     * Calculate number of correct answers
-     */
-    private function calculateCorrectAnswers(): int
-    {
-        $correct = 0;
-
-        foreach ($this->userAnswers as $questionId => $answer) {
-            $question = $this->assessment->questions()->find($questionId);
-
-            if ($question && $this->isAnswerCorrect($question, $answer)) {
-                $correct++;
-            }
-        }
-
-        return $correct;
-    }
-
-    /**
-     * Check if an answer is correct
-     */
-    private function isAnswerCorrect($question, $answer): bool
-    {
-        // Multiple choice
-        if ($question->type === 'multiple_choice') {
-            return $question->correct_answer === $answer;
-        }
-
-        // True/False
-        if ($question->type === 'true_false') {
-            return strtolower($question->correct_answer) === strtolower($answer);
-        }
-
-        // Short answer (case-insensitive)
-        if ($question->type === 'short_answer') {
-            return strtolower(trim($question->correct_answer)) === strtolower(trim($answer));
-        }
-
-        return false;
-    }
-
-    /**
-     * Generate feedback based on performance
-     */
-    private function generateFeedback(): string
-    {
-        $score = $this->results['score'] ?? 0;
-
-        if ($score >= 90) {
-            return '¡Excelente desempeño! Demostraste dominio del tema.';
-        } elseif ($score >= 80) {
-            return 'Buen trabajo. Considera repasar los temas donde fallaste.';
-        } elseif ($score >= 70) {
-            return 'Acertado. Te recomendamos estudiar más a fondo el material.';
-        } else {
-            return 'Necesitas reforzar estos temas. Te sugerimos repasar el material y intentar de nuevo.';
-        }
-    }
-
-    /**
-     * Cancel the attempt
-     */
     public function cancelAttempt(): void
     {
-        if ($this->currentAttempt && !$this->currentAttempt->isCompleted()) {
+        if ($this->currentAttempt && ! $this->currentAttempt->isCompleted()) {
             $this->currentAttempt->delete();
         }
 
         $this->currentAttempt = null;
         $this->userAnswers = [];
         $this->showResults = false;
+        $this->results = null;
+        $this->syncRemainingAttempts();
 
         Notification::make()
-            ->title('Evaluación cancelada')
+            ->title('Evaluacion cancelada')
             ->body('Tu intento ha sido cancelado.')
             ->info()
             ->send();
     }
 
+    private function hasAnswerForQuestion(Question $question, mixed $answer): bool
+    {
+        if ($question->isMultipleChoiceMultiple()) {
+            return collect($answer ?? [])
+                ->filter(fn ($value) => $value !== null && $value !== '')
+                ->isNotEmpty();
+        }
+
+        return trim((string) $answer) !== '';
+    }
+
+    private function syncRemainingAttempts(): void
+    {
+        $this->remainingAttempts = $this->assessmentService->getRemainingAttempts(
+            $this->assessment,
+            $this->enrollment,
+            auth()->user(),
+        );
+    }
+
     public function render()
     {
         return view('livewire.quality.training.assessment-component', [
-            'questions' => $this->assessment->questions()->get(),
-            'questionsCount' => $this->assessment->questions()->count(),
+            'questions' => $this->assessment->questions,
+            'questionsCount' => $this->assessment->questions->count(),
         ]);
     }
 }

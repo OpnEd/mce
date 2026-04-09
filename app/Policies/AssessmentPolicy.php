@@ -4,61 +4,48 @@ namespace App\Policies;
 
 use App\Models\Quality\Training\Assessment;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
+use Filament\Facades\Filament;
 
 class AssessmentPolicy
 {
-    /**
-     * Determine whether the user can view any models.
-     */
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->isAdmin() 
+            || (Filament::getTenant() !== null && $user->isInstructor());
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
     public function view(User $user, Assessment $assessment): bool
     {
-        return false;
+        return $user->isAdmin() || $assessment->isVisibleToTeam(Filament::getTenant()?->id)
+            && ($user->isAdmin() || $user->isInstructor());
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
     public function create(User $user): bool
     {
-        return false;
+        $tenantId = Filament::getTenant()?->id;
+
+        return $tenantId !== null
+            && ($user->isAdmin() || $user->isInstructor())
+            && $user->teams()->whereKey($tenantId)->exists();
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
     public function update(User $user, Assessment $assessment): bool
     {
-        return false;
+        return $user->isAdmin() 
+            || $assessment->isOwnedByTeam(Filament::getTenant()?->id)
+            && ($user->isAdmin() || ($user->isInstructor() && $user->id === $assessment->course?->instructor_id));
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
     public function delete(User $user, Assessment $assessment): bool
     {
-        return false;
+        return $this->update($user, $assessment);
     }
 
-    /**
-     * Determine whether the user can restore the model.
-     */
     public function restore(User $user, Assessment $assessment): bool
     {
         return false;
     }
 
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
     public function forceDelete(User $user, Assessment $assessment): bool
     {
         return false;

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Quality\Training\ModuleResource\RelationManagers;
 
 use App\Models\Quality\Training\Lesson;
+use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -117,15 +118,19 @@ class LessonsRelationManager extends RelationManager
                     ]),
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make(),
+                Tables\Actions\CreateAction::make()
+                    ->visible(fn (): bool => $this->ownerRecord->course?->team_id === Filament::getTenant()?->id),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->visible(fn (): bool => $this->ownerRecord->course?->team_id === Filament::getTenant()?->id),
+                Tables\Actions\DeleteAction::make()
+                    ->visible(fn (): bool => $this->ownerRecord->course?->team_id === Filament::getTenant()?->id),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->visible(fn (): bool => $this->ownerRecord->course?->team_id === Filament::getTenant()?->id),
                 ]),
             ])
             ->defaultSort('order');

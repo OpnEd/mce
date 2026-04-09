@@ -3,15 +3,17 @@
 namespace App\Events\Quality\Training;
 
 use App\Models\Quality\Training\Lesson;
+use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class LessonUpdated
+class LessonUpdated implements ShouldDispatchAfterCommit
 {
     use Dispatchable, SerializesModels;
 
     public function __construct(
         public Lesson $lesson,
-        public array $changes = [],
+        public array $oldValues = [],
+        public array $newValues = [],
     ) {}
 }

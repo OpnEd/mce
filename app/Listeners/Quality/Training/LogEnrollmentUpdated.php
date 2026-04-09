@@ -13,34 +13,30 @@ class LogEnrollmentUpdated implements ShouldQueue
 
     public function handle(EnrollmentUpdated $event): void
     {
-        if (empty($event->changes)) {
+        if ($event->newValues === []) {
             return;
         }
 
-        $oldValues = [];
-        $newValues = [];
+        $event->enrollment->loadMissing('user:id,name');
 
-        foreach ($event->changes as $field => $newValue) {
-            $newValues[$field] = $newValue;
-            $oldValues[$field] = $event->enrollment->getOriginal($field);
+        $description = "Matricula actualizada: {$event->enrollment->user?->name}";
+
+        if (isset($event->newValues['status']) && (($event->oldValues['status'] ?? null) !== $event->newValues['status'])) {
+            $oldStatus = $event->oldValues['status'] ?? 'n/a';
+            $description .= " - Estado: {$oldStatus} -> {$event->newValues['status']}";
         }
 
-        $description = "Matrícula actualizada: {$event->enrollment->user->name}";
-        
-        if (isset($newValues['status']) && $oldValues['status'] !== $newValues['status']) {
-            $description .= " - Estado: {$oldValues['status']} → {$newValues['status']}";
-        }
-        
-        if (isset($newValues['progress'])) {
-            $description .= " - Progreso: {$oldValues['progress']}% → {$newValues['progress']}%";
+        if (isset($event->newValues['progress'])) {
+            $oldProgress = $event->oldValues['progress'] ?? 0;
+            $description .= " - Progreso: {$oldProgress}% -> {$event->newValues['progress']}%";
         }
 
         AuditService::logUpdate(
-            $event->enrollment->team,
+            $event->enrollment->team_id,
             'Enrollment',
             $event->enrollment->id,
-            $oldValues,
-            $newValues,
+            $event->oldValues,
+            $event->newValues,
             description: $description,
         );
     }

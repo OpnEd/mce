@@ -13,11 +13,13 @@ class LogEnrollmentCreated implements ShouldQueue
 
     public function handle(EnrollmentCreated $event): void
     {
+        $event->enrollment->loadMissing('user:id,name', 'course:id,title');
+
         AuditService::logCreate(
-            $event->enrollment->team,
+            $event->enrollment->team_id,
             'Enrollment',
             $event->enrollment->id,
-            description: "Matrícula creada: {$event->enrollment->user->name} inscrito en '{$event->enrollment->course->title}'",
+            description: "Matricula creada: {$event->enrollment->user?->name} inscrito en '{$event->enrollment->course?->title}'",
         );
     }
 }

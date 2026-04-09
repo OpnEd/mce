@@ -2,8 +2,10 @@
 
 namespace App\Models\Quality\Training;
 
+use App\Events\Quality\Training\EnrollmentCompleted;
 use App\Models\Team;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -104,27 +106,57 @@ class Enrollment extends Model
     public function updateProgress(): void
     {
         $totalLessons = $this->course?->lessons()->count() ?? 0;
+        $lessonProgress = $this->enrollmentLessons()
+            ->with(['lesson:id,completion_mode', 'approvedAttempt:id,score'])
+            ->get();
+        $resolvedLessons = $lessonProgress->filter(fn (EnrollmentLesson $lesson) => $lesson->isResolved())->count();
+        $hasActivity = $lessonProgress->contains(function (EnrollmentLesson $lesson): bool {
+            return $lesson->status !== EnrollmentLesson::STATUS_NOT_STARTED
+                || $lesson->started_at !== null
+                || $lesson->last_accessed_at !== null
+                || $lesson->consumed_at !== null;
+        });
+        $finalScore = $this->calculateFinalScore($lessonProgress);
+        $latestAccessedAt = $lessonProgress
+            ->pluck('last_accessed_at')
+            ->filter()
+            ->sortDesc()
+            ->first();
+        $startedAt = $lessonProgress
+            ->pluck('started_at')
+            ->filter()
+            ->sort()
+            ->first();
 
         if ($totalLessons === 0) {
             $this->progress = 0;
             $this->status = self::STATUS_NOT_STARTED;
             $this->completed_at = null;
+            $this->score_final = null;
             $this->saveQuietly();
             return;
         }
 
-        $resolvedLessons = $this->lessonsCompleted()->count();
         $percent = intval(round(($resolvedLessons / $totalLessons) * 100));
 
         $this->progress = $percent;
+        $this->score_final = $finalScore;
+        $this->last_accessed_at = $latestAccessedAt ?? $this->last_accessed_at;
+        $this->started_at ??= $startedAt;
 
         if ($resolvedLessons >= $totalLessons) {
-            $this->status = self::STATUS_COMPLETED;
-            $this->completed_at ??= now();
-        } elseif ($resolvedLessons > 0 || $this->enrollmentLessons()->where('status', '!=', EnrollmentLesson::STATUS_NOT_STARTED)->exists()) {
-            $this->status = self::STATUS_IN_PROGRESS;
+            $this->markAsCompleted($finalScore);
+            return;
         }
 
+        if ($hasActivity) {
+            $this->status = self::STATUS_IN_PROGRESS;
+            $this->started_at ??= now();
+        } else {
+            $this->status = self::STATUS_NOT_STARTED;
+        }
+
+        $this->completed_at = null;
         $this->saveQuietly();
     }
 
@@ -154,21 +186,31 @@ class Enrollment extends Model
         if (!$this->started_at) {
             $this->started_at = now();
             $this->status = self::STATUS_IN_PROGRESS;
-            $this->save();
+            $this->saveQuietly();
         }
     }
 
     /**
      * Marcar el curso como completado.
      */
-    public function markAsCompleted()
+    public function markAsCompleted(?float $finalScore = null)
     {
-        $this->completed_at = now();
+        $wasCompleted = $this->isCompleted();
+
         $this->status = self::STATUS_COMPLETED;
+        $this->progress = 100;
+        $this->started_at ??= now();
+        $this->completed_at ??= now();
+        $this->score_final = $finalScore ?? $this->calculateFinalScore();
+
+        if ($wasCompleted) {
+            $this->saveQuietly();
+            return;
+        }
+
         $this->save();
 
-        // Disparar evento para generar certificado
-        \App\Events\Quality\Training\EnrollmentCompleted::dispatch($this, $this->score_final);
+        EnrollmentCompleted::dispatch($this->fresh(), $this->score_final);
     }
 
     /**
@@ -233,5 +275,26 @@ class Enrollment extends Model
         $this->certificate_url = null;
         $this->score_final = null;
         $this->save();
+    }
+
+    protected function calculateFinalScore(?EloquentCollection $lessonProgress = null): ?float
+    {
+        $lessonProgress ??= $this->enrollmentLessons()
+            ->with(['lesson:id,completion_mode', 'approvedAttempt:id,score'])
+            ->get();
+
+        $scores = $lessonProgress
+            ->filter(function (EnrollmentLesson $lesson): bool {
+                return $lesson->lesson?->requiresAssessment()
+                    && $lesson->status === EnrollmentLesson::STATUS_PASSED
+                    && $lesson->approvedAttempt?->score !== null;
+            })
+            ->map(fn (EnrollmentLesson $lesson) => (float) $lesson->approvedAttempt->score);
+
+        if ($scores->isEmpty()) {
+            return null;
+        }
+
+        return round($scores->avg(), 2);
     }
 }

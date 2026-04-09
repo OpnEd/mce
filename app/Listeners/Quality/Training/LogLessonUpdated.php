@@ -13,25 +13,19 @@ class LogLessonUpdated implements ShouldQueue
 
     public function handle(LessonUpdated $event): void
     {
-        if (empty($event->changes)) {
+        if ($event->newValues === []) {
             return;
         }
 
-        $oldValues = [];
-        $newValues = [];
-
-        foreach ($event->changes as $field => $newValue) {
-            $newValues[$field] = $newValue;
-            $oldValues[$field] = $event->lesson->getOriginal($field);
-        }
+        $event->lesson->loadMissing('module.course:id,team_id');
 
         AuditService::logUpdate(
-            $event->lesson->module->course->team,
+            $event->lesson->module?->course?->team_id,
             'Lesson',
             $event->lesson->id,
-            $oldValues,
-            $newValues,
-            description: "Lección '{$event->lesson->title}' actualizada",
+            $event->oldValues,
+            $event->newValues,
+            description: "Leccion '{$event->lesson->title}' actualizada",
         );
     }
 }

@@ -14,14 +14,20 @@ class AuditService
      * Log an action to the audit trail
      */
     public static function log(
-        Team $team,
+        Team|int|null $team,
         string $resourceType,
         int|string $resourceId,
         string $action,
         ?User $user = null,
         ?array $changes = null,
         ?string $description = null,
-    ): AuditLog {
+    ): ?AuditLog {
+        $team = self::resolveTeam($team);
+
+        if (! $team) {
+            return null;
+        }
+
         $user = $user ?? Auth::user();
 
         return AuditLog::create([
@@ -41,12 +47,12 @@ class AuditService
      * Log a create action
      */
     public static function logCreate(
-        Team $team,
+        Team|int|null $team,
         string $resourceType,
         int|string $resourceId,
         ?User $user = null,
         ?string $description = null,
-    ): AuditLog {
+    ): ?AuditLog {
         return self::log(
             $team,
             $resourceType,
@@ -62,14 +68,14 @@ class AuditService
      * Log an update action
      */
     public static function logUpdate(
-        Team $team,
+        Team|int|null $team,
         string $resourceType,
         int|string $resourceId,
         array $oldValues,
         array $newValues,
         ?User $user = null,
         ?string $description = null,
-    ): AuditLog {
+    ): ?AuditLog {
         // Only track fields that actually changed
         $changes = [];
         foreach ($newValues as $field => $newValue) {
@@ -97,12 +103,12 @@ class AuditService
      * Log a delete action
      */
     public static function logDelete(
-        Team $team,
+        Team|int|null $team,
         string $resourceType,
         int|string $resourceId,
         ?User $user = null,
         ?string $description = null,
-    ): AuditLog {
+    ): ?AuditLog {
         return self::log(
             $team,
             $resourceType,
@@ -118,12 +124,12 @@ class AuditService
      * Log a read/view action
      */
     public static function logRead(
-        Team $team,
+        Team|int|null $team,
         string $resourceType,
         int|string $resourceId,
         ?User $user = null,
         ?string $description = null,
-    ): AuditLog {
+    ): ?AuditLog {
         return self::log(
             $team,
             $resourceType,
@@ -139,12 +145,12 @@ class AuditService
      * Log an export action
      */
     public static function logExport(
-        Team $team,
+        Team|int|null $team,
         string $resourceType,
         int $count,
         ?User $user = null,
         ?string $description = null,
-    ): AuditLog {
+    ): ?AuditLog {
         return self::log(
             $team,
             $resourceType,
@@ -227,5 +233,18 @@ class AuditService
                 ])
                 ->toArray(),
         ];
+    }
+
+    private static function resolveTeam(Team|int|null $team): ?Team
+    {
+        if ($team instanceof Team) {
+            return $team->exists ? $team : Team::query()->find($team->id);
+        }
+
+        if ($team === null) {
+            return null;
+        }
+
+        return Team::query()->find($team);
     }
 }

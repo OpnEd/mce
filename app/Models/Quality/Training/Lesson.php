@@ -17,17 +17,21 @@ class Lesson extends Model
     public const COMPLETION_MODE_ASSESSMENT_REQUIRED = 'assessment_required';
 
     protected $fillable = [
-        'module_id',
-        'title',
-        'objective',
-        'description',
+        'module_id',//
+        'title',//
         'duration', // Duration in minutes
-        'order',
-        'content',
-        'video_url',
-        'iframe',
-        'completion_mode',
-        'active',
+        'order',//
+        'video_url',//
+        'iframe',//
+        'description',//
+        'ilustrations',//
+        'objectives',//
+        'introduction',//
+        'content',//
+        'conclusions',//
+        'references',//
+        'completion_mode',//
+        'active',//
     ];
 
     protected $casts = [
@@ -35,6 +39,10 @@ class Lesson extends Model
         'duration' => 'integer',
         'content' => 'array',
         'completion_mode' => 'string',
+        'objectives' => 'array',
+        'ilustrations' => 'array',
+        'references' => 'array',
+        'conclusions' => 'array',
     ];
 
     /* public function getVideoUrlAttribute()
