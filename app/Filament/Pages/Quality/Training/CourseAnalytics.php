@@ -17,6 +17,11 @@ class CourseAnalytics extends Page
     protected static string $view = 'filament.pages.quality.training.course-analytics';
     protected static ?int $navigationSort = 25;
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->isInstructor() ?? false;
+    }
+
     public function getTitle(): string
     {
         return 'Analítica de Cursos';

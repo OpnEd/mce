@@ -80,7 +80,7 @@ class AssessmentService
             throw new \RuntimeException('Este intento ya ha sido completado.');
         }
 
-        $assessment = $attempt->assessment()->with('questions.question_options')->firstOrFail();
+        $assessment = $attempt->assessment()->with('questions.questionOptions')->firstOrFail();
         $normalizedAnswers = $this->normalizeAnswers($assessment, $answers);
 
         DB::transaction(function () use ($attempt, $assessment, $normalizedAnswers) {
@@ -126,7 +126,7 @@ class AssessmentService
                 $attempt = $this->submitAttempt($attempt, $answers);
             }
 
-            $assessment = $attempt->assessment()->with('questions.question_options', 'lesson.module')->firstOrFail();
+            $assessment = $attempt->assessment()->with('questions.questionOptions', 'lesson.module')->firstOrFail();
             $lesson = $attempt->lesson ?? $assessment->lesson;
 
             if (! $lesson) {
@@ -164,7 +164,7 @@ class AssessmentService
 
     public function buildAttemptSummary(AssessmentAttempt $attempt): array
     {
-        $assessment = $attempt->assessment()->with('questions.question_options')->firstOrFail();
+        $assessment = $attempt->assessment()->with('questions.questionOptions', 'lesson.module')->firstOrFail();
 
         return $this->buildAttemptSummaryFromAssessment(
             $assessment,
@@ -239,7 +239,7 @@ class AssessmentService
                     continue;
                 }
 
-                $validOptionIds = $question->question_options
+                $validOptionIds = $question->questionOptions
                     ->pluck('id')
                     ->map(fn ($id) => (int) $id);
 
@@ -257,7 +257,7 @@ class AssessmentService
                 }
 
                 $optionId = (int) $answer;
-                $validOptionIds = $question->question_options
+                $validOptionIds = $question->questionOptions
                     ->pluck('id')
                     ->map(fn ($id) => (int) $id);
 
@@ -334,7 +334,7 @@ class AssessmentService
         }
 
         if ($question->isMultipleChoiceSingle() || $question->isTrueFalse()) {
-            $correctOptionId = $question->question_options
+            $correctOptionId = $question->questionOptions
                 ->firstWhere('is_correct', true)
                 ?->id;
 
@@ -342,7 +342,7 @@ class AssessmentService
         }
 
         if ($question->isMultipleChoiceMultiple()) {
-            $correctOptionIds = $question->question_options
+            $correctOptionIds = $question->questionOptions
                 ->where('is_correct', true)
                 ->pluck('id')
                 ->map(fn ($id) => (int) $id)

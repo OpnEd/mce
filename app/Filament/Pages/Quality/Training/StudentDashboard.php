@@ -12,7 +12,7 @@ class StudentDashboard extends Page
     protected static ?string $navigationGroup = 'Universidad';
     protected static ?string $navigationLabel = 'Mi Dashboard';
     protected static string $view = 'filament.pages.quality.training.student-dashboard';
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 4;
 
     public function getTitle(): string
     {

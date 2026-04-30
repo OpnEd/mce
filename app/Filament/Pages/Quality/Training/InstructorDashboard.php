@@ -16,6 +16,11 @@ class InstructorDashboard extends Page
     protected static string $view = 'filament.pages.quality.training.instructor-dashboard';
     protected static ?int $navigationSort = 15;
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->isInstructor() ?? false;
+    }
+
     public function getTitle(): string
     {
         return 'Dashboard del Instructor';
@@ -46,7 +51,8 @@ class InstructorDashboard extends Page
         $tenant = Filament::getTenant();
 
         return Enrollment::query()
-            ->whereIn('course_id', 
+            ->whereIn(
+                'course_id',
                 Course::query()
                     ->where('instructor_id', $instructor->id)
                     ->where('team_id', $tenant?->id)
@@ -80,12 +86,12 @@ class InstructorDashboard extends Page
             'total_students' => $enrollments->count(),
             'students_in_progress' => $inProgressEnrollments->count(),
             'students_completed' => $completedEnrollments->count(),
-            'completion_rate' => $enrollments->count() > 0 
+            'completion_rate' => $enrollments->count() > 0
                 ? round(($completedEnrollments->count() / $enrollments->count()) * 100, 2)
                 : 0,
             'average_progress' => $enrollments->count() > 0 ? $enrollments->avg('progress') : 0,
-            'total_modules' => $courses->sum(fn ($course) => $course->modules->count()),
-            'certificates_issued' => $enrollments->sum(fn ($enrollment) => $enrollment->certificates->count()),
+            'total_modules' => $courses->sum(fn($course) => $course->modules->count()),
+            'certificates_issued' => $enrollments->sum(fn($enrollment) => $enrollment->certificates->count()),
         ];
     }
 
@@ -105,7 +111,7 @@ class InstructorDashboard extends Page
                 'title' => $course->title,
                 'total_enrollments' => $enrollments->count(),
                 'completed_enrollments' => $completed,
-                'completion_rate' => $enrollments->count() > 0 
+                'completion_rate' => $enrollments->count() > 0
                     ? round(($completed / $enrollments->count()) * 100, 2)
                     : 0,
                 'average_progress' => $enrollments->count() > 0 ? $enrollments->avg('progress') : 0,

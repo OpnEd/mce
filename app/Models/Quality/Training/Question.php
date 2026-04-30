@@ -35,24 +35,14 @@ class Question extends Model
         return $this->belongsTo(Assessment::class);
     }
 
-    public function question_options(): HasMany
+    public function questionOptions(): HasMany
     {
         return $this->hasMany(QuestionOption::class);
     }
 
-    public function questionOptions(): HasMany
-    {
-        return $this->question_options();
-    }
-
-    public function user_answers(): HasMany
-    {
-        return $this->hasMany(UserAnswer::class);
-    }
-
     public function userAnswers(): HasMany
     {
-        return $this->user_answers();
+        return $this->hasMany(UserAnswer::class);
     }
 
     public function team(): BelongsTo

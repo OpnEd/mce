@@ -132,6 +132,10 @@ class AdminPanelProvider extends PanelProvider
                 PanelsRenderHook::GLOBAL_SEARCH_BEFORE,
                 fn(): string => Blade::render('@livewire(\'iniciar-venta-button\')'),
             )
+            //->renderHook(
+            //    PanelsRenderHook::PAGE_END,
+            //    fn (): string => view('filament.partials.support-initiative-sidebar')->render(),
+            //)
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
                 fn(): string => Blade::render('<meta name="team-id" content="{{ \Filament\Facades\Filament::getTenant()?->id }}">'),

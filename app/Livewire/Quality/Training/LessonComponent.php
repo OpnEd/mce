@@ -11,51 +11,57 @@ use App\Models\Quality\Training\EnrollmentLesson;
 use App\Models\Quality\Training\Lesson;
 use App\Services\Quality\AssessmentService;
 use App\Services\Quality\EnrollmentLessonService;
-use Filament\Facades\Filament;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Collection;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class LessonComponent extends Component
 {
-    public $userName;
-    public $lessonTitle;
-    public $lessonObjective;
-    public $lessonDescription;
-    public $status;
-    public $progress;
-    public $started_at;
-    public $last_accessed_at;
-    public $completed_at;
-    public $teamId;
-    public $record;
-    public $content = [];
     public Enrollment $enrollment;
+
     public Lesson $lesson;
-    public $hasPreviousLesson;
-    public $hasNextLesson;
-    public $totalLessons;
-    public $currentLessonPosition;
+
+    public bool $hasPreviousLesson = false;
+
+    public bool $hasNextLesson = false;
+
+    public int $totalLessons = 0;
+
+    public int $currentLessonPosition = 0;
+
     public array $lessonStatus = [];
 
     public ?Assessment $assessment = null;
+
     public ?int $remainingAttempts = null;
+
     public bool $lessonConsumed = false;
+
     public array $breadcrumbs = [];
+
     public ?AssessmentAttempt $latestAttempt = null;
+
     public bool $showAssessment = false;
+
     public bool $assessmentCanStart = false;
+
     public ?string $assessmentStartError = null;
 
     public function mount(Enrollment $enrollment, Lesson $lesson): void
     {
-        $this->enrollment = $enrollment->loadMissing('course.modules.lessons');
-        $this->lesson = $lesson->load(['module.course', 'assessment.questions.question_options']);
+        $this->enrollment = $enrollment->loadMissing([
+            'course.modules.lessons',
+            'enrollmentLessons',
+        ]);
 
-        abort_unless($this->lesson->module->course_id === $this->enrollment->course_id, 404);
+        $this->lesson = $lesson->load([
+            'module.course',
+            'assessment.questions.questionOptions',
+        ]);
 
-        $this->record = $this->lesson;
-        $this->teamId = Filament::getTenant()->id;
+        abort_unless($this->lesson->module?->course_id === $this->enrollment->course_id, 404);
+
         $this->updateNavigationState();
 
         $service = app(EnrollmentLessonService::class);
@@ -63,11 +69,9 @@ class LessonComponent extends Component
 
         $this->loadLessonStatus();
         $this->loadAssessmentData();
-        $this->breadcrumbs = BreadcrumbHelper::getTrainingBreadcrumbs(
-            $this->enrollment,
-            $this->lesson->module,
-            $this->lesson
-        );
+        $this->breadcrumbs = collect(
+            BreadcrumbHelper::getTrainingBreadcrumbs($this->enrollment, $this->lesson->module, $this->lesson)
+        )->mapWithKeys(fn($crumb) => [$crumb['url'] ?? '' => $crumb['label']])->toArray();
     }
 
     public function render()
@@ -79,24 +83,66 @@ class LessonComponent extends Component
     {
         $previousLesson = $this->getAdjacentLesson(-1);
 
-        if ($previousLesson) {
-            $this->redirect(EnrollmentResource::getUrl('lesson', [
-                'record' => $this->enrollment,
-                'lesson' => $previousLesson,
-            ]), navigate: true);
+        if (! $previousLesson) {
+            return;
         }
+
+        $this->navigateToLesson($previousLesson);
     }
 
     public function next(): void
     {
         $nextLesson = $this->getAdjacentLesson(1);
 
-        if ($nextLesson) {
-            $this->redirect(EnrollmentResource::getUrl('lesson', [
-                'record' => $this->enrollment,
-                'lesson' => $nextLesson,
-            ]), navigate: true);
+        if (! $nextLesson) {
+            return;
         }
+
+        $this->navigateToLesson($nextLesson);
+    }
+
+    public function markLessonConsumed(): void
+    {
+        $service = app(EnrollmentLessonService::class);
+        $enrollmentLesson = $service->getOrCreate($this->enrollment, $this->lesson);
+        $service->markConsumed($enrollmentLesson);
+
+        $this->lessonConsumed = true;
+        $this->showAssessment = false;
+
+        $this->enrollment->refresh();
+        $this->loadLessonStatus();
+        $this->loadAssessmentData();
+
+        Notification::make()
+            ->title('Leccion marcada como vista')
+            ->body('Ahora puedes continuar con la evaluacion o pasar a la siguiente leccion.')
+            ->success()
+            ->send();
+    }
+
+    public function toggleAssessmentForm(): void
+    {
+        if (! $this->assessmentCanStart) {
+            Notification::make()
+                ->title('Evaluacion no disponible')
+                ->body($this->assessmentStartError ?? 'No puedes iniciar la evaluacion en este momento.')
+                ->warning()
+                ->send();
+
+            return;
+        }
+
+        $this->showAssessment = ! $this->showAssessment;
+    }
+
+    #[On('assessment-completed')]
+    public function refreshAfterAssessment(): void
+    {
+        $this->enrollment->refresh();
+        $this->showAssessment = false;
+        $this->loadLessonStatus();
+        $this->loadAssessmentData();
     }
 
     protected function loadLessonStatus(): void
@@ -200,14 +246,14 @@ class LessonComponent extends Component
     {
         return $this->enrollment->course->modules
             ->sortBy('order')
-            ->flatMap(fn ($module) => $module->lessons->sortBy('order')->values())
+            ->flatMap(fn($module) => $module->lessons->sortBy('order')->values())
             ->values();
     }
 
     protected function getAdjacentLesson(int $offset): ?Lesson
     {
         $lessons = $this->getOrderedLessons();
-        $currentIndex = $lessons->search(fn (Lesson $lesson) => $lesson->id === $this->lesson->id);
+        $currentIndex = $lessons->search(fn(Lesson $lesson) => $lesson->id === $this->lesson->id);
 
         if ($currentIndex === false) {
             return null;
@@ -216,64 +262,22 @@ class LessonComponent extends Component
         return $lessons->get($currentIndex + $offset);
     }
 
+    public function navigateToLesson(Lesson $lesson): void
+    {
+        $this->redirect(EnrollmentResource::getUrl('lesson', [
+            'record' => $this->enrollment->getKey(),
+            'lesson' => $lesson->getKey(),
+        ]), navigate: true);
+    }
+
     private function updateNavigationState(): void
     {
         $lessons = $this->getOrderedLessons();
-        $currentIndex = $lessons->search(fn (Lesson $lesson) => $lesson->id === $this->lesson->id);
+        $currentIndex = $lessons->search(fn(Lesson $lesson) => $lesson->id === $this->lesson->id);
 
         $this->totalLessons = $lessons->count();
         $this->currentLessonPosition = $currentIndex === false ? 0 : $currentIndex + 1;
         $this->hasPreviousLesson = $currentIndex !== false && $currentIndex > 0;
         $this->hasNextLesson = $currentIndex !== false && $currentIndex < ($lessons->count() - 1);
-    }
-
-    #[\Livewire\Attributes\On('markLessonConsumed')]
-    public function markLessonConsumed(): void
-    {
-        $service = app(EnrollmentLessonService::class);
-        $enrollmentLesson = $service->getOrCreate($this->enrollment, $this->lesson);
-        $service->markConsumed($enrollmentLesson);
-
-        $this->lessonConsumed = true;
-        $this->loadLessonStatus();
-        $this->loadAssessmentData();
-
-        Notification::make()
-            ->title('Leccion marcada como vista')
-            ->body('Ahora puedes pasar a la siguiente leccion.')
-            ->success()
-            ->send();
-
-        $this->dispatch('lesson-consumed', lessonId: $this->lesson->id);
-    }
-
-    public function canStartAssessment(): array
-    {
-        return [$this->assessmentCanStart, $this->assessmentStartError];
-    }
-
-    #[\Livewire\Attributes\On('toggleAssessmentForm')]
-    public function toggleAssessmentForm(): void
-    {
-        if (! $this->assessmentCanStart) {
-            Notification::make()
-                ->title('Evaluacion no disponible')
-                ->body($this->assessmentStartError ?? 'No puedes iniciar la evaluacion en este momento.')
-                ->warning()
-                ->send();
-
-            return;
-        }
-
-        $this->showAssessment = ! $this->showAssessment;
-    }
-
-    #[\Livewire\Attributes\On('assessment-completed')]
-    public function refreshAfterAssessment(): void
-    {
-        $this->enrollment->refresh();
-        $this->showAssessment = false;
-        $this->loadLessonStatus();
-        $this->loadAssessmentData();
     }
 }

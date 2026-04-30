@@ -26,7 +26,7 @@ class CertificateResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Certificados';
 
-    protected static ?int $navigationSort = 50;
+    protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
     {
@@ -160,7 +160,8 @@ class CertificateResource extends Resource
 
                 Tables\Columns\TextColumn::make('final_score')
                     ->label('Puntuación')
-                    ->decimal(2, 0)
+                    ->numeric()
+                    ->formatStateUsing(fn ($state) => number_format($state, 2, '.', ''))
                     ->suffix('%')
                     ->sortable(),
 

@@ -2,49 +2,41 @@
 
 namespace App\Policies;
 
+use App\Enums\PermissionType;
 use App\Models\Quality\Training\Course;
 use App\Models\User;
-use Filament\Facades\Filament;
+use App\Traits\Filament\Training\HandlesTrainingAuthorization;
 
 class CoursePolicy
 {
+    use HandlesTrainingAuthorization;
+
     public function viewAny(User $user): bool
     {
-        return true;
+        return $this->hasPermission($user, PermissionType::VIEW_COURSE);
     }
 
     public function view(User $user, Course $course): bool
     {
-        $tenantId = Filament::getTenant()?->id;
-
-        if ($course->team_id === null) {
-            return true;
-        }
-
-        return $course->isVisibleToTeam($tenantId) && ($user->isAdmin() || $user->isInstructor());
+        return $this->hasPermission($user, PermissionType::VIEW_COURSE)
+            && $this->canAccessModel($course);
     }
 
     public function create(User $user): bool
     {
-        $tenant = Filament::getTenant();
-
-        return $user->isSuperAdmin() || $user->isAdmin() || ($tenant && $user->isInstructor() 
-            && $user->teams()->whereKey(Filament::getTenant()->id)->exists()
-        );
+        return $this->hasPermission($user, PermissionType::CREATE_COURSE);
     }
 
     public function update(User $user, Course $course): bool
     {
-        $tenant = Filament::getTenant();
-
-        return $course->isOwnedByTeam($tenant?->id)
-            && ($user->isAdmin() 
-                || ($user->isInstructor() && $user->id === $course->instructor_id));
+        return $this->hasPermission($user, PermissionType::EDIT_COURSE)
+            && $this->canMutateModel($course);
     }
 
     public function delete(User $user, Course $course): bool
     {
-        return $this->update($user, $course);
+        return $this->hasPermission($user, PermissionType::DELETE_COURSE)
+            && $this->canMutateModel($course);
     }
 
     public function restore(User $user, Course $course): bool

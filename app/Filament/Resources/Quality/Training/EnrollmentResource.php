@@ -22,6 +22,12 @@ class EnrollmentResource extends Resource
     protected static ?string $navigationGroup = 'Universidad';
     protected static ?string $navigationLabel = 'Matrículas';
 
+    protected static ?string $modelLabel = 'Matrícula';
+
+    protected static ?string $pluralModelLabel = 'Matrículas';
+
+    protected static ?int $navigationSort = 2;
+
     public static function getNavigationBadge(): ?string
     {
         $user = Auth::user();

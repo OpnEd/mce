@@ -6,6 +6,7 @@ use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Tables;
+use Filament\Tables\Enums\ActionsPosition;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -34,7 +35,7 @@ trait HasEnrollmentFormAndTable
                         titleAttribute: 'title',
                         modifyQueryUsing: fn (Builder $query) => $query
                             ->active()
-                            ->visibleToTeam(Filament::getTenant()?->id)
+                            ->ownedByTeam(Filament::getTenant()?->id)
                     )
                     ->required(),
                 Forms\Components\TextInput::make('status')
@@ -61,35 +62,47 @@ trait HasEnrollmentFormAndTable
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('course.title')
-                    ->numeric()
+                    ->label('Curso')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('status')
+                    ->label('Estado')
+                    ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('progress')
-                    ->numeric()
+                    ->label('Progreso')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('started_at')
+                    ->label('Iniciado el')
                     ->dateTime()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('completed_at')
+                    ->label('Completado el')
                     ->dateTime()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('last_accessed_at')
+                    ->label('Último acceso')
                     ->dateTime()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('certificated_at')
+                    ->label('Certificado el')
                     ->dateTime()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('certificate_url')
+                    ->label('URL del certificado')
+                    //->url()
+                    ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('score_final')
+                    ->label('Puntaje final')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
+                    ->label('Creado el')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('updated_at')
+                    ->label('Actualizado el')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -103,8 +116,11 @@ trait HasEnrollmentFormAndTable
                     ->exporter(\App\Filament\Exporters\EnrollmentExporter::class),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-            ])
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\ViewAction::make(),
+                    Tables\Actions\EditAction::make(),
+                ])
+            ], position: ActionsPosition::BeforeColumns)
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),

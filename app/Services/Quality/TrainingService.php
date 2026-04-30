@@ -37,7 +37,7 @@ class TrainingService
 
         return DB::transaction(function () use ($teamId, $userId, $courseId): array {
             $course = Course::query()
-                ->visibleToTeam($teamId)
+                ->discoverableToTeam($teamId)
                 ->active()
                 ->with('modules.lessons:id,module_id')
                 ->findOrFail($courseId);

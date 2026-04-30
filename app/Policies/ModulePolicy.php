@@ -2,43 +2,47 @@
 
 namespace App\Policies;
 
+use App\Enums\PermissionType;
+use App\Models\Quality\Training\Course;
 use App\Models\Quality\Training\Module;
 use App\Models\User;
-use Filament\Facades\Filament;
+use App\Traits\Filament\Training\HandlesTrainingAuthorization;
 
 class ModulePolicy
 {
+    use HandlesTrainingAuthorization;
+
     public function viewAny(User $user): bool
     {
-        return $user->isAdmin() || Filament::getTenant() !== null;
+        return $this->hasPermission($user, PermissionType::VIEW_MODULES);
     }
 
     public function view(User $user, Module $module): bool
     {
-        return ($module->course?->isVisibleToTeam(Filament::getTenant()?->id) ?? false)
-            && ($user->isAdmin() || $user->isInstructor());
+        return $this->hasPermission($user, PermissionType::VIEW_MODULES)
+            && $this->canAccessModel($module);
     }
 
     public function create(User $user): bool
     {
-        $tenantId = Filament::getTenant()?->id;
+        return $this->hasPermission($user, PermissionType::CREATE_MODULES);
+    }
 
-        return $tenantId !== null
-            && ($user->isAdmin() || $user->isInstructor())
-            && $user->teams()->whereKey($tenantId)->exists();
+    public function createForCourse(User $user, Course $course): bool
+    {
+        return $this->canCreateInCourse($user, $course, PermissionType::CREATE_MODULES);
     }
 
     public function update(User $user, Module $module): bool
     {
-        $tenantId = Filament::getTenant()?->id;
-
-        return ($module->course?->isOwnedByTeam($tenantId) ?? false)
-            && ($user->isAdmin() || ($user->isInstructor() && $user->id === $module->course?->instructor_id));
+        return $this->hasPermission($user, PermissionType::EDIT_MODULES)
+            && $this->canMutateModel($module);
     }
 
     public function delete(User $user, Module $module): bool
     {
-        return $this->update($user, $module);
+        return $this->hasPermission($user, PermissionType::DELETE_MODULES)
+            && $this->canMutateModel($module);
     }
 
     public function restore(User $user, Module $module): bool

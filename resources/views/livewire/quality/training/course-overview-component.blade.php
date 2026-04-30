@@ -1,7 +1,7 @@
 <div class="space-y-6">
     <x-filament::section>
         <x-slot name="heading">
-            {{ $course->title }}
+            Objetivo
         </x-slot>
 
         <x-slot name="description">
@@ -35,8 +35,8 @@
                                 @if ($lesson->active)
                                     <x-filament::link
                                         :href="\App\Filament\Resources\Quality\Training\EnrollmentResource::getUrl('lesson', [
-                                            'record' => $record,
-                                            'lesson' => $lesson,
+                                            'record' => $record->getKey(),
+                                            'lesson' => $lesson->getKey(),
                                         ])"
                                         icon="heroicon-o-document-text"
                                     >

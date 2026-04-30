@@ -53,12 +53,6 @@ class Course extends Model
         return $this->belongsTo(User::class, 'instructor_id');
     }
 
-    public function users()
-    {
-        return $this->belongsToMany(User::class, 'course_user')
-                    ->withPivot('status', 'progress')
-                    ->withTimestamps();
-    }
     public function modules()
     {
         return $this->hasMany(Module::class)->orderBy('order');
@@ -163,15 +157,9 @@ class Course extends Model
           ->withProgress()
           ->withStatus();
     }
-    
-    public function teams(): BelongsToMany
-    {
-        return $this->belongsToMany(Team::class)
-                    ->withTimestamps();
-    }
 
     // El creador (si es null, es Global)
-    public function owner(): BelongsTo
+    public function team(): BelongsTo
     {
         return $this->belongsTo(Team::class, 'team_id');
     }
@@ -186,7 +174,7 @@ class Course extends Model
         return $teamId !== null && (int) $this->team_id === $teamId;
     }
 
-    public function isSharedWithTeam(?int $teamId): bool
+    /* public function isSharedWithTeam(?int $teamId): bool
     {
         if (! $this->isGlobal() || $teamId === null) {
             return false;
@@ -197,11 +185,12 @@ class Course extends Model
         }
 
         return $this->teams()->whereKey($teamId)->exists();
-    }
+    } */
 
     public function isVisibleToTeam(?int $teamId): bool
     {
-        return $this->isOwnedByTeam($teamId) || $this->isSharedWithTeam($teamId);
+        //return $this->isOwnedByTeam($teamId) || $this->isSharedWithTeam($teamId);
+        return $this->isOwnedByTeam($teamId);
     }
 
     public function scopeOwnedByTeam(Builder $query, ?int $teamId): Builder
@@ -225,7 +214,7 @@ class Course extends Model
         });
     }
 
-    public function scopeVisibleToTeam(Builder $query, ?int $teamId): Builder
+    /* public function scopeVisibleToTeam(Builder $query, ?int $teamId): Builder
     {
         if ($teamId === null) {
             return $query->whereRaw('1 = 0');
@@ -238,5 +227,5 @@ class Course extends Model
                         ->whereHas('teams', fn (Builder $teamQuery) => $teamQuery->whereKey($teamId));
                 });
         });
-    }
+    } */
 }

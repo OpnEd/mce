@@ -3,11 +3,14 @@
 namespace App\Filament\Resources\Quality\Training\CourseResource\RelationManagers;
 
 use App\Models\Quality\Training\Module;
+use App\Filament\Resources\Quality\Training\ModuleResource;
 use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Enums\ActionsPosition;
 use Filament\Tables\Table;
 
 class ModulesRelationManager extends RelationManager
@@ -15,6 +18,8 @@ class ModulesRelationManager extends RelationManager
     protected static string $relationship = 'modules';
 
     protected static ?string $recordTitleAttribute = 'title';
+
+    protected static ?string $title = 'Módulos';
 
     public function form(Form $form): Form
     {
@@ -59,7 +64,7 @@ class ModulesRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('description')
                     ->label('Descripción')
                     ->limit(50)
-                    ->tooltip(fn (Module $record) => $record->description),
+                    ->tooltip(fn(Module $record) => $record->description),
 
                 Tables\Columns\IconColumn::make('active')
                     ->label('Activo')
@@ -75,18 +80,25 @@ class ModulesRelationManager extends RelationManager
             ])
             ->headerActions([
                 Tables\Actions\CreateAction::make()
-                    ->visible(fn (): bool => $this->ownerRecord->team_id === Filament::getTenant()?->id),
+                //->visible(fn (): bool => $this->ownerRecord->team_id === Filament::getTenant()?->id),
             ])
             ->actions([
-                Tables\Actions\EditAction::make()
-                    ->visible(fn (): bool => $this->ownerRecord->team_id === Filament::getTenant()?->id),
-                Tables\Actions\DeleteAction::make()
-                    ->visible(fn (): bool => $this->ownerRecord->team_id === Filament::getTenant()?->id),
-            ])
+                Tables\Actions\ActionGroup::make([
+                    Action::make('view')
+                        ->label('Ver')
+                        ->icon('heroicon-o-eye')
+                        ->url(fn(Module $record) => ModuleResource::getUrl('view', ['record' => $record]))
+                        ->openUrlInNewTab(),
+                    Tables\Actions\EditAction::make(),
+                    //->visible(fn (): bool => $this->ownerRecord->team_id === Filament::getTenant()?->id),
+                    Tables\Actions\DeleteAction::make(),
+                    //->visible(fn (): bool => $this->ownerRecord->team_id === Filament::getTenant()?->id),
+                ])
+            ], position: ActionsPosition::BeforeColumns)
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
-                        ->visible(fn (): bool => $this->ownerRecord->team_id === Filament::getTenant()?->id),
+                        ->visible(fn(): bool => $this->ownerRecord->team_id === Filament::getTenant()?->id),
                 ]),
             ])
             ->defaultSort('order');

@@ -21,6 +21,11 @@ class AssessmentResource extends Resource
     protected static ?string $pluralModelLabel = 'Evaluaciones';
     protected static ?string $modelLabel = 'Evaluación';
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
+
     public static function form(Form $form): Form
     {
         return $form

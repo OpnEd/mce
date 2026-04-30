@@ -35,7 +35,7 @@ class CourseRepository implements CourseInterface
     {
         return Course::query()
             ->active()
-            ->visibleToTeam($teamId)
+            ->discoverableToTeam($teamId)
             ->with(['instructor'])
             ->orderBy('title')
             ->get();

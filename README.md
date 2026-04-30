@@ -1292,3 +1292,8 @@ FASE 7 (Tests & Deploy)        ⏳ PENDIENTE
 ¿Deseas proceder con **FASE 5 - Eventos & Auditoría**? 🚀
 
 Made changes.
+
+Funcionamiento de las evaluaciones
+
+
+

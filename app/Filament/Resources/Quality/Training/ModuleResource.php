@@ -6,6 +6,7 @@ use App\Filament\Resources\Quality\Training\ModuleResource\Pages;
 use App\Filament\Resources\Quality\Training\ModuleResource\RelationManagers;
 use App\Traits\Filament\Training\HasModuleFormAndTable;
 use Filament\Forms\Form;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables\Table;
 use App\Models\Quality\Training\Module;
@@ -31,6 +32,11 @@ class ModuleResource extends Resource
         return false;
     }
 
+    public static function isScopedToTenant(): bool
+    {
+        return false;
+    }
+
     public static function form(Form $form): Form
     {
         return static::buildModuleForm($form);
@@ -39,6 +45,11 @@ class ModuleResource extends Resource
     public static function table(Table $table): Table
     {
         return static::buildModuleTable($table);
+    }
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return static::buildModuleInfolist($infolist);
     }
 
     public static function getRelations(): array
@@ -58,11 +69,24 @@ class ModuleResource extends Resource
         ];
     }
 
-    public static function getEloquentQuery(): Builder
+    /* public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
             ->whereHas('course', fn (Builder $query) => $query->ownedByTeam(Filament::getTenant()?->id))
             ->with(['course'])
             ->withCount('lessons');
+    } */
+
+    public static function getEloquentQuery(): Builder
+    {
+        $tenantId = Filament::getTenant()->id;
+
+        return parent::getEloquentQuery()
+            ->whereHas('course', function ($query) use ($tenantId) {
+                $query->where(function ($q) use ($tenantId) {
+                    $q->where('team_id', $tenantId)
+                        ->orWhereNull('team_id');
+                });
+            });
     }
 }

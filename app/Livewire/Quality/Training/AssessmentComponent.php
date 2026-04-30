@@ -32,7 +32,7 @@ class AssessmentComponent extends Component
 
     public function mount(Assessment $assessment, Enrollment $enrollment): void
     {
-        $this->assessment = $assessment->loadMissing('questions.question_options');
+        $this->assessment = $assessment->loadMissing('questions.questionOptions');
         $this->enrollment = $enrollment;
         $this->assessmentService = app(AssessmentService::class);
         $this->syncRemainingAttempts();

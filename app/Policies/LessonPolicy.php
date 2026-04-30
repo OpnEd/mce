@@ -2,42 +2,47 @@
 
 namespace App\Policies;
 
+use App\Enums\PermissionType;
 use App\Models\Quality\Training\Lesson;
+use App\Models\Quality\Training\Module;
 use App\Models\User;
-use Filament\Facades\Filament;
+use App\Traits\Filament\Training\HandlesTrainingAuthorization;
 
 class LessonPolicy
 {
+    use HandlesTrainingAuthorization;
+
     public function viewAny(User $user): bool
     {
-        return Filament::getTenant() !== null;
+        return $this->hasPermission($user, PermissionType::VIEW_LESSONS);
     }
 
     public function view(User $user, Lesson $lesson): bool
     {
-        return $lesson->module?->course?->isVisibleToTeam(Filament::getTenant()?->id) ?? false;
+        return $this->hasPermission($user, PermissionType::VIEW_LESSONS)
+            && $this->canAccessModel($lesson);
     }
 
     public function create(User $user): bool
     {
-        $tenantId = Filament::getTenant()?->id;
+        return $this->hasPermission($user, PermissionType::CREATE_LESSONS);
+    }
 
-        return $tenantId !== null
-            && ($user->isAdmin() || $user->isInstructor())
-            && $user->teams()->whereKey($tenantId)->exists();
+    public function createForModule(User $user, Module $module): bool
+    {
+        return $this->canCreateInModule($user, $module, PermissionType::CREATE_LESSONS);
     }
 
     public function update(User $user, Lesson $lesson): bool
     {
-        $course = $lesson->module?->course;
-
-        return ($course?->isOwnedByTeam(Filament::getTenant()?->id) ?? false)
-            && ($user->isAdmin() || ($user->isInstructor() && $user->id === $course?->instructor_id));
+        return $this->hasPermission($user, PermissionType::EDIT_LESSONS)
+            && $this->canMutateModel($lesson);
     }
 
     public function delete(User $user, Lesson $lesson): bool
     {
-        return $this->update($user, $lesson);
+        return $this->hasPermission($user, PermissionType::DELETE_LESSONS)
+            && $this->canMutateModel($lesson);
     }
 
     public function restore(User $user, Lesson $lesson): bool

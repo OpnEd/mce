@@ -4,6 +4,8 @@ namespace App\Traits\Filament\Training;
 
 use App\Models\Quality\Training\Lesson;
 use Filament\Facades\Filament;
+use Filament\Infolists\Components;
+use Filament\Infolists\Infolist;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Tables;
@@ -30,9 +32,9 @@ trait HasLessonFormAndTable
                             ->relationship(
                                 name: 'module',
                                 titleAttribute: 'title',
-                                modifyQueryUsing: fn (Builder $query) => $query->whereHas(
+                                modifyQueryUsing: fn(Builder $query) => $query->whereHas(
                                     'course',
-                                    fn (Builder $courseQuery) => $courseQuery->ownedByTeam(Filament::getTenant()?->id)
+                                    fn(Builder $courseQuery) => $courseQuery->ownedByTeam(Filament::getTenant()?->id)
                                 )
                             )
                             ->required(),
@@ -130,7 +132,7 @@ trait HasLessonFormAndTable
                     ->sortable(),
                 Tables\Columns\TextColumn::make('completion_mode')
                     ->label('Modo de cierre')
-                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                    ->formatStateUsing(fn(?string $state): string => match ($state) {
                         Lesson::COMPLETION_MODE_CONSUMPTION_ONLY => 'Solo consumo',
                         Lesson::COMPLETION_MODE_ASSESSMENT_REQUIRED => 'Requiere evaluación',
                         default => $state ?? '-',
@@ -167,6 +169,58 @@ trait HasLessonFormAndTable
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
+            ]);
+    }
+
+    public static function buildLessonInfolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->columns(2)
+            ->schema([
+                Components\Section::make('Resumen de la Lección')
+                    ->description('Información básica y objetivos de aprendizaje.')
+                    ->schema([
+                        Components\TextEntry::make('title')
+                            ->label('Título')
+                            ->weight('bold')
+                            ->size(Components\TextEntry\TextEntrySize::Large)
+                            ->columnSpanFull(),
+
+                        Components\TextEntry::make('description')
+                            ->label('Descripción')
+                            ->markdown()
+                            ->columnSpanFull(),
+
+                        Components\RepeatableEntry::make('objectives')
+                            ->label('Objetivos de Aprendizaje')
+                            ->schema([
+                                Components\TextEntry::make('')
+                                    ->icon('heroicon-m-check')
+                            ])
+                            ->columnSpanFull(),
+
+                        Components\TextEntry::make('duration')
+                            ->label('Duración estimada')
+                            ->suffix(' minutos')
+                            ->icon('heroicon-m-clock'),
+
+                        Components\TextEntry::make('order')
+                            ->label('Posición en el módulo')
+                            ->icon('heroicon-m-hashtag'),
+
+                        Components\IconEntry::make('active')
+                            ->label('Estado de publicación')
+                            ->boolean(),
+
+                        Components\TextEntry::make('completion_mode')
+                            ->label('Modo de Finalización')
+                            ->badge()
+                            ->formatStateUsing(fn($state) => match ($state) {
+                                Lesson::COMPLETION_MODE_CONSUMPTION_ONLY => 'Solo consumo',
+                                Lesson::COMPLETION_MODE_ASSESSMENT_REQUIRED => 'Requiere evaluación',
+                                default => $state,
+                            }),
+                    ])
             ]);
     }
 }

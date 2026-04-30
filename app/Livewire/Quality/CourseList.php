@@ -53,7 +53,7 @@ class CourseList extends Component
         $teamId = Filament::getTenant()->id;
         $userId = Auth::id();
         $course = Course::query()
-            ->visibleToTeam($teamId)
+            ->discoverableToTeam($teamId)
             ->active()
             ->findOrFail($this->selectedCourseId);
 

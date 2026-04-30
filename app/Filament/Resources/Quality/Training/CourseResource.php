@@ -6,6 +6,7 @@ use App\Filament\Resources\Quality\Training\CourseResource\Pages;
 use App\Filament\Resources\Quality\Training\CourseResource\RelationManagers;
 use App\Traits\Filament\Training\HasCourseFormAndTable;
 use Filament\Forms\Form;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables\Table;
 use App\Models\Quality\Training\Course;
@@ -27,7 +28,7 @@ class CourseResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Cursos';
 
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 1;
     protected static ?string $navigationGroup = 'Universidad';
 
     public static function getEloquentQuery(): Builder
@@ -48,11 +49,16 @@ class CourseResource extends Resource
         return static::buildCourseTable($table);
     }
 
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return static::buildCourseInfolist($infolist);
+    }
+
     public static function getRelations(): array
     {
         return [
             RelationManagers\ModulesRelationManager::class,
-            RelationManagers\EnrollmentsRelationManager::class,
+            //RelationManagers\EnrollmentsRelationManager::class,
         ];
     }
 

@@ -25,6 +25,11 @@ class AuditLogResource extends Resource
     protected static ?string $pluralModelLabel = 'Registros de Auditoría';
     protected static ?int $navigationSort = 50;
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->isInstructor() ?? false;
+    }
+
     public static function form(Form $form): Form
     {
         return $form

@@ -47,7 +47,7 @@
                         <div class="space-y-3">
                             @if ($question->isMultipleChoiceSingle() || $question->isTrueFalse())
                                 <div class="space-y-2">
-                                    @foreach ($question->question_options as $option)
+                                    @foreach ($question->questionOptions as $option)
                                         <label
                                             class="flex cursor-pointer items-start gap-3 rounded-lg border border-gray-200 p-3 hover:bg-gray-50 dark:border-white/10 dark:hover:bg-gray-800/50"
                                             wire:key="single-option-{{ $question->id }}-{{ $option->id }}"
@@ -65,7 +65,7 @@
                                 </div>
                             @elseif ($question->isMultipleChoiceMultiple())
                                 <div class="space-y-2">
-                                    @foreach ($question->question_options as $option)
+                                    @foreach ($question->questionOptions as $option)
                                         <label
                                             class="flex cursor-pointer items-start gap-3 rounded-lg border border-gray-200 p-3 hover:bg-gray-50 dark:border-white/10 dark:hover:bg-gray-800/50"
                                             wire:key="multi-option-{{ $question->id }}-{{ $option->id }}"

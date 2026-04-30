@@ -13,7 +13,6 @@ class Module extends Model
     use HasFactory;
 
     protected $fillable = [
-        'team_id',
         'course_id',
         'title',
         'objective',

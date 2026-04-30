@@ -2,19 +2,25 @@
 
 namespace App\Filament\Resources\Quality\Training\ModuleResource\RelationManagers;
 
+use App\Filament\Resources\Quality\Training\LessonResource;
 use App\Models\Quality\Training\Lesson;
 use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Enums\ActionsPosition;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class LessonsRelationManager extends RelationManager
 {
     protected static string $relationship = 'lessons';
 
     protected static ?string $recordTitleAttribute = 'title';
+
+    protected static ?string $title = 'Lecciones';
 
     public function form(Form $form): Form
     {
@@ -74,11 +80,13 @@ class LessonsRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->where('active', true))
             ->recordTitleAttribute('title')
             ->columns([
                 Tables\Columns\TextColumn::make('order')
                     ->label('Orden')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('title')
                     ->label('Título')
@@ -90,8 +98,9 @@ class LessonsRelationManager extends RelationManager
                     ->formatStateUsing(fn ($state) => $state ? "{$state} min" : '-')
                     ->sortable(),
 
-                Tables\Columns\BadgeColumn::make('completion_mode')
+                Tables\Columns\TextColumn::make('completion_mode')
                     ->label('Finalización')
+                    ->badge()
                     ->colors([
                         'info' => 'consumption_only',
                         'warning' => 'assessment_required',
@@ -118,15 +127,19 @@ class LessonsRelationManager extends RelationManager
                     ]),
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make()
-                    ->visible(fn (): bool => $this->ownerRecord->course?->team_id === Filament::getTenant()?->id),
+                Tables\Actions\CreateAction::make(),
             ])
             ->actions([
-                Tables\Actions\EditAction::make()
-                    ->visible(fn (): bool => $this->ownerRecord->course?->team_id === Filament::getTenant()?->id),
-                Tables\Actions\DeleteAction::make()
-                    ->visible(fn (): bool => $this->ownerRecord->course?->team_id === Filament::getTenant()?->id),
-            ])
+                Tables\Actions\ActionGroup::make([
+                Action::make('view')
+                    ->label('Ver')
+                    ->icon('heroicon-o-eye')
+                    ->url(fn (Lesson $record) => LessonResource::getUrl('view', ['record' => $record]))
+                    ->openUrlInNewTab(),
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ])
+            ], position: ActionsPosition::BeforeColumns)
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()

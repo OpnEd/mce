@@ -13,7 +13,16 @@ class ViewCourse extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            Actions\Action::make('backToIndex')
+                ->label('Volver a la lista de cursos')
+                ->icon('heroicon-o-arrow-left')
+                ->url(fn () => static::$resource::getUrl('index')),
             Actions\EditAction::make(),
         ];
+    }
+
+    public function getTitle(): string
+    {
+        return 'Detalles del curso';
     }
 }

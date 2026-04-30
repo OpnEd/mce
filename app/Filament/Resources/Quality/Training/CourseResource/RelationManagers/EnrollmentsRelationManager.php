@@ -3,11 +3,13 @@
 namespace App\Filament\Resources\Quality\Training\CourseResource\RelationManagers;
 
 use App\Models\Quality\Training\Enrollment;
+use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 
 class EnrollmentsRelationManager extends RelationManager
@@ -15,6 +17,14 @@ class EnrollmentsRelationManager extends RelationManager
     protected static string $relationship = 'enrollments';
 
     protected static ?string $recordTitleAttribute = 'id';
+    
+    protected static ?string $title = 'Inscripciones';
+
+    protected function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->where('team_id', Filament::getTenant()?->id);
+    }
 
     public function form(Form $form): Form
     {
@@ -22,7 +32,16 @@ class EnrollmentsRelationManager extends RelationManager
             ->schema([
                 Forms\Components\Select::make('user_id')
                     ->label('Estudiante')
-                    ->relationship('user', 'name')
+                    ->relationship(
+                        name: 'user',
+                        titleAttribute: 'name',
+                        modifyQueryUsing: fn (Builder $query) => $query->whereHas(
+                            'teams',
+                            fn ($q) => $q->whereKey(Filament::getTenant()?->id)
+                        )
+                    )
+                    ->searchable()
+                    ->preload()
                     ->required(),
 
                 Forms\Components\Select::make('status')
@@ -57,8 +76,9 @@ class EnrollmentsRelationManager extends RelationManager
                     ->label('Email')
                     ->searchable(),
 
-                Tables\Columns\BadgeColumn::make('status')
+                Tables\Columns\TextColumn::make('status')
                     ->label('Estado')
+                    ->badge()
                     ->colors([
                         'warning' => 'not_started',
                         'info' => 'in_progress',
@@ -104,7 +124,11 @@ class EnrollmentsRelationManager extends RelationManager
                     ]),
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make(),
+                Tables\Actions\CreateAction::make()
+                    ->mutateFormDataUsing(function (array $data): array {
+                        $data['team_id'] = Filament::getTenant()?->id;
+                        return $data;
+                    }),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
