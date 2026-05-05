@@ -2,6 +2,7 @@
 
 namespace App\Models\Quality\Records\Cleaning;
 
+use App\Traits\HasTeamScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CleaningRecord extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, HasTeamScope, SoftDeletes;
 
     protected $table = 'cleaning_records';
 

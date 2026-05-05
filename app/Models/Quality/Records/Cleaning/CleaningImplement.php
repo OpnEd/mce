@@ -2,15 +2,15 @@
 
 namespace App\Models\Quality\Records\Cleaning;
 
+use App\Traits\HasTeamScope;
 use App\Models\Quality\Records\Cleaning\StablishmentArea;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Stancl\Tenancy\Database\Concerns\BelongsToTenant;
 
 class CleaningImplement extends Model
 {
-    use SoftDeletes;
+    use HasTeamScope, SoftDeletes;
 
     protected $table = 'cleaning_implements';
 

@@ -2,15 +2,15 @@
 
 namespace App\Models\Quality\Records\Cleaning;
 
+use App\Traits\HasTeamScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\Quality\Records\Cleaning\StablishmentArea;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Stancl\Tenancy\Database\Concerns\BelongsToTenant;
 
 class Desinfectant extends Model
 {
-    use HasFactory;
+    use HasFactory, HasTeamScope;
 
     protected $table = 'desinfectants';
 

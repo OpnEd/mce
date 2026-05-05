@@ -1291,9 +1291,107 @@ FASE 7 (Tests & Deploy)        ⏳ PENDIENTE
 
 ¿Deseas proceder con **FASE 5 - Eventos & Auditoría**? 🚀
 
-Made changes.
+Refactorización POS
 
-Funcionamiento de las evaluaciones
+**Prioridad Alta**
+
+- La estrategia de multitenancy está inconsistente entre módulos. En el panel `Pos` solo veo scopes explícitos por middleware para `Inventory` y `Customer` ([ApplyTenantScopes.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Http\Middleware\ApplyTenantScopes.php:14>), [CustomerMiddleware.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Http\Middleware\CustomerMiddleware.php:19>)), mientras `Invoice` sí usa un `TeamScope` propio ([Invoice.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Models\Invoice.php:37>)) y recursos como `Purchase`, `ProductReception` y `Batch` no muestran una estrategia equivalente en el código que revisamos. Eso hace que el aislamiento por tenant no se vea uniforme ni fácil de razonar. Candidato de refactor: definir una sola convención para todos los modelos POS, idealmente a nivel modelo/scope y no repartida entre middleware, hooks de creación y comportamiento implícito del panel.
+
+- La venta genera códigos con `team_id = 1` hardcodeado, ignorando el tenant actual ([Sale.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Models\Sale.php:62>)). En un panel multi-sede esto puede provocar numeración cruzada o colisiones semánticas entre equipos. Candidato de refactor: mover la generación de código a un servicio o al modelo usando siempre `Filament::getTenant()` o el `team_id` ya asignado a la venta.
+
+- El flujo del panel `Pos` salta a resources globales fuera del namespace `App\Filament\Pos`. La venta redirige a `\App\Filament\Resources\InvoiceResource` ([InventoryCartComponent.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Livewire\Pos\InventoryCartComponent.php:277>)) y la compra clonada a recepción redirige a `\App\Filament\Resources\ProductReceptionResource` ([PurchaseResource.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Filament\Pos\Resources\PurchaseResource.php:163>)). Eso rompe la idea de un panel autocontenido y vuelve difusa la navegación. Candidato de refactor: decidir si `Pos` es un bounded context real o solo una vista parcial, y alinear todas las URLs al mismo namespace.
+
+- Las políticas de compra hoy están prácticamente abiertas. `viewAny`, `view`, `create`, `update`, `delete` y `confirm` devuelven `true` ([PurchasePolicy.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Policies\PurchasePolicy.php:22>), [PurchasePolicy.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Policies\PurchasePolicy.php:81>)). Como varias acciones del recurso usan `Gate::allows(...)`, en la práctica esas restricciones están desactivadas. Candidato de refactor: reactivar una política real por tenant y por estado del documento.
+
+**Prioridad Media**
+
+- `CreatePurchase` parece un flujo residual o roto: al crear fuerza `supplier_id = Supplier::find(10)->id` ([CreatePurchase.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Filament\Pos\Resources\PurchaseResource\Pages\CreatePurchase.php:14>)). Si el proveedor 10 no existe, falla; si existe, el usuario no controla realmente el proveedor. Candidato de refactor: eliminar esta página si ya no se usa, o hacer que comparta la misma lógica que `quickPurchase`.
+
+- El módulo de compras tiene demasiados caminos para crear una compra y no siguen la misma lógica:
+  - `Registro simple` crea una compra ya `confirmed` ([ListPurchases.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Filament\Pos\Resources\PurchaseResource\Pages\ListPurchases.php:37>)).
+  - `Iniciar Pedido!` crea una `in_progress` con un item inicial ([ListPurchases.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Filament\Pos\Resources\PurchaseResource\Pages\ListPurchases.php:78>)).
+  - `CreatePurchase` existe aparte con comportamiento distinto ([CreatePurchase.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Filament\Pos\Resources\PurchaseResource\Pages\CreatePurchase.php:10>)).
+  
+  Candidato de refactor: dejar un único flujo principal y, si hacen falta dos variantes, que ambas reutilicen un mismo servicio de creación.
+
+- La obtención de precios en `quickPurchase` es frágil. Se usa `CentralProductPrice::find($get('product_id'))?->price` ([ListPurchases.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Filament\Pos\Resources\PurchaseResource\Pages\ListPurchases.php:102>)), pero `CentralProductPrice` tiene `product_id` como campo de negocio, no como PK semántica ([CentralProductPrice.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Models\CentralProductPrice.php:13>)). Si el id de la fila no coincide con el id del producto, el precio queda mal o en cero. Candidato de refactor: consultar por `where('product_id', ...)` o encapsularlo en un servicio/repositorio.
+
+- El widget `ReplenableProducts` usa `min_stock`, pero el modelo `PeripheralProductPrice` expone `min` como campo fillable ([ReplenableProducts.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Filament\Pos\Widgets\ReplenableProducts.php:33>), [PeripheralProductPrice.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Models\PeripheralProductPrice.php:13>)). Eso huele a desalineación entre esquema, modelo y consulta. Candidato de refactor: normalizar el nombre del campo y centralizar la consulta de stock mínimo.
+
+- `RecentSales` dice “latest 10 sales” en comentario, pero la query no tiene `limit(10)` ([RecentSales.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Filament\Pos\Widgets\RecentSales.php:19>)). No es grave, pero muestra que la intención funcional y la implementación se separaron. Candidato de refactor: o limitar realmente, o corregir comentario/nombre.
+
+**Prioridad Baja**
+
+- Hay varios detalles de UI/modelo desalineados en resources:
+  - `BatchResource` crea/edita `sanitary_registry`, pero en tabla muestra `sanitary_registry_id` ([BatchResource.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Filament\Pos\Resources\BatchResource.php:34>), [BatchResource.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Filament\Pos\Resources\BatchResource.php:58>)).
+  - `InvoiceResource` pide `team_id` manualmente en el formulario aunque el modelo ya lo completa al crear ([InvoiceResource.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Filament\Pos\Resources\InvoiceResource.php:28>), [Invoice.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Models\Invoice.php:41>)).
+  - `CustomerResource` usa `Textarea` para `data`, mientras el modelo lo castea como array, lo que no encaja bien con el patrón de `KeyValue` usado en otros módulos ([CustomerResource.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Filament\Pos\Resources\CustomerResource.php:47>), [Customer.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Models\Customer.php:28>)).
+  
+  Candidato de refactor: revisar coherencia de formularios con el schema real y estandarizar componentes.
+
+- El panel provider tiene pequeñas señales de deuda:
+  - `authMiddleware()` está declarado dos veces seguidas ([PosPanelProvider.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Providers\Filament\PosPanelProvider.php:59>)).
+  - hay mezcla de recursos propios del POS con un resource ajeno (`EnvironmentalRecordResource`) registrado manualmente ([PosPanelProvider.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Providers\Filament\PosPanelProvider.php:71>)).
+  
+  No rompe nada por sí solo, pero complica entender los límites del panel.
+
+- Hay bastante texto mojibake/encoding roto en labels y mensajes: “RecepciÃ³n”, “NÃºmero”, “CÃ³digo”, etc. Se ve en varios resources y relation managers, por ejemplo en compras y recepción ([PurchaseResource.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Filament\Pos\Resources\PurchaseResource.php:46>), [ProductReceptionResource.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Filament\Pos\Resources\ProductReceptionResource.php:41>)). Candidato de refactor: normalizar codificación UTF-8 en archivos del módulo.
+
+**Qué atacaría primero**
+1. Unificar tenancy y permisos.
+2. Arreglar navegación cruzada entre `Pos` y resources globales.
+3. Corregir generación de códigos y lookup de precios.
+4. Simplificar el flujo de creación de compras.
+5. Hacer limpieza de formularios/widgets y encoding.
+
+Si quieres, puedo seguir con un paso más concreto: te preparo un plan de refactor por fases para el panel `Pos`, empezando por los cambios de menor riesgo y mayor impacto.
 
 
+**Plan De Refactor**
 
+Lo haría en 5 fases, empezando por lo que más reduce riesgo sin cambiar demasiado la experiencia del usuario.
+
+1. **Blindaje y línea base**
+   Objetivo: poder tocar el panel sin romper ventas, compras o stock.
+   - Documentar el flujo actual en código y agregar pruebas mínimas de humo para `venta`, `compra`, `recepción` y `descuento de inventario`.
+   - Verificar los puntos sensibles: [InventoryCartComponent.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Livewire\Pos\InventoryCartComponent.php:234>), [SaleItemObserver.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Observers\SaleItemObserver.php:16>), [PurchaseResource.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Filament\Pos\Resources\PurchaseResource.php:124>), [ProductReceptionResource ItemsRelationManager](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Filament\Pos\Resources\ProductReceptionResource\RelationManagers\ItemsRelationManager.php:116>).
+   - Limpiar detalles seguros como el `authMiddleware()` duplicado en [PosPanelProvider.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Providers\Filament\PosPanelProvider.php:59>).
+   Resultado esperado: una base estable para refactorizar con confianza.
+
+2. **Tenancy y permisos**
+   Objetivo: que todo el panel POS se comporte igual por `team`.
+   - Definir una sola estrategia de scope por tenant para modelos POS: `Sale`, `Purchase`, `ProductReception`, `Batch`, `Invoice`, `Customer`, `Inventory`.
+   - Reducir dependencia de middleware ad hoc como [ApplyTenantScopes.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Http\Middleware\ApplyTenantScopes.php:14>) y [CustomerMiddleware.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Http\Middleware\CustomerMiddleware.php:19>), o al menos dejar explícito cuándo se usan.
+   - Rehabilitar políticas reales en [PurchasePolicy.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Policies\PurchasePolicy.php:22>) y equivalentes.
+   Resultado esperado: aislamiento consistente por sede/equipo y reglas claras de acceso.
+
+3. **Límites del panel POS**
+   Objetivo: que `Pos` sea autoconsistente.
+   - Decidir si `Pos` será un panel cerrado o una mezcla con resources globales.
+   - Si será cerrado, cambiar redirecciones que hoy saltan a resources globales desde [InventoryCartComponent.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Livewire\Pos\InventoryCartComponent.php:277>) y [PurchaseResource.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Filament\Pos\Resources\PurchaseResource.php:163>).
+   - Revisar si [EnvironmentalRecordResource](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Filament\Resources\EnvironmentalRecordResource.php:1>) debe vivir en este panel o no.
+   Resultado esperado: navegación predecible y arquitectura más limpia.
+
+4. **Consolidación de flujos de negocio**
+   Objetivo: reducir caminos duplicados y lógica dispersa.
+   - Unificar la creación de compras: `Registro simple`, `Iniciar Pedido!` y [CreatePurchase.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Filament\Pos\Resources\PurchaseResource\Pages\CreatePurchase.php:10>) deberían apoyarse en un solo servicio.
+   - Sacar de UI la lógica sensible de creación de `Sale`, `Invoice`, clonación a recepción y confirmaciones, moviéndola a servicios de aplicación.
+   - Corregir generación de códigos en [Sale.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Models\Sale.php:62>) y lookup de precios en [ListPurchases.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Filament\Pos\Resources\PurchaseResource\Pages\ListPurchases.php:102>).
+   Resultado esperado: menos duplicación, menos bugs silenciosos y reglas de negocio centralizadas.
+
+5. **Coherencia de UI y datos**
+   Objetivo: dejar el módulo mantenible y consistente.
+   - Alinear formularios con el schema real: por ejemplo [InvoiceResource.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Filament\Pos\Resources\InvoiceResource.php:28>), [BatchResource.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Filament\Pos\Resources\BatchResource.php:34>), [CustomerResource.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Filament\Pos\Resources\CustomerResource.php:47>).
+   - Normalizar nombres de campos como `min` vs `min_stock` en [PeripheralProductPrice.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Models\PeripheralProductPrice.php:13>) y [ReplenableProducts.php](<C:\Users\PAOLA\Herd\d-origin2.0.0\app\Filament\Pos\Widgets\ReplenableProducts.php:33>).
+   - Corregir encoding roto en labels y mensajes.
+   Resultado esperado: panel más profesional, claro y fácil de mantener.
+
+**Orden recomendado**
+Primero haría `fase 1 + fase 2`, luego `fase 3`, después `fase 4`, y cerraría con `fase 5`. Ese orden minimiza regresiones y evita refactorizar dos veces lo mismo.
+
+**Si quieres que avancemos ya**
+Puedo empezar por una **fase 1-2 acotada**, que sería la mejor relación impacto/riesgo:
+- corregir `team_id` hardcodeado en ventas,
+- eliminar redirecciones a resources globales más evidentes,
+- limpiar `CreatePurchase`,
+- y dejar una estrategia uniforme de tenancy para los modelos POS principales.
